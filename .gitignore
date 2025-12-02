@@ -1,0 +1,28 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub-cache/
+build/
+coverage/
+pubspec.lock
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Platform-specific
+android/.gradle/
+android/local.properties
+ios/Pods/
+ios/.symlinks/
+macos/Pods/
+linux/flutter/
+windows/flutter/
+web/.firebase/
+
+# Misc
+*.log
+*.tmp
+*.swp
+.DS_Store
