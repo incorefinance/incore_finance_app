@@ -52,10 +52,9 @@ class _DashboardHomeState extends State<DashboardHome> {
   List<Map<String, dynamic>> _balanceData = [];
   bool _isLoadingBalanceData = true;
 
-  // Mock data for month-over-month comparison
-  final double _incomeChange = 8.3;
-  final double _expenseChange = -5.2;
-  final double _savingsChange = 15.7;
+  // Month-over-month percentage changes (real data)
+  double _incomeChange = 0.0;
+  double _expenseChange = 0.0;
 
   @override
   void initState() {
@@ -77,7 +76,7 @@ class _DashboardHomeState extends State<DashboardHome> {
     }
   }
 
-  Future<void> _loadMonthlyProfit() async {
+    Future<void> _loadMonthlyProfit() async {
     setState(() {
       _isLoadingDashboard = true;
       _dashboardError = null;
@@ -137,14 +136,37 @@ class _DashboardHomeState extends State<DashboardHome> {
 
       final prevProfit = prevIncome - prevExpense;
 
-      double percentageChange = 0.0;
+      // Profit percentage change month over month
+      double profitPercentageChange = 0.0;
       if (prevProfit != 0) {
-        percentageChange = ((currentProfit - prevProfit) / prevProfit) * 100;
+        profitPercentageChange =
+            ((currentProfit - prevProfit) / prevProfit) * 100;
+      }
+
+      // Income month-over-month change
+      double incomeChange = 0.0;
+      if (prevIncome != 0) {
+        incomeChange = ((currentIncome - prevIncome) / prevIncome) * 100;
+      } else if (currentIncome != 0) {
+        // No previous income but we have income now
+        incomeChange = 100.0;
+      }
+
+      // Expenses month-over-month change
+      double expenseChange = 0.0;
+      if (prevExpense != 0) {
+        expenseChange =
+            ((currentExpense - prevExpense) / prevExpense) * 100;
+      } else if (currentExpense != 0) {
+        // No previous expenses but we have expenses now
+        expenseChange = 100.0;
       }
 
       setState(() {
         _monthlyProfit = currentProfit;
-        _profitPercentageChange = percentageChange;
+        _profitPercentageChange = profitPercentageChange;
+        _incomeChange = incomeChange;
+        _expenseChange = expenseChange;
         _isProfit = currentProfit >= 0;
         _isLoadingDashboard = false;
       });
@@ -618,7 +640,6 @@ class _DashboardHomeState extends State<DashboardHome> {
               child: ComparisonMetricsCard(
                 incomeChange: _incomeChange,
                 expenseChange: _expenseChange,
-                savingsChange: _savingsChange,
               ),
             ),
 

@@ -4,17 +4,15 @@ import 'package:sizer/sizer.dart';
 import '../../../core/app_export.dart';
 
 /// Month-over-month comparison metrics card
-/// Displays income, expenses, and savings comparison
+/// Displays income and expenses comparison
 class ComparisonMetricsCard extends StatelessWidget {
   final double incomeChange;
   final double expenseChange;
-  final double savingsChange;
 
   const ComparisonMetricsCard({
     super.key,
     required this.incomeChange,
     required this.expenseChange,
-    required this.savingsChange,
   });
 
   @override
@@ -62,13 +60,6 @@ class ComparisonMetricsCard extends StatelessWidget {
             expenseChange,
             'shopping_cart',
           ),
-          SizedBox(height: 1.5.h),
-          _buildMetricRow(
-            context,
-            'Savings',
-            savingsChange,
-            'savings',
-          ),
         ],
       ),
     );
@@ -94,8 +85,8 @@ class ComparisonMetricsCard extends StatelessWidget {
           ),
           child: CustomIconWidget(
             iconName: iconName,
-            color: colorScheme.primary,
-            size: 20,
+            color: isPositive ? AppTheme.successGreen : AppTheme.errorRed,
+            size: 16,
           ),
         ),
         SizedBox(width: 3.w),
@@ -112,11 +103,11 @@ class ComparisonMetricsCard extends StatelessWidget {
               SizedBox(height: 0.3.h),
               Row(
                 children: [
-                  CustomIconWidget(
-                    iconName: isPositive ? 'arrow_upward' : 'arrow_downward',
+                  Icon(
+                    isPositive ? Icons.arrow_upward : Icons.arrow_downward,
+                    size: 14,
                     color:
                         isPositive ? AppTheme.successGreen : AppTheme.errorRed,
-                    size: 14,
                   ),
                   SizedBox(width: 1.w),
                   Text(
