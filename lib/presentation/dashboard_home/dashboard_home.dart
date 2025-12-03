@@ -262,7 +262,7 @@ class _DashboardHomeState extends State<DashboardHome> {
 
       // Process transactions and calculate daily net changes
       for (final tx in transactions) {
-        final txDate = DateTime.parse(tx['transaction_date'] as String);
+        final txDate = DateTime.parse(tx['date'] as String);
         final dateKey =
             '${txDate.year}-${txDate.month.toString().padLeft(2, '0')}-${txDate.day.toString().padLeft(2, '0')}';
         final type = (tx['type'] as String?) ?? '';
