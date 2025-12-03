@@ -4,7 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../../core/app_export.dart';
 
 /// Month-over-month comparison metrics card
-/// Displays income and expenses comparison
+/// Displays income and expenses comparison against last month
 class ComparisonMetricsCard extends StatelessWidget {
   final double incomeChange;
   final double expenseChange;
@@ -46,19 +46,30 @@ class ComparisonMetricsCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          SizedBox(height: 0.5.h),
+          Text(
+            'Compared with last month',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
           SizedBox(height: 2.h),
           _buildMetricRow(
             context,
-            'Income',
-            incomeChange,
-            'attach_money',
+            label: 'Income',
+            change: incomeChange,
+            iconName: 'attach_money',
+            // For income, an increase is good
+            positiveIsGood: true,
           ),
           SizedBox(height: 1.5.h),
           _buildMetricRow(
             context,
-            'Expenses',
-            expenseChange,
-            'shopping_cart',
+            label: 'Expenses',
+            change: expenseChange,
+            iconName: 'shopping_cart',
+            // For expenses, a decrease is good
+            positiveIsGood: false,
           ),
         ],
       ),
@@ -66,14 +77,30 @@ class ComparisonMetricsCard extends StatelessWidget {
   }
 
   Widget _buildMetricRow(
-    BuildContext context,
-    String label,
-    double change,
-    String iconName,
-  ) {
+    BuildContext context, {
+    required String label,
+    required double change,
+    required String iconName,
+    required bool positiveIsGood,
+  }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isPositive = change >= 0;
+
+    final bool isIncrease = change >= 0;
+
+    // For income: increase is good.
+    // For expenses: increase is bad, decrease is good.
+    bool isGood;
+    if (change == 0) {
+      isGood = true;
+    } else if (isIncrease) {
+      isGood = positiveIsGood;
+    } else {
+      isGood = !positiveIsGood;
+    }
+
+    final Color trendColor =
+        isGood ? AppTheme.successGreen : AppTheme.errorRed;
 
     return Row(
       children: [
@@ -85,7 +112,7 @@ class ComparisonMetricsCard extends StatelessWidget {
           ),
           child: CustomIconWidget(
             iconName: iconName,
-            color: isPositive ? AppTheme.successGreen : AppTheme.errorRed,
+            color: trendColor,
             size: 16,
           ),
         ),
@@ -104,18 +131,15 @@ class ComparisonMetricsCard extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    isPositive ? Icons.arrow_upward : Icons.arrow_downward,
+                    isIncrease ? Icons.arrow_upward : Icons.arrow_downward,
                     size: 14,
-                    color:
-                        isPositive ? AppTheme.successGreen : AppTheme.errorRed,
+                    color: trendColor,
                   ),
                   SizedBox(width: 1.w),
                   Text(
                     '${change.abs().toStringAsFixed(1)}%',
                     style: theme.textTheme.labelMedium?.copyWith(
-                      color: isPositive
-                          ? AppTheme.successGreen
-                          : AppTheme.errorRed,
+                      color: trendColor,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
