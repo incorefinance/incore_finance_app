@@ -120,6 +120,9 @@ class ComparisonMetricsCard extends StatelessWidget {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            // ✅ Minimal hardening for tight-height parents
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Text(
                 label,

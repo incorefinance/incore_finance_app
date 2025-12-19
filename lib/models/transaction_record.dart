@@ -1,3 +1,5 @@
+// lib/models/transaction_record.dart
+
 class TransactionRecord {
   final String id;
   final String userId;
@@ -35,8 +37,15 @@ class TransactionRecord {
       parsedAmount = 0.0;
     }
 
-    final rawDate = map['date']?.toString();
-    final parsedDate = rawDate != null ? DateTime.tryParse(rawDate) ?? DateTime.now() : DateTime.now();
+    final dateValue = map['date'];
+    DateTime parsedDate;
+    if (dateValue is String) {
+      parsedDate = DateTime.parse(dateValue);
+    } else if (dateValue is DateTime) {
+      parsedDate = dateValue;
+    } else {
+      parsedDate = DateTime.now();
+    }
 
     return TransactionRecord(
       id: map['id']?.toString() ?? '',
@@ -47,7 +56,8 @@ class TransactionRecord {
       type: map['type']?.toString() ?? '',
       date: parsedDate,
       paymentMethod: map['payment_method']?.toString(),
-      client: (map['client'] ?? map['client_name'])?.toString(),
+      // Tolerant on reads: if you ever had client_name in old data, it still works.
+      client: (map['client'] ?? map['client'])?.toString(),
     );
   }
 
@@ -61,7 +71,8 @@ class TransactionRecord {
       'type': type,
       'date': date.toIso8601String(),
       'payment_method': paymentMethod,
-      'client_name': client,
+      // IMPORTANT: this must match Supabase -> column name is `client`
+      'client': client,
     };
   }
 }

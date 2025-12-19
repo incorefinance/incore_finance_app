@@ -62,7 +62,9 @@ class MonthlyProfitCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // ✅ Minimal fix: shrink-wrap + no spaceBetween
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -75,7 +77,7 @@ class MonthlyProfitCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
+                padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.4.h),
                 decoration: BoxDecoration(
                   color: isProfit
                       ? AppTheme.successGreen.withValues(alpha: 0.2)
@@ -106,11 +108,11 @@ class MonthlyProfitCard extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 2.h),
+          SizedBox(height: 1.8.h),
           Text(
             formatted,
             style: theme.textTheme.displaySmall?.copyWith(
-              color: Color(0XFFFFFFFF),
+              color: const Color(0XFFFFFFFF),
               fontFamily: 'Inter_regular',
               fontSize: 25,
               fontWeight: FontWeight.w700,
@@ -119,7 +121,7 @@ class MonthlyProfitCard extends StatelessWidget {
               wordSpacing: 0,
             ),
           ),
-          SizedBox(height: 1.h),
+          SizedBox(height: 0.8.h),
           Text(
             isProfit ? 'Net Profit' : 'Net Loss',
             style: theme.textTheme.bodyMedium?.copyWith(

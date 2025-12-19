@@ -77,271 +77,270 @@ class _DashboardHomeState extends State<DashboardHome> {
     }
   }
 
-Future<void> _loadMonthlyProfit() async {
-  setState(() {
-    _isLoadingDashboard = true;
-    _dashboardError = null;
-  });
-
-  try {
-    final now = DateTime.now();
-
-    // Current month range
-    final currentMonthStart = DateTime(now.year, now.month, 1);
-    final nextMonthStart = now.month == 12
-        ? DateTime(now.year + 1, 1, 1)
-        : DateTime(now.year, now.month + 1, 1);
-    final currentMonthEnd = nextMonthStart.subtract(const Duration(days: 1));
-
-    final List<TransactionRecord> currentTxs =
-        await _transactionsRepository.getTransactionsByDateRangeTyped(
-      currentMonthStart,
-      currentMonthEnd,
-    );
-
-    double currentIncome = 0;
-    double currentExpense = 0;
-
-    for (final tx in currentTxs) {
-      final type = tx.type;
-      final amount = tx.amount;
-
-      if (type == 'income') {
-        currentIncome += amount;
-      } else if (type == 'expense') {
-        currentExpense += amount;
-      }
-    }
-
-    final currentProfit = currentIncome - currentExpense;
-
-    // Previous month range
-    final prevMonthEnd = currentMonthStart.subtract(const Duration(days: 1));
-    final prevMonthStart = DateTime(prevMonthEnd.year, prevMonthEnd.month, 1);
-
-    final List<TransactionRecord> prevTxs =
-        await _transactionsRepository.getTransactionsByDateRangeTyped(
-      prevMonthStart,
-      prevMonthEnd,
-    );
-
-    double prevIncome = 0;
-    double prevExpense = 0;
-
-    for (final tx in prevTxs) {
-      final type = tx.type;
-      final amount = tx.amount;
-
-      if (type == 'income') {
-        prevIncome += amount;
-      } else if (type == 'expense') {
-        prevExpense += amount;
-      }
-    }
-
-    final prevProfit = prevIncome - prevExpense;
-
-    // Profit percentage change month over month
-    double profitPercentageChange = 0.0;
-    if (prevProfit != 0) {
-      profitPercentageChange =
-          ((currentProfit - prevProfit) / prevProfit) * 100;
-    }
-
-    // Income month over month change
-    double incomeChange = 0.0;
-    if (prevIncome != 0) {
-      incomeChange = ((currentIncome - prevIncome) / prevIncome) * 100;
-    } else if (currentIncome != 0) {
-      // No previous income but we have income now
-      incomeChange = 100.0;
-    }
-
-    // Expenses month over month change
-    double expenseChange = 0.0;
-    if (prevExpense != 0) {
-      expenseChange =
-          ((currentExpense - prevExpense) / prevExpense) * 100;
-    } else if (currentExpense != 0) {
-      // No previous expenses but we have expenses now
-      expenseChange = 100.0;
-    }
-
+  Future<void> _loadMonthlyProfit() async {
     setState(() {
-      _monthlyProfit = currentProfit;
-      _profitPercentageChange = profitPercentageChange;
-      _incomeChange = incomeChange;
-      _expenseChange = expenseChange;
-      _isProfit = currentProfit >= 0;
-      _isLoadingDashboard = false;
+      _isLoadingDashboard = true;
+      _dashboardError = null;
     });
-  } catch (e) {
-    setState(() {
-      _dashboardError = 'Failed to load dashboard data';
-      _isLoadingDashboard = false;
-    });
-  }
-}
 
-Future<void> _loadTopExpenses() async {
-  setState(() {
-    _isLoadingTopExpenses = true;
-  });
+    try {
+      final now = DateTime.now();
 
-  try {
-    final now = DateTime.now();
+      // Current month range
+      final currentMonthStart = DateTime(now.year, now.month, 1);
+      final nextMonthStart = now.month == 12
+          ? DateTime(now.year + 1, 1, 1)
+          : DateTime(now.year, now.month + 1, 1);
+      final currentMonthEnd = nextMonthStart.subtract(const Duration(days: 1));
 
-    // Current month range
-    final currentMonthStart = DateTime(now.year, now.month, 1);
-    final nextMonthStart = now.month == 12
-        ? DateTime(now.year + 1, 1, 1)
-        : DateTime(now.year, now.month + 1, 1);
-    final currentMonthEnd = nextMonthStart.subtract(const Duration(days: 1));
+      final List<TransactionRecord> currentTxs =
+          await _transactionsRepository.getTransactionsByDateRangeTyped(
+        currentMonthStart,
+        currentMonthEnd,
+      );
 
-    final List<TransactionRecord> transactions =
-        await _transactionsRepository.getTransactionsByDateRangeTyped(
-      currentMonthStart,
-      currentMonthEnd,
-    );
+      double currentIncome = 0;
+      double currentExpense = 0;
 
-    // Filter only expense transactions
-    final expenseTransactions =
-        transactions.where((tx) => tx.type == 'expense').toList();
+      for (final tx in currentTxs) {
+        final type = tx.type;
+        final amount = tx.amount;
 
-    // Aggregate by category
-    final Map<String, double> categoryTotals = {};
-
-    for (final tx in expenseTransactions) {
-      final category = tx.category;
-      final amount = tx.amount;
-
-      if (category.isEmpty) continue;
-
-      categoryTotals[category] = (categoryTotals[category] ?? 0.0) + amount;
-    }
-
-    final totalExpenses = categoryTotals.values.fold<double>(
-      0.0,
-      (sum, value) => sum + value,
-    );
-
-    // Convert to list with percentages
-    final categoriesWithPercentages = categoryTotals.entries.map((entry) {
-      final amount = entry.value;
-      final percentage =
-          totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0.0;
-      return {
-        'categoryId': entry.key,
-        'amount': amount,
-        'percentage': percentage,
-      };
-    }).toList();
-
-    // Sort by amount descending and take top 3
-    categoriesWithPercentages.sort(
-      (a, b) => (b['amount'] as double).compareTo(a['amount'] as double),
-    );
-    final topCategories = categoriesWithPercentages.take(3).toList();
-
-    setState(() {
-      _topExpenses = topCategories;
-      _isLoadingTopExpenses = false;
-    });
-  } catch (e) {
-    setState(() {
-      _topExpenses = [];
-      _isLoadingTopExpenses = false;
-      _dashboardError ??=
-          'Some dashboard data could not be loaded. Pull to refresh to try again.';
-    });
-  }
-}
-
-  Future<void> _loadCashBalanceData() async {
-  setState(() {
-    _isLoadingBalanceData = true;
-  });
-
-  try {
-    final now = DateTime.now();
-
-    // Calculate 30 day window (including today)
-    final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
-    final startDate = endDate.subtract(const Duration(days: 29));
-    final startDateNormalized = DateTime(
-      startDate.year,
-      startDate.month,
-      startDate.day,
-    );
-
-    // Fetch all transactions for the 30 day period
-    final List<TransactionRecord> transactions =
-        await _transactionsRepository.getTransactionsByDateRangeTyped(
-      startDateNormalized,
-      endDate,
-    );
-
-    // Create a map to store daily net changes
-    final Map<String, double> dailyNetChanges = {};
-
-    // Initialize all 30 days with zero net change
-    for (int i = 0; i < 30; i++) {
-      final date = startDateNormalized.add(Duration(days: i));
-      final dateKey =
-          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-      dailyNetChanges[dateKey] = 0.0;
-    }
-
-    // Process transactions and calculate daily net changes
-    for (final tx in transactions) {
-      final txDate = tx.date;
-      final txNormalizedDate = DateTime(txDate.year, txDate.month, txDate.day);
-      final dateKey =
-          '${txNormalizedDate.year}-${txNormalizedDate.month.toString().padLeft(2, '0')}-${txNormalizedDate.day.toString().padLeft(2, '0')}';
-      final type = tx.type;
-      final amount = tx.amount;
-
-      if (dailyNetChanges.containsKey(dateKey)) {
         if (type == 'income') {
-          dailyNetChanges[dateKey] =
-              (dailyNetChanges[dateKey] ?? 0.0) + amount;
+          currentIncome += amount;
         } else if (type == 'expense') {
-          dailyNetChanges[dateKey] =
-              (dailyNetChanges[dateKey] ?? 0.0) - amount;
+          currentExpense += amount;
         }
       }
+
+      final currentProfit = currentIncome - currentExpense;
+
+      // Previous month range
+      final prevMonthEnd = currentMonthStart.subtract(const Duration(days: 1));
+      final prevMonthStart = DateTime(prevMonthEnd.year, prevMonthEnd.month, 1);
+
+      final List<TransactionRecord> prevTxs =
+          await _transactionsRepository.getTransactionsByDateRangeTyped(
+        prevMonthStart,
+        prevMonthEnd,
+      );
+
+      double prevIncome = 0;
+      double prevExpense = 0;
+
+      for (final tx in prevTxs) {
+        final type = tx.type;
+        final amount = tx.amount;
+
+        if (type == 'income') {
+          prevIncome += amount;
+        } else if (type == 'expense') {
+          prevExpense += amount;
+        }
+      }
+
+      final prevProfit = prevIncome - prevExpense;
+
+      // Profit percentage change month over month
+      double profitPercentageChange = 0.0;
+      if (prevProfit != 0) {
+        profitPercentageChange =
+            ((currentProfit - prevProfit) / prevProfit) * 100;
+      }
+
+      // Income month over month change
+      double incomeChange = 0.0;
+      if (prevIncome != 0) {
+        incomeChange = ((currentIncome - prevIncome) / prevIncome) * 100;
+      } else if (currentIncome != 0) {
+        // No previous income but we have income now
+        incomeChange = 100.0;
+      }
+
+      // Expenses month over month change
+      double expenseChange = 0.0;
+      if (prevExpense != 0) {
+        expenseChange = ((currentExpense - prevExpense) / prevExpense) * 100;
+      } else if (currentExpense != 0) {
+        // No previous expenses but we have expenses now
+        expenseChange = 100.0;
+      }
+
+      setState(() {
+        _monthlyProfit = currentProfit;
+        _profitPercentageChange = profitPercentageChange;
+        _incomeChange = incomeChange;
+        _expenseChange = expenseChange;
+        _isProfit = currentProfit >= 0;
+        _isLoadingDashboard = false;
+      });
+    } catch (e) {
+      setState(() {
+        _dashboardError = 'Failed to load dashboard data';
+        _isLoadingDashboard = false;
+      });
     }
-
-    // Build running balance series
-    final List<Map<String, dynamic>> balanceSeries = [];
-    double runningBalance = 0.0;
-
-    for (int i = 0; i < 30; i++) {
-      final date = startDateNormalized.add(Duration(days: i));
-      final dateKey =
-          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-
-      // Add daily net change to running balance
-      runningBalance += dailyNetChanges[dateKey] ?? 0.0;
-
-      balanceSeries.add({'date': date, 'balance': runningBalance});
-    }
-
-    setState(() {
-      _balanceData = balanceSeries;
-      _isLoadingBalanceData = false;
-    });
-  } catch (e) {
-    setState(() {
-      _balanceData = [];
-      _isLoadingBalanceData = false;
-      _dashboardError ??=
-          'Some dashboard data could not be loaded. Pull to refresh to try again.';
-    });
   }
-}
 
-    Future<void> _handleRefresh() async {
+  Future<void> _loadTopExpenses() async {
+    setState(() {
+      _isLoadingTopExpenses = true;
+    });
+
+    try {
+      final now = DateTime.now();
+
+      // Current month range
+      final currentMonthStart = DateTime(now.year, now.month, 1);
+      final nextMonthStart = now.month == 12
+          ? DateTime(now.year + 1, 1, 1)
+          : DateTime(now.year, now.month + 1, 1);
+      final currentMonthEnd = nextMonthStart.subtract(const Duration(days: 1));
+
+      final List<TransactionRecord> transactions =
+          await _transactionsRepository.getTransactionsByDateRangeTyped(
+        currentMonthStart,
+        currentMonthEnd,
+      );
+
+      // Filter only expense transactions
+      final expenseTransactions =
+          transactions.where((tx) => tx.type == 'expense').toList();
+
+      // Aggregate by category
+      final Map<String, double> categoryTotals = {};
+
+      for (final tx in expenseTransactions) {
+        final category = tx.category;
+        final amount = tx.amount;
+
+        if (category.isEmpty) continue;
+
+        categoryTotals[category] = (categoryTotals[category] ?? 0.0) + amount;
+      }
+
+      final totalExpenses = categoryTotals.values.fold<double>(
+        0.0,
+        (sum, value) => sum + value,
+      );
+
+      // Convert to list with percentages
+      final categoriesWithPercentages = categoryTotals.entries.map((entry) {
+        final amount = entry.value;
+        final percentage =
+            totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0.0;
+        return {
+          'categoryId': entry.key,
+          'amount': amount,
+          'percentage': percentage,
+        };
+      }).toList();
+
+      // Sort by amount descending and take top 3
+      categoriesWithPercentages.sort(
+        (a, b) => (b['amount'] as double).compareTo(a['amount'] as double),
+      );
+      final topCategories = categoriesWithPercentages.take(3).toList();
+
+      setState(() {
+        _topExpenses = topCategories;
+        _isLoadingTopExpenses = false;
+      });
+    } catch (e) {
+      setState(() {
+        _topExpenses = [];
+        _isLoadingTopExpenses = false;
+        _dashboardError ??=
+            'Some dashboard data could not be loaded. Pull to refresh to try again.';
+      });
+    }
+  }
+
+  Future<void> _loadCashBalanceData() async {
+    setState(() {
+      _isLoadingBalanceData = true;
+    });
+
+    try {
+      final now = DateTime.now();
+
+      // Calculate 30 day window (including today)
+      final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
+      final startDate = endDate.subtract(const Duration(days: 29));
+      final startDateNormalized = DateTime(
+        startDate.year,
+        startDate.month,
+        startDate.day,
+      );
+
+      // Fetch all transactions for the 30 day period
+      final List<TransactionRecord> transactions =
+          await _transactionsRepository.getTransactionsByDateRangeTyped(
+        startDateNormalized,
+        endDate,
+      );
+
+      // Create a map to store daily net changes
+      final Map<String, double> dailyNetChanges = {};
+
+      // Initialize all 30 days with zero net change
+      for (int i = 0; i < 30; i++) {
+        final date = startDateNormalized.add(Duration(days: i));
+        final dateKey =
+            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        dailyNetChanges[dateKey] = 0.0;
+      }
+
+      // Process transactions and calculate daily net changes
+      for (final tx in transactions) {
+        final txDate = tx.date;
+        final txNormalizedDate = DateTime(txDate.year, txDate.month, txDate.day);
+        final dateKey =
+            '${txNormalizedDate.year}-${txNormalizedDate.month.toString().padLeft(2, '0')}-${txNormalizedDate.day.toString().padLeft(2, '0')}';
+        final type = tx.type;
+        final amount = tx.amount;
+
+        if (dailyNetChanges.containsKey(dateKey)) {
+          if (type == 'income') {
+            dailyNetChanges[dateKey] =
+                (dailyNetChanges[dateKey] ?? 0.0) + amount;
+          } else if (type == 'expense') {
+            dailyNetChanges[dateKey] =
+                (dailyNetChanges[dateKey] ?? 0.0) - amount;
+          }
+        }
+      }
+
+      // Build running balance series
+      final List<Map<String, dynamic>> balanceSeries = [];
+      double runningBalance = 0.0;
+
+      for (int i = 0; i < 30; i++) {
+        final date = startDateNormalized.add(Duration(days: i));
+        final dateKey =
+            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+        // Add daily net change to running balance
+        runningBalance += dailyNetChanges[dateKey] ?? 0.0;
+
+        balanceSeries.add({'date': date, 'balance': runningBalance});
+      }
+
+      setState(() {
+        _balanceData = balanceSeries;
+        _isLoadingBalanceData = false;
+      });
+    } catch (e) {
+      setState(() {
+        _balanceData = [];
+        _isLoadingBalanceData = false;
+        _dashboardError ??=
+            'Some dashboard data could not be loaded. Pull to refresh to try again.';
+      });
+    }
+  }
+
+  Future<void> _handleRefresh() async {
     setState(() {
       _isRefreshing = true;
       _dashboardError = null;
@@ -490,7 +489,7 @@ Future<void> _loadTopExpenses() async {
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             // Header Section
-                        // Header Section
+            // Header Section
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
@@ -649,7 +648,7 @@ Future<void> _loadTopExpenses() async {
                           ),
                         )
                       : SizedBox(
-                          height: 18.h,
+                          height: 24.h,
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             padding: EdgeInsets.symmetric(horizontal: 4.w),
