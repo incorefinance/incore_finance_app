@@ -164,11 +164,22 @@ class _AddTransactionState extends State<AddTransaction> {
         // Navigate back and return true to indicate success
         Navigator.of(context).pop(true);
       }
-    } catch (e) {
+       } catch (e, stackTrace) {
+      // TEMPORARY DEBUG LOGGING – to understand why Supabase is failing
+      // This will print to your terminal / VS Code debug console.
+      // Do NOT leave prints like this in production, but it is perfect for Sprint 01 debugging.
+      // -----------------------------------------------------------
+      // ignore: avoid_print
+      print('=== ERROR ADDING TRANSACTION ===');
+      // ignore: avoid_print
+      print('Error: $e');
+      // ignore: avoid_print
+      print('StackTrace: $stackTrace');
+      // -----------------------------------------------------------
+
       if (mounted) {
         setState(() => _isSaving = false);
 
-        // Show generic error message for database/network errors
         SnackbarHelper.showError(
           context,
           'Failed to add transaction. Please try again.',

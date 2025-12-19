@@ -1,4 +1,10 @@
 // lib/services/transactions_repository.dart
+//
+// Repository for the `transactions` table in Supabase.
+// Used by:
+//  - AddTransaction screen      -> addTransaction(...)
+//  - Transactions list screen   -> getTransactionsForCurrentUserTyped()
+//  - Dashboard home             -> getTransactionsByDateRangeTyped(...)
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:incore_finance/models/transaction_record.dart';
@@ -14,34 +20,22 @@ class TransactionsRepository {
   })  : _client = client ?? Supabase.instance.client,
         _supabaseService = supabaseService ?? SupabaseService.instance;
 
-  /// Add a new transaction for the current user.
-  ///
-  /// This matches the call you already have in add_transaction.dart:
-  /// _transactionsRepository.addTransaction(
-  ///   amount: amount,
-  ///   description: _descriptionController.text,
-  ///   category: _selectedCategory!,
-  ///   type: _selectedType!,
-  ///   date: _selectedDate,
-  ///   paymentMethod: _selectedPaymentMethod,
-  ///   client: _clientName!,
-  /// );
+  /// Insert a new transaction.
   Future<void> addTransaction({
     required double amount,
     required String description,
     required String category,
-    required String type,
+    required String type, // "income" or "expense"
     required DateTime date,
-    String? paymentMethod,
+    required String paymentMethod,
     String? client,
-
   }) async {
     final userId = _supabaseService.currentUserId;
     if (userId == null) {
       throw Exception('User not logged in');
     }
 
-    final payload = {
+    final payload = <String, dynamic>{
       'user_id': userId,
       'amount': amount,
       'description': description,
@@ -49,16 +43,35 @@ class TransactionsRepository {
       'type': type,
       'date': date.toIso8601String(),
       'payment_method': paymentMethod,
-      'client_name': client,
+      // IMPORTANT: matches your Supabase schema exactly
+      'client': client,
     };
 
-    await _client.from('transactions').insert(payload);
+    // Debug logging while we are fixing Sprint 01
+    // ignore: avoid_print
+    print('addTransaction() -> payload: $payload');
+
+    try {
+      final response = await _client
+          .from('transactions')
+          .insert(payload)
+          .select()
+          .maybeSingle();
+
+      // ignore: avoid_print
+      print('addTransaction() -> insert response: $response');
+    } catch (e, stackTrace) {
+      // ignore: avoid_print
+      print('=== SUPABASE INSERT ERROR ===');
+      // ignore: avoid_print
+      print('Error: $e');
+      // ignore: avoid_print
+      print('StackTrace: $stackTrace');
+      rethrow;
+    }
   }
 
-  /// Basic fetch used by the Transactions List screen (Sprint 01).
-  ///
-  /// NOTE: this returns a List<Map<String, dynamic>> because the original
-  /// transactions_list.dart expects raw maps.
+  /// Raw fetch: used by legacy code.
   Future<List<Map<String, dynamic>>> getTransactionsForCurrentUser() async {
     final userId = _supabaseService.currentUserId;
     if (userId == null) {
@@ -72,27 +85,21 @@ class TransactionsRepository {
         .order('date', ascending: false)
         .order('created_at', ascending: false);
 
-    return response
+    return (response as List)
         .whereType<Map<String, dynamic>>()
         .toList(growable: false);
   }
-  /// Typed version of getTransactionsForCurrentUser.
-  ///
-  /// This is used by parts of the app that expect List<TransactionRecord>
-  /// instead of raw maps. It simply reuses the existing fetch and maps
-  /// each row with TransactionRecord.fromMap.
+
+  /// Typed fetch for the transactions list.
   Future<List<TransactionRecord>> getTransactionsForCurrentUserTyped() async {
     final raw = await getTransactionsForCurrentUser();
 
     return raw
-      .map(TransactionRecord.fromMap)
-      .toList(growable: false);
+        .map(TransactionRecord.fromMap)
+        .toList(growable: false);
   }
 
-  /// Typed fetch used by Dashboard Home for monthly profit, top expenses, etc.
-  ///
-  /// ThisTransactionRecord matches the calls you have in dashboard_home.dart:
-  ///   getTransactionsByDateRangeTyped(startDate, endDate)
+  /// Typed fetch by date range used by DashboardHome.
   Future<List<TransactionRecord>> getTransactionsByDateRangeTyped(
     DateTime startDate,
     DateTime endDate,
@@ -108,10 +115,11 @@ class TransactionsRepository {
         .eq('user_id', userId)
         .gte('date', startDate.toIso8601String())
         .lte('date', endDate.toIso8601String())
-        .order('date', ascending: false)
-        .order('created_at', ascending: false);
+        // For charts it is easier to work in ascending order
+        .order('date', ascending: true)
+        .order('created_at', ascending: true);
 
-    return response
+    return (response as List)
         .whereType<Map<String, dynamic>>()
         .map(TransactionRecord.fromMap)
         .toList(growable: false);

@@ -65,8 +65,9 @@ class CashBalanceChart extends StatelessWidget {
             ],
           ),
           SizedBox(height: 2.h),
-          SizedBox(
-            height: 25.h,
+
+          // ✅ Minimal fix: chart expands to available height instead of forcing 25.h
+          Expanded(
             child: LineChart(
               LineChartData(
                 gridData: FlGridData(
@@ -176,13 +177,12 @@ class CashBalanceChart extends StatelessWidget {
                 ),
                 lineBarsData: [
                   LineChartBarData(
-                    spots:
-                        balanceData.asMap().entries.map((entry) {
-                          return FlSpot(
-                            entry.key.toDouble(),
-                            (entry.value["balance"] as double),
-                          );
-                        }).toList(),
+                    spots: balanceData.asMap().entries.map((entry) {
+                      return FlSpot(
+                        entry.key.toDouble(),
+                        (entry.value["balance"] as double),
+                      );
+                    }).toList(),
                     isCurved: true,
                     color: AppTheme.accentGold,
                     barWidth: 3,
