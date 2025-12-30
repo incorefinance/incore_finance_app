@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../models/payment_method.dart';
 
-/// Bottom sheet for transaction filtering options
 class FilterBottomSheet extends StatefulWidget {
   final Map<String, dynamic> currentFilters;
   final Function(Map<String, dynamic>) onApplyFilters;
@@ -24,7 +24,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   @override
   void initState() {
     super.initState();
-    // Copy so we never mutate the original map reference
     _filters = Map<String, dynamic>.from(widget.currentFilters);
   }
 
@@ -34,9 +33,9 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     });
   }
 
-  void _selectPaymentMethod(String? method) {
+  void _selectPaymentMethod(String? methodDbValue) {
     setState(() {
-      _filters['paymentMethod'] = method;
+      _filters['paymentMethod'] = methodDbValue;
     });
   }
 
@@ -60,23 +59,28 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // You can adjust these lists later to match your real categories
     final categories = [
-      'Food',
-      'Transport',
-      'Shopping',
-      'Entertainment',
-      'Utilities',
-      'Income',
+      'rev_sales',
+      'mkt_ads',
+      'mkt_software',
+      'mkt_subs',
+      'ops_equipment',
+      'ops_supplies',
+      'pro_accounting',
+      'pro_contractors',
+      'travel_general',
+      'travel_meals',
+      'ops_rent',
+      'ops_insurance',
+      'ops_taxes',
+      'ops_fees',
+      'people_salary',
+      'people_training',
+      'other_expense',
+      'other_refunds',
     ];
 
-    final paymentMethods = [
-      'Cash',
-      'Credit Card',
-      'Debit Card',
-      'Bank Transfer',
-      'Other',
-    ];
+    final selectedPaymentDbValue = _filters['paymentMethod'] as String?;
 
     return Container(
       decoration: BoxDecoration(
@@ -90,14 +94,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
           child: ConstrainedBox(
-            // Cap total sheet height so Column never overflows
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Drag handle
                 Container(
                   width: 40,
                   height: 4,
@@ -108,16 +110,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   ),
                 ),
 
-                // Header row
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 4.w),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Filter Transactions',
-                        style: theme.textTheme.titleLarge,
-                      ),
+                      Text('Filter Transactions', style: theme.textTheme.titleLarge),
                       TextButton(
                         onPressed: _clearFilters,
                         child: Text(
@@ -134,82 +132,69 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 SizedBox(height: 1.h),
                 Divider(color: colorScheme.outline),
 
-                // ✅ Small amendment: use Flexible instead of fixed height
                 Flexible(
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 4.w,
-                      vertical: 2.h,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Category section
-                        Text(
-                          'Category',
-                          style: theme.textTheme.titleMedium,
-                        ),
+                        Text('Category', style: theme.textTheme.titleMedium),
                         SizedBox(height: 1.h),
                         Wrap(
                           spacing: 2.w,
                           runSpacing: 1.h,
-                          children: categories.map((category) {
-                            final isSelected = _filters['categoryId'] == category;
+                          children: categories.map((categoryId) {
+                            final isSelected = _filters['categoryId'] == categoryId;
                             return FilterChip(
-                              label: Text(category),
-                              selected: isSelected,
-                              onSelected: (_) => _selectCategory(
-                                isSelected ? null : category,
+                              label: Text(
+                                categoryId,
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: isSelected
+                                      ? colorScheme.onPrimaryContainer
+                                      : colorScheme.onSurface,
+                                  fontSize: 12,
+                                ),
                               ),
+                              selected: isSelected,
+                              onSelected: (_) => _selectCategory(isSelected ? null : categoryId),
                               backgroundColor: colorScheme.surface,
                               selectedColor: colorScheme.primaryContainer,
                               checkmarkColor: colorScheme.primary,
-                              labelStyle: theme.textTheme.labelMedium?.copyWith(
-                                color: isSelected
-                                    ? colorScheme.onPrimaryContainer
-                                    : colorScheme.onSurface,
-                              ),
                             );
                           }).toList(),
                         ),
 
                         SizedBox(height: 3.h),
 
-                        // Payment method section
-                        Text(
-                          'Payment Method',
-                          style: theme.textTheme.titleMedium,
-                        ),
+                        Text('Payment Method', style: theme.textTheme.titleMedium),
                         SizedBox(height: 1.h),
                         Wrap(
                           spacing: 2.w,
                           runSpacing: 1.h,
-                          children: paymentMethods.map((method) {
-                            final isSelected =
-                                _filters['paymentMethod'] == method;
+                          children: PaymentMethod.values.map((method) {
+                            final isSelected = selectedPaymentDbValue == method.dbValue;
                             return FilterChip(
-                              label: Text(method),
+                              label: Text(
+                                method.label,
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: isSelected
+                                      ? colorScheme.onPrimaryContainer
+                                      : colorScheme.onSurface,
+                                  fontSize: 12,
+                                ),
+                              ),
                               selected: isSelected,
                               onSelected: (_) => _selectPaymentMethod(
-                                isSelected ? null : method,
+                                isSelected ? null : method.dbValue,
                               ),
                               backgroundColor: colorScheme.surface,
                               selectedColor: colorScheme.primaryContainer,
                               checkmarkColor: colorScheme.primary,
-                              labelStyle: theme.textTheme.labelMedium?.copyWith(
-                                color: isSelected
-                                    ? colorScheme.onPrimaryContainer
-                                    : colorScheme.onSurface,
-                              ),
                             );
                           }).toList(),
                         ),
 
                         SizedBox(height: 3.h),
-
-                        // You can later add client / date range fields here
-                        // respecting the existing keys in _filters:
-                        // 'client', 'startDate', 'endDate', 'dateRange'.
                       ],
                     ),
                   ),
@@ -217,16 +202,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
                 Divider(color: colorScheme.outline),
 
-                // Apply button
                 Padding(
                   padding: EdgeInsets.fromLTRB(4.w, 1.h, 4.w, 2.h),
                   child: ElevatedButton(
-                    onPressed: () {
-                      // ✅ minimal fix: actually return filters to the caller
-                      final result = Map<String, dynamic>.from(_filters);
-                      widget.onApplyFilters(result);
-                      Navigator.pop(context, result);
-                    },
+                    onPressed: _applyFilters,
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 6.h),
                     ),

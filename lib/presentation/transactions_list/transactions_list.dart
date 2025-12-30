@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:incore_finance/models/payment_method.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
@@ -23,7 +24,7 @@ class _TransactionsListState extends State<TransactionsList> {
   String _searchQuery = '';
   String? _selectedCategory;
   String? _selectedDateRange;
-  String? _selectedPaymentMethod;
+  PaymentMethod? _selectedPaymentMethod;
   bool _showFilters = false;
 
   bool _isLoading = true;
@@ -32,14 +33,12 @@ class _TransactionsListState extends State<TransactionsList> {
 
   @override
   void initState() {
-    // DEBUG — detect if initState is being re-called
     // ignore: avoid_print
     print('[DEBUG initState] TransactionsList.initState() called - widget initialized');
     super.initState();
     _searchController.addListener(_onSearchChanged);
     _loadTransactions();
 
-    // Optional: pre select category from route args (e.g. from dashboard)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments as Map?;
       if (args != null && args['categoryId'] != null) {
@@ -64,9 +63,7 @@ class _TransactionsListState extends State<TransactionsList> {
     });
 
     try {
-      final transactions =
-          await _repository.getTransactionsForCurrentUserTyped();
-
+      final transactions = await _repository.getTransactionsForCurrentUserTyped();
       if (!mounted) return;
 
       setState(() {
@@ -76,7 +73,6 @@ class _TransactionsListState extends State<TransactionsList> {
     } catch (e) {
       // ignore: avoid_print
       print('Error loading transactions: $e');
-
       if (!mounted) return;
 
       setState(() {
@@ -88,10 +84,7 @@ class _TransactionsListState extends State<TransactionsList> {
         SnackBar(
           content: Text(
             'Failed to load transactions. Please try again.',
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: Colors.white),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
@@ -112,7 +105,6 @@ class _TransactionsListState extends State<TransactionsList> {
   }
 
   List<TransactionRecord> get _filteredTransactions {
-    // DEBUG — track state values when getter is called
     // ignore: avoid_print
     print('[DEBUG _filteredTransactions] Getter called - Current filter state:');
     // ignore: avoid_print
@@ -125,8 +117,7 @@ class _TransactionsListState extends State<TransactionsList> {
     print('  _searchQuery: "$_searchQuery"');
     // ignore: avoid_print
     print('  Total transactions: ${_allTransactions.length}');
-    
-    // DEBUG — sample first few transactions
+
     for (var i = 0; i < _allTransactions.length && i < 5; i++) {
       final t = _allTransactions[i];
       // ignore: avoid_print
@@ -134,7 +125,6 @@ class _TransactionsListState extends State<TransactionsList> {
     }
 
     final filtered = _allTransactions.where((transaction) {
-      // DEBUG — active filters before checking this transaction
       // ignore: avoid_print
       print('Filter check -> category=$_selectedCategory, dateRange=$_selectedDateRange, payment=$_selectedPaymentMethod');
 
@@ -144,75 +134,47 @@ class _TransactionsListState extends State<TransactionsList> {
           transaction.description.toLowerCase().contains(query) ||
           (transaction.client?.toLowerCase().contains(query) ?? false);
 
-      final matchesCategory =
-          _selectedCategory == null ||
-          transaction.category == _selectedCategory;
+      final matchesCategory = _selectedCategory == null || transaction.category == _selectedCategory;
 
-      final matchesDateRange =
-          _selectedDateRange == null ||
-          _isInDateRange(transaction.date, _selectedDateRange!);
+      final matchesDateRange = _selectedDateRange == null || _isInDateRange(transaction.date, _selectedDateRange!);
 
-      final matchesPaymentMethod =
-          _selectedPaymentMethod == null ||
-          transaction.paymentMethod == _selectedPaymentMethod;
+      final txPm = PaymentMethodParser.fromAny(transaction.paymentMethod);
+      final matchesPaymentMethod = _selectedPaymentMethod == null || txPm == _selectedPaymentMethod;
 
-      return matchesSearch &&
-          matchesCategory &&
-          matchesDateRange &&
-          matchesPaymentMethod;
-        }).toList();
+      return matchesSearch && matchesCategory && matchesDateRange && matchesPaymentMethod;
+    }).toList();
 
-    // DEBUG — result size after filtering
     // ignore: avoid_print
     print('Filtered transactions count: ${filtered.length}');
 
-    // Sort by date DESC (most recent first)
     filtered.sort((a, b) => b.date.compareTo(a.date));
-
     return filtered;
-
   }
 
   Map<String, List<TransactionRecord>> get _transactionsByMonth {
     final grouped = <String, List<TransactionRecord>>{};
-
     for (final transaction in _filteredTransactions) {
       final d = transaction.date;
       final key = '${_getMonthName(d.month)} ${d.year}';
-
       grouped.putIfAbsent(key, () => []);
       grouped[key]!.add(transaction);
     }
-
     return grouped;
   }
 
   String _getMonthName(int month) {
     const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
+      'January','February','March','April','May','June',
+      'July','August','September','October','November','December'
     ];
     return months[month - 1];
   }
 
   bool _isInDateRange(DateTime date, String range) {
     final now = DateTime.now();
-
     switch (range) {
       case 'today':
-        return date.year == now.year &&
-            date.month == now.month &&
-            date.day == now.day;
+        return date.year == now.year && date.month == now.month && date.day == now.day;
       case 'week':
         return date.isAfter(now.subtract(const Duration(days: 7)));
       case 'month':
@@ -235,81 +197,59 @@ class _TransactionsListState extends State<TransactionsList> {
   }
 
   Future<void> _handleAddTransaction() async {
-    // Use the route name that actually exists in your app
-    final result =
-        await Navigator.pushNamed(context, AppRoutes.addTransaction);
-
+    final result = await Navigator.pushNamed(context, AppRoutes.addTransaction);
     if (result == true) {
       await _loadTransactions();
     }
   }
 
   Future<void> _showFilterBottomSheet() async {
-  final result = await showModalBottomSheet<Map<String, dynamic>>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) {
-      return FilterBottomSheet(
-        currentFilters: {
-          'categoryId': _selectedCategory,
-          'dateRange': _selectedDateRange,
-          'paymentMethod': _selectedPaymentMethod,
-          'client': null,
-          'startDate': null,
-          'endDate': null,
-        },
-        onApplyFilters: (filters) {
-          // ignore: avoid_print
-          print('FilterBottomSheet -> returned filters: $filters');
-          // ✅ DO NOT pop here anymore. The bottom sheet pops itself now.
-        },
-      );
-    },
-  );
-
-  if (result != null && mounted) {
-    // ignore: avoid_print
-    print(
-      '[DEBUG _showFilterBottomSheet] Bottom sheet returned result, applying filters...',
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return FilterBottomSheet(
+          currentFilters: {
+            'categoryId': _selectedCategory,
+            'dateRange': _selectedDateRange,
+            'paymentMethod': _selectedPaymentMethod?.dbValue,
+            'client': null,
+            'startDate': null,
+            'endDate': null,
+          },
+          onApplyFilters: (filters) {
+            // ignore: avoid_print
+            print('FilterBottomSheet -> returned filters: $filters');
+            Navigator.of(context).pop(filters);
+          },
+        );
+      },
     );
 
-    setState(() {
-      _selectedCategory = result['categoryId'] as String?;
-      _selectedDateRange = result['dateRange'] as String?;
-      final pm = result['paymentMethod'];
-      _selectedPaymentMethod = pm is String && pm.isNotEmpty ? pm : null;
+    // ignore: avoid_print
+    print('[DEBUG _showFilterBottomSheet] result from showModalBottomSheet: $result');
 
-      // ignore: avoid_print
-      print(
-        '[DEBUG _showFilterBottomSheet] AFTER setState - New filter state:',
-      );
-      // ignore: avoid_print
-      print('  _selectedCategory: $_selectedCategory');
-      // ignore: avoid_print
-      print('  _selectedDateRange: $_selectedDateRange');
-      // ignore: avoid_print
-      print('  _selectedPaymentMethod: $_selectedPaymentMethod');
-    });
+    if (result != null && mounted) {
+      setState(() {
+        _selectedCategory = result['categoryId'] as String?;
+        _selectedDateRange = result['dateRange'] as String?;
 
-    // ignore: avoid_print
-    print(
-      '[DEBUG _showFilterBottomSheet] setState completed - checking state again:',
-    );
-    // ignore: avoid_print
-    print('  _selectedCategory: $_selectedCategory');
-    // ignore: avoid_print
-    print('  _selectedDateRange: $_selectedDateRange');
-    // ignore: avoid_print
-    print('  _selectedPaymentMethod: $_selectedPaymentMethod');
+        final pmRaw = result['paymentMethod'] as String?;
+        _selectedPaymentMethod = PaymentMethodParser.fromAny(pmRaw);
+
+        // ignore: avoid_print
+        print('[DEBUG] Applied payment filter: $_selectedPaymentMethod');
+      });
+    }
   }
-}
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final transactionsByMonth = _transactionsByMonth;
+
     final hasActiveFilters =
         _selectedCategory != null ||
         _selectedDateRange != null ||
@@ -321,7 +261,6 @@ class _TransactionsListState extends State<TransactionsList> {
       body: SafeArea(
         child: Column(
           children: [
-            // Search bar
             Padding(
               padding: EdgeInsets.all(4.w),
               child: TextField(
@@ -331,9 +270,7 @@ class _TransactionsListState extends State<TransactionsList> {
                   hintText: 'Search by description or client',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide(
-                      color: colorScheme.outlineVariant,
-                    ),
+                    borderSide: BorderSide(color: colorScheme.outlineVariant),
                   ),
                   filled: true,
                   fillColor: colorScheme.surfaceContainerHighest,
@@ -341,7 +278,6 @@ class _TransactionsListState extends State<TransactionsList> {
               ),
             ),
 
-            // Filter chips row
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 4.w),
               child: Row(
@@ -360,10 +296,7 @@ class _TransactionsListState extends State<TransactionsList> {
                         label: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.filter_alt,
-                              size: 18,
-                            ),
+                            const Icon(Icons.filter_alt, size: 18),
                             SizedBox(width: 1.w),
                             Text(
                               hasActiveFilters ? 'Filters applied' : 'Filters',
@@ -377,11 +310,7 @@ class _TransactionsListState extends State<TransactionsList> {
                               SizedBox(width: 1.w),
                               GestureDetector(
                                 onTap: _clearFilters,
-                                child: Icon(
-                                  Icons.close,
-                                  size: 18,
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
+                                child: Icon(Icons.close, size: 18, color: colorScheme.onSurfaceVariant),
                               ),
                             ],
                           ],
@@ -391,16 +320,13 @@ class _TransactionsListState extends State<TransactionsList> {
                             : colorScheme.surfaceContainerHighest,
                         shape: StadiumBorder(
                           side: BorderSide(
-                            color: hasActiveFilters
-                                ? colorScheme.primary
-                                : colorScheme.outlineVariant,
+                            color: hasActiveFilters ? colorScheme.primary : colorScheme.outlineVariant,
                           ),
                         ),
                       ),
                     ),
                   ),
                   SizedBox(width: 2.w),
-                  // Quick date filters (Today / Last 7 days / etc.)
                   PopupMenuButton<String>(
                     icon: const Icon(Icons.date_range),
                     onSelected: (value) {
@@ -409,26 +335,11 @@ class _TransactionsListState extends State<TransactionsList> {
                       });
                     },
                     itemBuilder: (context) => const [
-                      PopupMenuItem(
-                        value: 'all',
-                        child: Text('All time'),
-                      ),
-                      PopupMenuItem(
-                        value: 'today',
-                        child: Text('Today'),
-                      ),
-                      PopupMenuItem(
-                        value: 'week',
-                        child: Text('Last 7 days'),
-                      ),
-                      PopupMenuItem(
-                        value: 'month',
-                        child: Text('This month'),
-                      ),
-                      PopupMenuItem(
-                        value: 'year',
-                        child: Text('This year'),
-                      ),
+                      PopupMenuItem(value: 'all', child: Text('All time')),
+                      PopupMenuItem(value: 'today', child: Text('Today')),
+                      PopupMenuItem(value: 'week', child: Text('Last 7 days')),
+                      PopupMenuItem(value: 'month', child: Text('This month')),
+                      PopupMenuItem(value: 'year', child: Text('This year')),
                     ],
                   ),
                 ],
@@ -449,74 +360,41 @@ class _TransactionsListState extends State<TransactionsList> {
                               child: Text(
                                 _errorMessage!,
                                 textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.error,
-                                ),
+                                style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.error),
                               ),
                             ),
                           )
                         : transactionsByMonth.isEmpty
-                             ? EmptyStateWidget(
-                                onAddTransaction: _handleAddTransaction,
-                                )
+                            ? EmptyStateWidget(onAddTransaction: _handleAddTransaction)
                             : ListView.builder(
-                                padding: EdgeInsets.only(
-                                  left: 4.w,
-                                  right: 4.w,
-                                  top: 2.h,
-                                  bottom: 12.h,
-                                ),
+                                padding: EdgeInsets.only(left: 4.w, right: 4.w, top: 2.h, bottom: 12.h),
                                 itemCount: transactionsByMonth.length,
                                 itemBuilder: (context, index) {
-                                  final monthKey =
-                                      transactionsByMonth.keys.elementAt(index);
-                                  final monthTransactions =
-                                      transactionsByMonth[monthKey]!;
+                                  final monthKey = transactionsByMonth.keys.elementAt(index);
+                                  final monthTransactions = transactionsByMonth[monthKey]!;
 
                                   return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          vertical: 1.h,
-                                        ),
+                                        padding: EdgeInsets.symmetric(vertical: 1.h),
                                         child: Text(
                                           monthKey,
-                                          style: theme.textTheme.titleMedium
-                                              ?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                                         ),
                                       ),
                                       ...monthTransactions.map(
                                         (transaction) => Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: 0.5.h,
-                                          ),
+                                          padding: EdgeInsets.symmetric(vertical: 0.5.h),
                                           child: TransactionCard(
                                             transaction: transaction,
-                                            onEdit: () {
-                                              // TODO: implement edit
-                                            },
-                                            onDuplicate: () {
-                                              // TODO: implement duplicate
-                                            },
-                                            onDelete: () {
-                                              // TODO: implement delete
-                                            },
-                                            onAddNote: () {
-                                              // TODO: implement add note
-                                            },
-                                            onMarkBusiness: () {
-                                              // TODO: implement mark business
-                                            },
-                                            onShare: () {
-                                              // TODO: implement share
-                                            },
-                                            onCategoryChange: (category) {
-                                              // TODO: implement category change
-                                            },
+                                            onEdit: () {},
+                                            onDuplicate: () {},
+                                            onDelete: () {},
+                                            onAddNote: () {},
+                                            onMarkBusiness: () {},
+                                            onShare: () {},
+                                            onCategoryChange: (category) {},
                                           ),
                                         ),
                                       ),
@@ -536,16 +414,8 @@ class _TransactionsListState extends State<TransactionsList> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: CustomBottomBar(
         currentItem: BottomBarItem.transactions,
-        onItemSelected: (item) {
-          // Navigation handled centrally
-        },
+        onItemSelected: (item) {},
       ),
     );
   }
 }
-
-  @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
-  }
