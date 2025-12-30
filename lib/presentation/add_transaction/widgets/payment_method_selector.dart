@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import 'package:incore_finance/models/payment_method.dart';
 
 /// Widget for selecting payment method
 class PaymentMethodSelector extends StatelessWidget {
-  final String? selectedMethod;
-  final Function(String) onMethodSelected;
+  final String? selectedMethod; // stores dbValue
+  final ValueChanged<String> onMethodSelected;
 
   const PaymentMethodSelector({
     super.key,
@@ -14,17 +15,31 @@ class PaymentMethodSelector extends StatelessWidget {
     required this.onMethodSelected,
   });
 
+  String _iconFor(PaymentMethod method) {
+    switch (method) {
+      case PaymentMethod.cash:
+        return 'payments';
+      case PaymentMethod.card:
+        return 'credit_card';
+      case PaymentMethod.bankTransfer:
+        return 'account_balance';
+      case PaymentMethod.mbWay:
+        return 'smartphone';
+      case PaymentMethod.paypal:
+        return 'account_balance_wallet';
+      case PaymentMethod.directDebit:
+        return 'receipt_long';
+      case PaymentMethod.other:
+        return 'more_horiz';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final paymentMethods = [
-      {'name': 'Cash', 'icon': 'payments'},
-      {'name': 'Card', 'icon': 'credit_card'},
-      {'name': 'Bank Transfer', 'icon': 'account_balance'},
-      {'name': 'Digital Wallet', 'icon': 'account_balance_wallet'},
-    ];
+    final paymentMethods = PaymentMethod.values;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,10 +59,13 @@ class PaymentMethodSelector extends StatelessWidget {
             separatorBuilder: (context, index) => SizedBox(width: 2.w),
             itemBuilder: (context, index) {
               final method = paymentMethods[index];
-              final isSelected = selectedMethod == method['name'];
+              final dbValue = method.dbValue;
+              final label = method.label;
+
+              final isSelected = selectedMethod == dbValue;
 
               return InkWell(
-                onTap: () => onMethodSelected(method['name'] as String),
+                onTap: () => onMethodSelected(dbValue),
                 borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
@@ -67,7 +85,7 @@ class PaymentMethodSelector extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CustomIconWidget(
-                        iconName: method['icon'] as String,
+                        iconName: _iconFor(method),
                         color: isSelected
                             ? AppTheme.accentGold
                             : colorScheme.onSurface.withValues(alpha: 0.7),
@@ -75,7 +93,7 @@ class PaymentMethodSelector extends StatelessWidget {
                       ),
                       SizedBox(width: 2.w),
                       Text(
-                        method['name'] as String,
+                        label,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: isSelected
                               ? AppTheme.accentGold
