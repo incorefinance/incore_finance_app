@@ -9,34 +9,37 @@ enum PaymentMethod {
 }
 
 class PaymentMethodParser {
+  /// Backward compatible parser that accepts:
+  /// db values: "cash", "mb_way", "bank_transfer"
+  /// labels: "Cash", "MB Way", "Bank Transfer"
+  /// also tolerates: "Card", "card"
   static PaymentMethod? fromAny(String? value) {
     if (value == null) return null;
 
     final v = value.trim();
     if (v.isEmpty) return null;
 
-    final normalized = v.toLowerCase();
+    final lower = v.toLowerCase();
 
-    // dbValue match
+    // 1) Try exact dbValue match
     for (final m in PaymentMethod.values) {
-      if (m.dbValue == normalized) return m;
+      if (m.dbValue == lower) return m;
     }
 
-    // label match
+    // 2) Try label match (case insensitive)
     for (final m in PaymentMethod.values) {
-      if (m.label.toLowerCase() == normalized) return m;
+      if (m.label.toLowerCase() == lower) return m;
     }
 
-    // common variants
-    switch (normalized) {
-      case 'bank transfer':
+    // 3) Extra tolerance for common legacy variants
+    switch (lower.replaceAll(' ', '_')) {
+      case 'banktransfer':
       case 'bank_transfer':
         return PaymentMethod.bankTransfer;
       case 'mbway':
-      case 'mb way':
       case 'mb_way':
         return PaymentMethod.mbWay;
-      case 'direct debit':
+      case 'directdebit':
       case 'direct_debit':
         return PaymentMethod.directDebit;
       default:
@@ -44,8 +47,11 @@ class PaymentMethodParser {
     }
   }
 
-  // Keep the old method name your code calls
+  /// Kept for older call sites
   static PaymentMethod? fromDbValue(String? value) => fromAny(value);
+
+  /// Kept for readability in UI parsing
+  static PaymentMethod? fromLabel(String? value) => fromAny(value);
 }
 
 extension PaymentMethodX on PaymentMethod {
