@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
+import 'package:incore_finance/models/transaction_record.dart';
 
 import '../../core/app_export.dart';
 import '../../utils/number_formatter.dart';
@@ -16,7 +17,12 @@ import './widgets/transaction_type_toggle.dart';
 /// Add Transaction Screen
 /// Enables quick financial entry through modal presentation with stack navigation
 class AddTransaction extends StatefulWidget {
-  const AddTransaction({super.key});
+  const AddTransaction({
+    super.key,
+    this.initialTransaction,
+  });
+
+  final TransactionRecord? initialTransaction;
 
   @override
   State<AddTransaction> createState() => _AddTransactionState();
@@ -40,6 +46,7 @@ class _AddTransactionState extends State<AddTransaction> {
   bool _isSaveEnabled = false;
   bool _isSaving = false;
   final _formKey = GlobalKey<FormState>();
+  bool get _isEditing => widget.initialTransaction != null;
 
   // Currency settings
   String _locale = 'pt_PT'; // Default locale
@@ -63,6 +70,7 @@ class _AddTransactionState extends State<AddTransaction> {
     _amountController.addListener(_validateForm);
     _descriptionController.addListener(_validateForm);
     _loadUserSettings();
+    _prefillIfEditing();
   }
 
   /// Load user currency settings
@@ -88,6 +96,26 @@ class _AddTransactionState extends State<AddTransaction> {
     _descriptionController.dispose();
     _clientController.dispose();
     super.dispose();
+  }
+
+  void _prefillIfEditing() {
+    final t = widget.initialTransaction;
+    if (t == null) return;
+
+    _isIncome = t.type == 'income';
+    _selectedCategory = t.category;
+    _selectedPaymentMethod = t.paymentMethod;
+    _selectedDate = t.date;
+
+    _descriptionController.text = t.description;
+    _clientController.text = t.client ?? '';
+
+    _amountController.text = IncoreNumberFormatter.formatAmount(
+      t.amount,
+      locale: _locale,
+    );
+
+    _validateForm();
   }
 
   void _validateForm() {
@@ -142,24 +170,43 @@ class _AddTransactionState extends State<AddTransaction> {
       }
 
       // Save to database
-      await _repository.addTransaction(
-        amount: amount,
-        description: _descriptionController.text.trim(),
-        category: _selectedCategory!,
-        type: _transactionType,
-        date: _selectedDate,
-        paymentMethod: _selectedPaymentMethod!,
-        client:
-            _clientController.text.trim().isNotEmpty
-                ? _clientController.text.trim()
-                : null,
-      );
+      final client =
+          _clientController.text.trim().isNotEmpty
+              ? _clientController.text.trim()
+              : null;
+
+      if (_isEditing) {
+        await _repository.updateTransaction(
+          transactionId: widget.initialTransaction!.id,
+          amount: amount,
+          description: _descriptionController.text.trim(),
+          category: _selectedCategory!,
+          type: _transactionType,
+          date: _selectedDate,
+          paymentMethod: _selectedPaymentMethod!,
+          client: client,
+        );
+      } else {
+        await _repository.addTransaction(
+          amount: amount,
+          description: _descriptionController.text.trim(),
+          category: _selectedCategory!,
+          type: _transactionType,
+          date: _selectedDate,
+          paymentMethod: _selectedPaymentMethod!,
+          client: client,
+        );
+      }
+
 
       if (mounted) {
         setState(() => _isSaving = false);
 
         // Show success message
-        SnackbarHelper.showSuccess(context, 'Transaction added successfully!');
+       SnackbarHelper.showSuccess(
+          context,
+          _isEditing ? 'Transaction updated successfully!' : 'Transaction added successfully!',
+        );
 
         // Navigate back and return true to indicate success
         Navigator.of(context).pop(true);

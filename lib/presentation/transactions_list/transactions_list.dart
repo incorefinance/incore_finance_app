@@ -1,14 +1,53 @@
 import 'package:flutter/material.dart';
+import 'dart:collection';
+import 'package:incore_finance/core/logging/app_logger.dart';
 import 'package:incore_finance/models/payment_method.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
+import 'package:incore_finance/presentation/add_transaction/add_transaction.dart';
 
 import '../../core/app_export.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import './widgets/empty_state_widget.dart';
 import './widgets/filter_bottom_sheet.dart';
 import './widgets/transaction_card.dart';
+
+enum DateRangeFilter { today, week, month, year }
+
+class TransactionFilters {
+  final String query;
+  final String? categoryId;
+  final DateRangeFilter? dateRange;
+  final PaymentMethod? paymentMethod;
+
+  const TransactionFilters({
+    this.query = '',
+    this.categoryId,
+    this.dateRange,
+    this.paymentMethod,
+  });
+
+  TransactionFilters copyWith({
+    String? query,
+    String? categoryId,
+    DateRangeFilter? dateRange,
+    PaymentMethod? paymentMethod,
+  }) {
+    return TransactionFilters(
+      query: query ?? this.query,
+      categoryId: categoryId ?? this.categoryId,
+      dateRange: dateRange ?? this.dateRange,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+    );
+  }
+
+  bool get hasActiveFilters =>
+      query.isNotEmpty ||
+      categoryId != null ||
+      dateRange != null ||
+      paymentMethod != null;
+}
 
 class TransactionsList extends StatefulWidget {
   const TransactionsList({super.key});
@@ -21,11 +60,7 @@ class _TransactionsListState extends State<TransactionsList> {
   final TextEditingController _searchController = TextEditingController();
   final TransactionsRepository _repository = TransactionsRepository();
 
-  String _searchQuery = '';
-  String? _selectedCategory;
-  String? _selectedDateRange;
-  PaymentMethod? _selectedPaymentMethod;
-  bool _showFilters = false;
+  TransactionFilters _filters = const TransactionFilters();
 
   bool _isLoading = true;
   List<TransactionRecord> _allTransactions = [];
@@ -33,8 +68,7 @@ class _TransactionsListState extends State<TransactionsList> {
 
   @override
   void initState() {
-    // ignore: avoid_print
-    print('[DEBUG initState] TransactionsList.initState() called - widget initialized');
+    AppLogger.d('[Transactions] initState → loading transactions');
     super.initState();
     _searchController.addListener(_onSearchChanged);
     _loadTransactions();
@@ -43,7 +77,7 @@ class _TransactionsListState extends State<TransactionsList> {
       final args = ModalRoute.of(context)?.settings.arguments as Map?;
       if (args != null && args['categoryId'] != null) {
         setState(() {
-          _selectedCategory = args['categoryId'] as String?;
+          _filters = _filters.copyWith(categoryId: args['categoryId'] as String?);
         });
       }
     });
@@ -70,9 +104,8 @@ class _TransactionsListState extends State<TransactionsList> {
         _allTransactions = transactions;
         _isLoading = false;
       });
-    } catch (e) {
-      // ignore: avoid_print
-      print('Error loading transactions: $e');
+    } catch (e, st) {
+      AppLogger.e('Error loading transactions', error: e, stackTrace: st);
       if (!mounted) return;
 
       setState(() {
@@ -100,66 +133,71 @@ class _TransactionsListState extends State<TransactionsList> {
 
   void _onSearchChanged() {
     setState(() {
-      _searchQuery = _searchController.text.toLowerCase();
-    });
+      _filters = _filters.copyWith(query: _searchController.text.toLowerCase());
+      });
+      _logFiltersChanged();
   }
+
+void _logFiltersChanged() {
+  AppLogger.d(
+    '[Transactions] Filters changed: '
+    'category=${_filters.categoryId} '
+    'dateRange=${_filters.dateRange?.name} '
+    'payment=${_filters.paymentMethod} '
+    'query="${_filters.query}"',
+  );
+}
 
   List<TransactionRecord> get _filteredTransactions {
-    // ignore: avoid_print
-    print('[DEBUG _filteredTransactions] Getter called - Current filter state:');
-    // ignore: avoid_print
-    print('  _selectedCategory: $_selectedCategory');
-    // ignore: avoid_print
-    print('  _selectedDateRange: $_selectedDateRange');
-    // ignore: avoid_print
-    print('  _selectedPaymentMethod: $_selectedPaymentMethod');
-    // ignore: avoid_print
-    print('  _searchQuery: "$_searchQuery"');
-    // ignore: avoid_print
-    print('  Total transactions: ${_allTransactions.length}');
+  final filtered = _allTransactions.where((transaction) {
+    final matchesSearch = _filters.query.isEmpty ||
+        (transaction.description?.toLowerCase().contains(_filters.query) ??
+            false) ||
+        (transaction.client?.toLowerCase().contains(_filters.query) ?? false);
 
-    for (var i = 0; i < _allTransactions.length && i < 5; i++) {
-      final t = _allTransactions[i];
-      // ignore: avoid_print
-      print('Transaction $i -> paymentMethod=${t.paymentMethod}, category=${t.category}, date=${t.date}');
-    }
+    final matchesCategory = _filters.categoryId == null ||
+        transaction.category == _filters.categoryId;
 
-    final filtered = _allTransactions.where((transaction) {
-      // ignore: avoid_print
-      print('Filter check -> category=$_selectedCategory, dateRange=$_selectedDateRange, payment=$_selectedPaymentMethod');
+    final matchesDateRange = _filters.dateRange == null ||
+        _isInDateRange(transaction.date, _filters.dateRange!);
 
-      final query = _searchQuery;
+    final txPm = PaymentMethodParser.fromAny(transaction.paymentMethod);
+    final matchesPaymentMethod =
+        _filters.paymentMethod == null || txPm == _filters.paymentMethod;
 
-      final matchesSearch = query.isEmpty ||
-          transaction.description.toLowerCase().contains(query) ||
-          (transaction.client?.toLowerCase().contains(query) ?? false);
+    return matchesSearch &&
+        matchesCategory &&
+        matchesDateRange &&
+        matchesPaymentMethod;
+  }).toList();
 
-      final matchesCategory = _selectedCategory == null || transaction.category == _selectedCategory;
-
-      final matchesDateRange = _selectedDateRange == null || _isInDateRange(transaction.date, _selectedDateRange!);
-
-      final txPm = PaymentMethodParser.fromAny(transaction.paymentMethod);
-      final matchesPaymentMethod = _selectedPaymentMethod == null || txPm == _selectedPaymentMethod;
-
-      return matchesSearch && matchesCategory && matchesDateRange && matchesPaymentMethod;
-    }).toList();
-
-    // ignore: avoid_print
-    print('Filtered transactions count: ${filtered.length}');
-
-    filtered.sort((a, b) => b.date.compareTo(a.date));
-    return filtered;
-  }
+  filtered.sort((a, b) => b.date.compareTo(a.date));
+  return filtered;
+}
 
   Map<String, List<TransactionRecord>> get _transactionsByMonth {
     final grouped = <String, List<TransactionRecord>>{};
+    final monthStartByKey = <String, DateTime>{};
+
     for (final transaction in _filteredTransactions) {
       final d = transaction.date;
       final key = '${_getMonthName(d.month)} ${d.year}';
+
       grouped.putIfAbsent(key, () => []);
       grouped[key]!.add(transaction);
+
+      monthStartByKey.putIfAbsent(key, () => DateTime(d.year, d.month));
     }
-    return grouped;
+
+    final sortedKeys = grouped.keys.toList()
+      ..sort((a, b) => monthStartByKey[b]!.compareTo(monthStartByKey[a]!));
+
+    final sorted = LinkedHashMap<String, List<TransactionRecord>>();
+    for (final key in sortedKeys) {
+      sorted[key] = grouped[key]!;
+    }
+
+    return sorted;
   }
 
   String _getMonthName(int month) {
@@ -170,28 +208,32 @@ class _TransactionsListState extends State<TransactionsList> {
     return months[month - 1];
   }
 
-  bool _isInDateRange(DateTime date, String range) {
-    final now = DateTime.now();
-    switch (range) {
-      case 'today':
-        return date.year == now.year && date.month == now.month && date.day == now.day;
-      case 'week':
-        return date.isAfter(now.subtract(const Duration(days: 7)));
-      case 'month':
-        return date.year == now.year && date.month == now.month;
-      case 'year':
-        return date.year == now.year;
-      default:
-        return true;
+  DateRangeFilter? _parseDateRangeFilter(String? raw) {
+    if (raw == null) return null;
+    try {
+      return DateRangeFilter.values.byName(raw);
+    } catch (_) {
+      return null;
     }
   }
 
+  bool _isInDateRange(DateTime date, DateRangeFilter range) {
+  final now = DateTime.now();
+  switch (range) {
+    case DateRangeFilter.today:
+      return date.year == now.year && date.month == now.month && date.day == now.day;
+    case DateRangeFilter.week:
+      return date.isAfter(now.subtract(const Duration(days: 7)));
+    case DateRangeFilter.month:
+      return date.year == now.year && date.month == now.month;
+    case DateRangeFilter.year:
+      return date.year == now.year;
+  }
+}
+
   void _clearFilters() {
     setState(() {
-      _selectedCategory = null;
-      _selectedDateRange = null;
-      _selectedPaymentMethod = null;
-      _searchQuery = '';
+      _filters = const TransactionFilters();
       _searchController.clear();
     });
   }
@@ -203,6 +245,61 @@ class _TransactionsListState extends State<TransactionsList> {
     }
   }
 
+  Future<void> _handleEditTransaction(TransactionRecord transaction) async {
+  final result = await Navigator.of(context).push<bool>(
+    MaterialPageRoute(
+      builder: (_) => AddTransaction(initialTransaction: transaction),
+    ),
+  );
+
+  if (result == true) {
+    await _loadTransactions();
+  }
+}
+
+Future<void> _handleDeleteTransaction(TransactionRecord transaction) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Delete transaction'),
+        content: const Text('Are you sure you want to delete this transaction?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (confirmed != true) return;
+
+  try {
+    await _repository.deleteTransaction(transactionId: transaction.id);
+    if (!mounted) return;
+
+    await _loadTransactions();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Transaction deleted')),
+    );
+  } catch (e, st) {
+    AppLogger.e('Error deleting transaction', error: e, stackTrace: st);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Failed to delete transaction')),
+    );
+  }
+}
+
   Future<void> _showFilterBottomSheet() async {
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
@@ -211,36 +308,37 @@ class _TransactionsListState extends State<TransactionsList> {
       builder: (_) {
         return FilterBottomSheet(
           currentFilters: {
-            'categoryId': _selectedCategory,
-            'dateRange': _selectedDateRange,
-            'paymentMethod': _selectedPaymentMethod?.dbValue,
+            'categoryId': _filters.categoryId,
+            'dateRange': _filters.dateRange?.name,
+            'paymentMethod': _filters.paymentMethod?.dbValue,
             'client': null,
             'startDate': null,
             'endDate': null,
           },
           onApplyFilters: (filters) {
-            // ignore: avoid_print
-            print('FilterBottomSheet -> returned filters: $filters');
             Navigator.of(context).pop(filters);
           },
         );
       },
     );
 
-    // ignore: avoid_print
-    print('[DEBUG _showFilterBottomSheet] result from showModalBottomSheet: $result');
+    AppLogger.d('[Transactions] FilterBottomSheet result applied');
 
     if (result != null && mounted) {
       setState(() {
-        _selectedCategory = result['categoryId'] as String?;
-        _selectedDateRange = result['dateRange'] as String?;
+        final categoryId = result['categoryId'] as String?;
+        final dateRange = _parseDateRangeFilter(result['dateRange'] as String?);
 
         final pmRaw = result['paymentMethod'] as String?;
-        _selectedPaymentMethod = PaymentMethodParser.fromAny(pmRaw);
+        final paymentMethod = PaymentMethodParser.fromAny(pmRaw);
 
-        // ignore: avoid_print
-        print('[DEBUG] Applied payment filter: $_selectedPaymentMethod');
+        _filters = _filters.copyWith(
+          categoryId: categoryId,
+          dateRange: dateRange,
+          paymentMethod: paymentMethod,
+        );
       });
+      _logFiltersChanged();
     }
   }
 
@@ -250,11 +348,7 @@ class _TransactionsListState extends State<TransactionsList> {
     final colorScheme = theme.colorScheme;
     final transactionsByMonth = _transactionsByMonth;
 
-    final hasActiveFilters =
-        _selectedCategory != null ||
-        _selectedDateRange != null ||
-        _selectedPaymentMethod != null ||
-        _searchQuery.isNotEmpty;
+    final hasActiveFilters = _filters.hasActiveFilters;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -284,14 +378,7 @@ class _TransactionsListState extends State<TransactionsList> {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _showFilters = !_showFilters;
-                        });
-                        if (_showFilters) {
-                          _showFilterBottomSheet();
-                        }
-                      },
+                      onTap: _showFilterBottomSheet,
                       child: Chip(
                         label: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -327,19 +414,21 @@ class _TransactionsListState extends State<TransactionsList> {
                     ),
                   ),
                   SizedBox(width: 2.w),
-                  PopupMenuButton<String>(
+                  PopupMenuButton<Object>(
                     icon: const Icon(Icons.date_range),
                     onSelected: (value) {
                       setState(() {
-                        _selectedDateRange = value == 'all' ? null : value;
+                        final selected = value is DateRangeFilter ? value : null;
+                        _filters = _filters.copyWith(dateRange: selected);
                       });
+                      _logFiltersChanged();
                     },
                     itemBuilder: (context) => const [
-                      PopupMenuItem(value: 'all', child: Text('All time')),
-                      PopupMenuItem(value: 'today', child: Text('Today')),
-                      PopupMenuItem(value: 'week', child: Text('Last 7 days')),
-                      PopupMenuItem(value: 'month', child: Text('This month')),
-                      PopupMenuItem(value: 'year', child: Text('This year')),
+                      PopupMenuItem<Object>(value: null, child: Text('All time')),
+                      PopupMenuItem<Object>(value: DateRangeFilter.today, child: Text('Today')),
+                      PopupMenuItem<Object>(value: DateRangeFilter.week, child: Text('Last 7 days')),
+                      PopupMenuItem<Object>(value: DateRangeFilter.month, child: Text('This month')),
+                      PopupMenuItem<Object>(value: DateRangeFilter.year, child: Text('This year')),
                     ],
                   ),
                 ],
@@ -388,13 +477,8 @@ class _TransactionsListState extends State<TransactionsList> {
                                           padding: EdgeInsets.symmetric(vertical: 0.5.h),
                                           child: TransactionCard(
                                             transaction: transaction,
-                                            onEdit: () {},
-                                            onDuplicate: () {},
-                                            onDelete: () {},
-                                            onAddNote: () {},
-                                            onMarkBusiness: () {},
-                                            onShare: () {},
-                                            onCategoryChange: (category) {},
+                                            onEdit: () => _handleEditTransaction(transaction),
+                                            onDelete: () => _handleDeleteTransaction(transaction),
                                           ),
                                         ),
                                       ),

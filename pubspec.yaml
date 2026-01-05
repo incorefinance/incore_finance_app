@@ -30,7 +30,8 @@ dependencies:
   custom_sliding_segmented_control: ^1.8.5
   supabase_flutter: ^2.10.3
   universal_html: ^2.2.4
-
+  logger: ^2.4.0
+  
 dev_dependencies:
   flutter_test:    # CRITICAL: Required for Flutter project testing - DO NOT REMOVE
     sdk: flutter   # CRITICAL: Required for Flutter project testing - DO NOT REMOVE
