@@ -1,170 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
+import 'package:incore_finance/models/payment_method.dart';
+import 'package:incore_finance/models/transaction_category.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
+import 'package:intl/intl.dart';
+import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
-import '../../../utils/number_formatter.dart';
-
-/// Central category definition used by the card and the picker.
-/// Color is not stored here because we are using a neutral color
-/// for all icons (Option C).
-class _CategoryDefinition {
-  final String id;
-  final String label;
-  final String iconName;
-
-  const _CategoryDefinition({
-    required this.id,
-    required this.label,
-    required this.iconName,
-  });
-}
-
-/// Single source of truth for all business_category enum values.
-/// IDs must match Supabase enum values exactly.
-const Map<String, _CategoryDefinition> _categoryDefinitions = {
-  // Income
-  'rev_sales': _CategoryDefinition(
-    id: 'rev_sales',
-    label: 'Sales revenue',
-    iconName: 'trending_up',
-  ),
-
-  // Marketing
-  'mkt_ads': _CategoryDefinition(
-    id: 'mkt_ads',
-    label: 'Marketing ads',
-    iconName: 'campaign',
-  ),
-  'mkt_software': _CategoryDefinition(
-    id: 'mkt_software',
-    label: 'Marketing software',
-    iconName: 'devices',
-  ),
-  'mkt_subs': _CategoryDefinition(
-    id: 'mkt_subs',
-    label: 'Marketing subscriptions',
-    iconName: 'receipt_long',
-  ),
-
-  // Operations
-  'ops_equipment': _CategoryDefinition(
-    id: 'ops_equipment',
-    label: 'Equipment',
-    iconName: 'construction',
-  ),
-  'ops_supplies': _CategoryDefinition(
-    id: 'ops_supplies',
-    label: 'Supplies',
-    iconName: 'inventory_2',
-  ),
-  'ops_rent': _CategoryDefinition(
-    id: 'ops_rent',
-    label: 'Rent',
-    iconName: 'home_work',
-  ),
-  'ops_insurance': _CategoryDefinition(
-    id: 'ops_insurance',
-    label: 'Insurance',
-    iconName: 'shield',
-  ),
-  'ops_taxes': _CategoryDefinition(
-    id: 'ops_taxes',
-    label: 'Taxes',
-    iconName: 'request_quote',
-  ),
-  'ops_fees': _CategoryDefinition(
-    id: 'ops_fees',
-    label: 'Bank and service fees',
-    iconName: 'receipt',
-  ),
-
-  // Professional services
-  'pro_accounting': _CategoryDefinition(
-    id: 'pro_accounting',
-    label: 'Accounting and bookkeeping',
-    iconName: 'calculate',
-  ),
-  'pro_contractors': _CategoryDefinition(
-    id: 'pro_contractors',
-    label: 'Freelancers and contractors',
-    iconName: 'groups_2',
-  ),
-
-  // Travel
-  'travel_general': _CategoryDefinition(
-    id: 'travel_general',
-    label: 'Travel',
-    iconName: 'flight_takeoff',
-  ),
-  'travel_meals': _CategoryDefinition(
-    id: 'travel_meals',
-    label: 'Travel meals',
-    iconName: 'restaurant',
-  ),
-
-  // People
-  'people_salary': _CategoryDefinition(
-    id: 'people_salary',
-    label: 'Salary and wages',
-    iconName: 'badge',
-  ),
-  'people_training': _CategoryDefinition(
-    id: 'people_training',
-    label: 'Training and education',
-    iconName: 'school',
-  ),
-
-  // Other
-  'other_expense': _CategoryDefinition(
-    id: 'other_expense',
-    label: 'Other expense',
-    iconName: 'more_horiz',
-  ),
-  'other_refunds': _CategoryDefinition(
-    id: 'other_refunds',
-    label: 'Customer refunds',
-    iconName: 'undo',
-  ),
-};
-
-_CategoryDefinition _getDefinition(String id) {
-  return _categoryDefinitions[id] ??
-      _CategoryDefinition(
-        id: id,
-        label: id
-            .split('_')
-            .map(
-              (w) => w.isEmpty
-                  ? w
-                  : '${w[0].toUpperCase()}${w.substring(1)}',
-            )
-            .join(' '),
-        iconName: 'category',
-      );
-}
+import '../../../widgets/custom_icon_widget.dart';
 
 class TransactionCard extends StatefulWidget {
   final TransactionRecord transaction;
-  final VoidCallback onEdit;
-  final VoidCallback onDuplicate;
-  final VoidCallback onDelete;
-  final VoidCallback onAddNote;
-  final VoidCallback onMarkBusiness;
-  final VoidCallback onShare;
-  final ValueChanged<String> onCategoryChange;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const TransactionCard({
     super.key,
     required this.transaction,
-    required this.onEdit,
-    required this.onDuplicate,
-    required this.onDelete,
-    required this.onAddNote,
-    required this.onMarkBusiness,
-    required this.onShare,
-    required this.onCategoryChange,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -173,7 +27,9 @@ class TransactionCard extends StatefulWidget {
 
 class _TransactionCardState extends State<TransactionCard> {
   final UserSettingsService _settingsService = UserSettingsService();
-  UserCurrencySettings? _currencySettings;
+
+  String _currencyLocale = 'en_US';
+  String _currencySymbol = '€';
 
   @override
   void initState() {
@@ -182,147 +38,26 @@ class _TransactionCardState extends State<TransactionCard> {
   }
 
   Future<void> _loadCurrencySettings() async {
-    final settings = await _settingsService.getCurrencySettings();
-    if (!mounted) return;
-    setState(() {
-      _currencySettings = settings;
+    try {
+      final settings = await _settingsService.getCurrencySettings();
+      if (!mounted) return;
+
+      setState(() {
+      _currencyLocale = settings.locale;
+      _currencySymbol = settings.symbol;
     });
+
+    } catch (_) {
+      // Keep defaults silently. Do not break the UI.
+    }
   }
 
-  void _showContextMenu(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    final options = _categoryDefinitions.values.toList()
-      ..sort((a, b) => a.label.compareTo(b.label));
-
-    final neutralIconColor =
-        colorScheme.onSurface.withValues(alpha: 0.7);
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppTheme.neutralGray,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              ListTile(
-                leading: CustomIconWidget(
-                  iconName: 'edit',
-                  color: neutralIconColor,
-                  size: 24,
-                ),
-                title: const Text('Edit transaction'),
-                onTap: () {
-                  Navigator.pop(context);
-                  widget.onEdit();
-                },
-              ),
-              ListTile(
-                leading: CustomIconWidget(
-                  iconName: 'content_copy',
-                  color: neutralIconColor,
-                  size: 24,
-                ),
-                title: const Text('Duplicate transaction'),
-                onTap: () {
-                  Navigator.pop(context);
-                  widget.onDuplicate();
-                },
-              ),
-              ListTile(
-                leading: CustomIconWidget(
-                  iconName: 'note_add',
-                  color: neutralIconColor,
-                  size: 24,
-                ),
-                title: const Text('Add note'),
-                onTap: () {
-                  Navigator.pop(context);
-                  widget.onAddNote();
-                },
-              ),
-              ListTile(
-                leading: CustomIconWidget(
-                  iconName: 'business_center',
-                  color: neutralIconColor,
-                  size: 24,
-                ),
-                title: const Text('Mark as business'),
-                onTap: () {
-                  Navigator.pop(context);
-                  widget.onMarkBusiness();
-                },
-              ),
-              ListTile(
-                leading: CustomIconWidget(
-                  iconName: 'share',
-                  color: neutralIconColor,
-                  size: 24,
-                ),
-                title: const Text('Share'),
-                onTap: () {
-                  Navigator.pop(context);
-                  widget.onShare();
-                },
-              ),
-              ListTile(
-                leading: CustomIconWidget(
-                  iconName: 'delete',
-                  color: AppTheme.errorRed,
-                  size: 24,
-                ),
-                title: Text(
-                  'Delete transaction',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: AppTheme.errorRed,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  widget.onDelete();
-                },
-              ),
-              SizedBox(height: 1.5.h),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 2.w),
-                  child: Text(
-                    'Change category',
-                    style: AppTheme.lightTheme.textTheme.titleMedium,
-                  ),
-                ),
-              ),
-              SizedBox(height: 0.5.h),
-              _CategoryPicker(
-                currentCategoryId: widget.transaction.category,
-                options: options,
-                iconColor: neutralIconColor,
-                onCategorySelected: (id) {
-                  Navigator.pop(context);
-                  widget.onCategoryChange(id);
-                },
-              ),
-              SizedBox(height: 2.h),
-            ],
-          ),
-        ),
-      ),
+  String _formatCurrency(num value) {
+    final formatter = NumberFormat.currency(
+      locale: _currencyLocale,
+      symbol: _currencySymbol,
     );
+    return formatter.format(value);
   }
 
   @override
@@ -330,166 +65,160 @@ class _TransactionCardState extends State<TransactionCard> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    if (_currencySettings == null) {
-      return Container(
-        margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
-        padding: EdgeInsets.all(3.w),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
     final t = widget.transaction;
-    final def = _getDefinition(t.category);
+
     final isExpense = t.type == 'expense';
 
-    final formattedAmount = IncoreNumberFormatter.formatAmountWithCurrency(
-      t.amount.abs(),
-      locale: _currencySettings!.locale,
-      symbol: _currencySettings!.symbol,
-    );
+    // Category shown as title (label)
+    final category = TransactionCategory.fromDbValue(t.category);
+    final categoryLabel = category?.label ?? (t.category ?? 'Uncategorized');
+    final categoryIcon = category?.iconName ?? 'category';
 
-    final paymentMethodLabel =
-        (t.paymentMethod == null || t.paymentMethod!.isNotEmpty == false)
-            ? 'No method'
-            : t.paymentMethod!;
+    // Description shown as subtitle (smaller)
+    final description = (t.description.trim().isEmpty) ? 'No description' : t.description.trim();
 
-    final neutralIconColor =
-        colorScheme.onSurface.withValues(alpha: 0.7);
-    final neutralBgColor =
-        colorScheme.onSurface.withValues(alpha: 0.06);
+    // Payment method label must be user-friendly
+    final paymentLabel =
+        PaymentMethodParser.fromAny(t.paymentMethod)?.label ??
+        ((t.paymentMethod ?? '').replaceAll('_', ' '));
 
-    return GestureDetector(
-      onLongPress: () => _showContextMenu(context),
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
-        padding: EdgeInsets.all(3.w),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.shadow.withValues(alpha: 0.08),
-              offset: const Offset(0, 2),
-              blurRadius: 8,
-            ),
-          ],
+    // Amount formatting:
+    // - income: green
+    // - expense: red + minus sign
+    final amountAbs = (t.amount).abs();
+    final formattedAbs = _formatCurrency(amountAbs);
+    final formattedAmount = isExpense ? '- $formattedAbs' : formattedAbs;
+
+    return Container(
+      padding: EdgeInsets.all(4.w),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.1),
         ),
-        child: Row(
-          children: [
-            // Category icon (neutral color)
-            Container(
-              width: 12.w,
-              height: 12.w,
-              decoration: BoxDecoration(
-                color: neutralBgColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: CustomIconWidget(
-                  iconName: def.iconName,
-                  color: neutralIconColor,
-                  size: 24,
-                ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Left icon box (keep grey look)
+          Container(
+            width: 12.w,
+            height: 12.w,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+            ),
+            child: Center(
+              child: CustomIconWidget(
+                iconName: categoryIcon,
+                color: colorScheme.onSurface.withValues(alpha: 0.45),
+                size: 22,
               ),
             ),
-            SizedBox(width: 3.w),
-            // Description, category label, payment method
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    t.description,
-                    style: theme.textTheme.titleMedium,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 0.5.h),
-                  Row(
-                    children: [
-                      // no extra icon before label anymore
-                      Text(
-                        def.label,
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      SizedBox(width: 2.w),
-                      CustomIconWidget(
-                        iconName: 'payment',
-                        size: 14,
-                        color: colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                      SizedBox(width: 1.w),
-                      Text(
-                        paymentMethodLabel,
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            // Amount and client
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+          ),
+
+          SizedBox(width: 4.w),
+
+          // Middle text block
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Title: Category
                 Text(
-                  isExpense ? '- $formattedAmount' : formattedAmount,
+                  categoryLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: isExpense
-                        ? AppTheme.errorRed
-                        : AppTheme.successGreen,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: 0.5.h),
-                if (t.client != null && t.client!.isNotEmpty)
-                  Text(
-                    t.client!,
-                    style: theme.textTheme.bodySmall,
-                  ),
+                SizedBox(height: 0.4.h),
+
+                // Subtitle: description + payment method
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        description,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.65),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 0.4.h),
+
+                Row(
+                  children: [
+                    Icon(
+                      Icons.payment,
+                      size: 16,
+                      color: colorScheme.onSurface.withValues(alpha: 0.55),
+                    ),
+                    SizedBox(width: 1.5.w),
+                    Text(
+                      paymentLabel,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.65),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CategoryPicker extends StatelessWidget {
-  final String currentCategoryId;
-  final List<_CategoryDefinition> options;
-  final Color iconColor;
-  final ValueChanged<String> onCategorySelected;
-
-  const _CategoryPicker({
-    required this.currentCategoryId,
-    required this.options,
-    required this.iconColor,
-    required this.onCategorySelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: options.map((def) {
-        final isSelected = currentCategoryId == def.id;
-        return ListTile(
-          leading: CustomIconWidget(
-            iconName: def.iconName,
-            color: iconColor,
-            size: 24,
           ),
-          title: Text(def.label),
-          trailing: isSelected ? const Icon(Icons.check) : null,
-          onTap: () => onCategorySelected(def.id),
-        );
-      }).toList(),
+
+          SizedBox(width: 3.w),
+
+          // Right side: amount + menu
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                formattedAmount,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: isExpense ? colorScheme.error : AppTheme.successGreen,
+                ),
+              ),
+              SizedBox(height: 0.6.h),
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  switch (value) {
+                    case 'edit':
+                      widget.onEdit?.call();
+                      break;
+                    case 'delete':
+                      widget.onDelete?.call();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  if (widget.onEdit != null)
+                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  if (widget.onDelete != null)
+                    const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                ],
+                icon: Icon(
+                  Icons.more_horiz,
+                  color: colorScheme.onSurface.withValues(alpha: 0.55),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

@@ -71,6 +71,53 @@ class TransactionsRepository {
     }
   }
 
+  Future<void> updateTransaction({
+    required String transactionId,
+    required double amount,
+    required String description,
+    required String category,
+    required String type, // "income" or "expense"
+    required DateTime date,
+    required String paymentMethod,
+    String? client,
+  }) async {
+    final userId = _supabaseService.currentUserId;
+    if (userId == null) {
+      throw Exception('User not logged in');
+    }
+
+    final payload = <String, dynamic>{
+      'amount': amount,
+      'description': description,
+      'category': category,
+      'type': type,
+      'date': date.toIso8601String(),
+      'payment_method': paymentMethod,
+      'client': client,
+    };
+
+    await _client
+        .from('transactions')
+        .update(payload)
+        .eq('id', transactionId)
+        .eq('user_id', userId);
+  }
+
+  Future<void> deleteTransaction({
+    required String transactionId,
+  }) async {
+    final userId = _supabaseService.currentUserId;
+    if (userId == null) {
+      throw Exception('User not logged in');
+    }
+
+    await _client
+        .from('transactions')
+        .delete()
+        .eq('id', transactionId)
+        .eq('user_id', userId);
+  }
+
   /// Raw fetch: used by legacy code.
   Future<List<Map<String, dynamic>>> getTransactionsForCurrentUser() async {
     final userId = _supabaseService.currentUserId;
@@ -94,9 +141,7 @@ class TransactionsRepository {
   Future<List<TransactionRecord>> getTransactionsForCurrentUserTyped() async {
     final raw = await getTransactionsForCurrentUser();
 
-    return raw
-        .map(TransactionRecord.fromMap)
-        .toList(growable: false);
+    return raw.map(TransactionRecord.fromMap).toList(growable: false);
   }
 
   /// Typed fetch by date range used by DashboardHome.
