@@ -64,7 +64,7 @@ extension PaymentMethodX on PaymentMethod {
       case PaymentMethod.bankTransfer:
         return 'bank_transfer';
       case PaymentMethod.mbWay:
-        return 'mb_way';
+        return 'mbway';
       case PaymentMethod.paypal:
         return 'paypal';
       case PaymentMethod.directDebit:

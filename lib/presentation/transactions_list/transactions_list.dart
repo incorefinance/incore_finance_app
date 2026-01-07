@@ -238,6 +238,71 @@ void _logFiltersChanged() {
     });
   }
 
+  void _clearOnlyFilters() {
+    setState(() {
+      _filters = TransactionFilters(query: _filters.query);
+    });
+
+    _logFiltersChanged();
+  }
+
+  Widget _buildNoResultsState(ThemeData theme, ColorScheme colorScheme) {
+    final hasNonQueryFilters =
+        _filters.categoryId != null || _filters.dateRange != null || _filters.paymentMethod != null;
+
+    final hasSearch = _filters.query.isNotEmpty;
+
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 40,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            SizedBox(height: 1.2.h),
+            Text(
+              'No results found',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 0.6.h),
+            Text(
+              'Try adjusting your search or filters.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            SizedBox(height: 1.6.h),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [
+                if (hasNonQueryFilters)
+                  TextButton(
+                    onPressed: _clearOnlyFilters,
+                    child: const Text('Clear filters'),
+                  ),
+                if (hasSearch)
+                  TextButton(
+                    onPressed: () {
+                      _searchController.clear(); // listener will update _filters.query
+                    },
+                    child: const Text('Clear search'),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _handleAddTransaction() async {
     final result = await Navigator.pushNamed(context, AppRoutes.addTransaction);
     if (result == true) {
@@ -299,6 +364,30 @@ Future<void> _handleDeleteTransaction(TransactionRecord transaction) async {
     );
   }
 }
+
+  Future<void> _confirmAndDeleteTransaction(TransactionRecord t) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete transaction'),
+        content: const Text('Are you sure you want to delete this transaction?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    await _handleDeleteTransaction(t);
+  }
 
   Future<void> _showFilterBottomSheet() async {
     final result = await showModalBottomSheet<Map<String, dynamic>>(
@@ -371,69 +460,102 @@ Future<void> _handleDeleteTransaction(TransactionRecord transaction) async {
                 ),
               ),
             ),
-
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 4.w),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: _showFilterBottomSheet,
-                      child: Chip(
-                        label: Row(
+              child: SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: Stack(
+                  fit: StackFit.expand,
+                  alignment: Alignment.center,
+                  children: [
+                    // Centered chip
+                    Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        decoration: ShapeDecoration(
+                          color: hasActiveFilters
+                              ? colorScheme.primary.withValues(alpha: 0.1)
+                              : colorScheme.surfaceContainerHighest,
+                          shape: StadiumBorder(
+                            side: BorderSide(
+                              color: hasActiveFilters
+                                  ? colorScheme.primary
+                                  : colorScheme.outlineVariant,
+                            ),
+                          ),
+                        ),
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.filter_alt, size: 18),
-                            SizedBox(width: 1.w),
-                            Text(
-                              hasActiveFilters ? 'Filters applied' : 'Filters',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: hasActiveFilters
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurfaceVariant,
+                            InkWell(
+                              onTap: _showFilterBottomSheet,
+                              customBorder: const StadiumBorder(),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.filter_alt, size: 18),
+                                    SizedBox(width: 1.w),
+                                    Text(
+                                      hasActiveFilters ? 'Filters applied' : 'Filters',
+                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                        color: hasActiveFilters
+                                            ? colorScheme.primary
+                                            : colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                            if (hasActiveFilters) ...[
-                              SizedBox(width: 1.w),
-                              GestureDetector(
-                                onTap: _clearFilters,
-                                child: Icon(Icons.close, size: 18, color: colorScheme.onSurfaceVariant),
+                            if (hasActiveFilters)
+                              IconButton(
+                                onPressed: _clearOnlyFilters,
+                                icon: Icon(
+                                  Icons.close,
+                                  size: 18,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                constraints: const BoxConstraints(),
+                                tooltip: 'Clear filters',
                               ),
-                            ],
                           ],
-                        ),
-                        backgroundColor: hasActiveFilters
-                            ? colorScheme.primary.withValues(alpha: 0.1)
-                            : colorScheme.surfaceContainerHighest,
-                        shape: StadiumBorder(
-                          side: BorderSide(
-                            color: hasActiveFilters ? colorScheme.primary : colorScheme.outlineVariant,
-                          ),
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(width: 2.w),
-                  PopupMenuButton<Object>(
-                    icon: const Icon(Icons.date_range),
-                    onSelected: (value) {
-                      setState(() {
-                        final selected = value is DateRangeFilter ? value : null;
-                        _filters = _filters.copyWith(dateRange: selected);
-                      });
-                      _logFiltersChanged();
-                    },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem<Object>(value: null, child: Text('All time')),
-                      PopupMenuItem<Object>(value: DateRangeFilter.today, child: Text('Today')),
-                      PopupMenuItem<Object>(value: DateRangeFilter.week, child: Text('Last 7 days')),
-                      PopupMenuItem<Object>(value: DateRangeFilter.month, child: Text('This month')),
-                      PopupMenuItem<Object>(value: DateRangeFilter.year, child: Text('This year')),
-                    ],
-                  ),
-                ],
+
+                    // Date icon pinned to the right
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: PopupMenuButton<Object>(
+                        icon: const Icon(Icons.date_range),
+                        onSelected: (value) {
+                          setState(() {
+                            final selected = value is DateRangeFilter ? value : null;
+                            _filters = _filters.copyWith(dateRange: selected);
+                          });
+                          _logFiltersChanged();
+                        },
+                        itemBuilder: (context) => const [
+                          PopupMenuItem<Object>(value: null, child: Text('All time')),
+                          PopupMenuItem<Object>(value: DateRangeFilter.today, child: Text('Today')),
+                          PopupMenuItem<Object>(value: DateRangeFilter.week, child: Text('Last 7 days')),
+                          PopupMenuItem<Object>(value: DateRangeFilter.month, child: Text('This month')),
+                          PopupMenuItem<Object>(value: DateRangeFilter.year, child: Text('This year')),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
+
 
             SizedBox(height: 1.h),
 
@@ -454,7 +576,9 @@ Future<void> _handleDeleteTransaction(TransactionRecord transaction) async {
                             ),
                           )
                         : transactionsByMonth.isEmpty
-                            ? EmptyStateWidget(onAddTransaction: _handleAddTransaction)
+                            ? (_allTransactions.isEmpty
+                                ? EmptyStateWidget(onAddTransaction: _handleAddTransaction)
+                                : _buildNoResultsState(theme, colorScheme))
                             : ListView.builder(
                                 padding: EdgeInsets.only(left: 4.w, right: 4.w, top: 2.h, bottom: 12.h),
                                 itemCount: transactionsByMonth.length,
@@ -478,7 +602,7 @@ Future<void> _handleDeleteTransaction(TransactionRecord transaction) async {
                                           child: TransactionCard(
                                             transaction: transaction,
                                             onEdit: () => _handleEditTransaction(transaction),
-                                            onDelete: () => _handleDeleteTransaction(transaction),
+                                            onDelete: () => _confirmAndDeleteTransaction(transaction),
                                           ),
                                         ),
                                       ),
