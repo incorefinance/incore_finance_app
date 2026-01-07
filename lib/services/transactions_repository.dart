@@ -113,7 +113,7 @@ class TransactionsRepository {
 
     await _client
         .from('transactions')
-        .delete()
+        .update({'deleted_at': DateTime.now().toIso8601String()})
         .eq('id', transactionId)
         .eq('user_id', userId);
   }
@@ -129,6 +129,7 @@ class TransactionsRepository {
         .from('transactions')
         .select()
         .eq('user_id', userId)
+        .filter('deleted_at', 'is', null)
         .order('date', ascending: false)
         .order('created_at', ascending: false);
 
@@ -158,6 +159,7 @@ class TransactionsRepository {
         .from('transactions')
         .select()
         .eq('user_id', userId)
+        .filter('deleted_at', 'is', null)
         .gte('date', startDate.toIso8601String())
         .lte('date', endDate.toIso8601String())
         // For charts it is easier to work in ascending order
