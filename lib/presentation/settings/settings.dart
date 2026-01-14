@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
 import 'package:incore_finance/widgets/custom_bottom_bar.dart';
+import 'package:incore_finance/presentation/add_transaction/add_transaction.dart';
 import '../../core/app_export.dart';
 import '../../main.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -269,16 +270,7 @@ class _SettingsState extends State<Settings> {
         ),
         bottomNavigationBar: CustomBottomBar(
           currentItem: BottomBarItem.settings,
-          onItemSelected: (item) {
-            // Navigate to selected item
-            if (item == BottomBarItem.dashboard) {
-              Navigator.of(context).pushNamed('/dashboard');
-            } else if (item == BottomBarItem.transactions) {
-              Navigator.of(context).pushNamed('/transactions');
-            } else if (item == BottomBarItem.analytics) {
-              Navigator.of(context).pushNamed('/analytics');
-            }
-          },
+          onItemSelected: (item) {}, // CustomBottomBar handles navigation internally
         ),
         body: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),

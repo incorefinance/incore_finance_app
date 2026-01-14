@@ -171,4 +171,20 @@ class TransactionsRepository {
         .map(TransactionRecord.fromMap)
         .toList(growable: false);
   }
+
+  /// Restore a soft-deleted transaction.
+  Future<void> restoreTransaction({
+    required String transactionId,
+  }) async {
+    final userId = _supabaseService.currentUserId;
+    if (userId == null) {
+      throw Exception('User not logged in');
+    }
+
+    await _client
+        .from('transactions')
+        .update({'deleted_at': null})
+        .eq('id', transactionId)
+        .eq('user_id', userId);
+  }
 }

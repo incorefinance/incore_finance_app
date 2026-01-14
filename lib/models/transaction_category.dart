@@ -20,7 +20,7 @@ enum TransactionCategory {
   revConsulting(
     dbValue: 'rev_consulting',
     label: 'Consulting',
-    iconName: 'person_check',
+    iconName: 'work',
     isIncome: true,
   ),
 

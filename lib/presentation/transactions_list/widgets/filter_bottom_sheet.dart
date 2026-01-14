@@ -76,6 +76,21 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     }
   }
 
+
+  Widget _buildDateChip(String? value, String label) {
+    final isSelected = _filters['dateRange'] == value;
+
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) {
+        setState(() {
+          _filters['dateRange'] = value;
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -259,6 +274,31 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const SizedBox(height: 16),
+
+                        Text(
+                          'Date range',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildDateChip(null, 'All time'),
+                            _buildDateChip('today', 'Today'),
+                            _buildDateChip('week', 'Last 7 days'),
+                            _buildDateChip('month', 'This month'),
+                            _buildDateChip('year', 'This year'),
+                          ],
+                        ),
+
+                        SizedBox(height: 3.h),
+
                         Text(
                           'Category',
                           style: theme.textTheme.titleMedium,

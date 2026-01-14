@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Navigation item configuration for bottom bar
 enum BottomBarItem {
   dashboard,
   transactions,
@@ -8,132 +7,173 @@ enum BottomBarItem {
   settings,
 }
 
-/// Custom bottom navigation bar widget for personal finance app
-/// Implements bottom-heavy design strategy with thumb-reach optimization
-/// Follows Material Design guidelines with platform-aware adaptations
 class CustomBottomBar extends StatelessWidget {
-  /// Currently selected navigation item
   final BottomBarItem currentItem;
-
-  /// Callback when navigation item is tapped
   final ValueChanged<BottomBarItem> onItemSelected;
 
-  /// Whether to show labels for all items (default: true)
-  final bool showLabels;
-
-  /// Custom background color (optional, uses theme if not provided)
-  final Color? backgroundColor;
-
-  /// Custom selected item color (optional, uses theme if not provided)
-  final Color? selectedItemColor;
-
-  /// Custom unselected item color (optional, uses theme if not provided)
-  final Color? unselectedItemColor;
+  // If null, the center slot is not rendered at all (no gap).
+  final VoidCallback? onAddTransaction;
 
   const CustomBottomBar({
     super.key,
     required this.currentItem,
     required this.onItemSelected,
-    this.showLabels = true,
-    this.backgroundColor,
-    this.selectedItemColor,
-    this.unselectedItemColor,
+    this.onAddTransaction,
   });
 
-  /// Get navigation configuration for each item
-  _NavigationItemConfig _getItemConfig(BottomBarItem item) {
+  _NavConfig _config(BottomBarItem item) {
     switch (item) {
       case BottomBarItem.dashboard:
-        return _NavigationItemConfig(
+        return const _NavConfig(
+          label: 'Dashboard',
           icon: Icons.dashboard_outlined,
           selectedIcon: Icons.dashboard,
-          label: 'Dashboard',
           route: '/dashboard-home',
         );
       case BottomBarItem.transactions:
-        return _NavigationItemConfig(
+        return const _NavConfig(
+          label: 'Transactions',
           icon: Icons.receipt_long_outlined,
           selectedIcon: Icons.receipt_long,
-          label: 'Transactions',
           route: '/transactions-list',
         );
       case BottomBarItem.analytics:
-        return _NavigationItemConfig(
+        return const _NavConfig(
+          label: 'Analytics',
           icon: Icons.analytics_outlined,
           selectedIcon: Icons.analytics,
-          label: 'Analytics',
           route: '/analytics-dashboard',
         );
       case BottomBarItem.settings:
-        return _NavigationItemConfig(
+        return const _NavConfig(
+          label: 'Settings',
           icon: Icons.settings_outlined,
           selectedIcon: Icons.settings,
-          label: 'Settings',
           route: '/settings',
         );
     }
   }
 
-  /// Handle navigation item tap with proper routing
-  void _handleItemTap(BuildContext context, BottomBarItem item) {
+  void _go(BuildContext context, BottomBarItem item) {
     if (item == currentItem) return;
 
-    final config = _getItemConfig(item);
     onItemSelected(item);
 
-    // Navigate to the route with replacement to maintain clean navigation stack
-    Navigator.pushReplacementNamed(context, config.route);
+    final route = _config(item).route;
+    Navigator.pushReplacementNamed(context, route);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final cs = theme.colorScheme;
 
-    // Use custom colors or fall back to theme colors
-    final bgColor = backgroundColor ??
-        theme.bottomNavigationBarTheme.backgroundColor ??
-        colorScheme.surface;
-    final selectedColor = selectedItemColor ??
-        theme.bottomNavigationBarTheme.selectedItemColor ??
-        colorScheme.primary;
-    final unselectedColor = unselectedItemColor ??
-        theme.bottomNavigationBarTheme.unselectedItemColor ??
-        colorScheme.onSurface.withValues(alpha: 0.6);
+    final selectedColor = cs.primary;
+    final unselectedColor = cs.onSurface.withValues(alpha: 0.55);
+
+    final showCenterAdd =
+      onAddTransaction != null &&
+      (currentItem == BottomBarItem.dashboard ||
+          currentItem == BottomBarItem.transactions);
+
+    Widget navItem(BottomBarItem item) {
+      final cfg = _config(item);
+      final isSelected = item == currentItem;
+
+      return Expanded(
+        child: _BottomBarItemWidget(
+          label: cfg.label,
+          icon: isSelected ? cfg.selectedIcon : cfg.icon,
+          isSelected: isSelected,
+          selectedColor: selectedColor,
+          unselectedColor: unselectedColor,
+          onTap: () => _go(context, item),
+        ),
+      );
+    }
+
+    // 4 items only (no gap) when there is no center add button
+    if (!showCenterAdd) {
+      return _BarShell(
+        child: Row(
+          children: [
+            navItem(BottomBarItem.dashboard),
+            navItem(BottomBarItem.transactions),
+            navItem(BottomBarItem.analytics),
+            navItem(BottomBarItem.settings),
+          ],
+        ),
+      );
+    }
+
+    // With center add button: render 2 items, a spacer slot, then 2 items.
+    // The + button is overlaid so it "sits" on the bar.
+    return _BarShell(
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Row(
+            children: [
+              navItem(BottomBarItem.dashboard),
+              navItem(BottomBarItem.transactions),
+
+              // Center slot reserved only on screens that actually show +
+              const SizedBox(width: 72),
+
+              navItem(BottomBarItem.analytics),
+              navItem(BottomBarItem.settings),
+            ],
+          ),
+
+          Positioned(
+            top: -18, // raise it a bit above the bar
+            child: SizedBox(
+              width: 56,
+              height: 56,
+              child: FloatingActionButton(
+                onPressed: onAddTransaction,
+                elevation: 6,
+                backgroundColor: cs.primary,
+                foregroundColor: cs.onPrimary,
+                shape: const CircleBorder(),
+                child: const Icon(Icons.add, size: 28),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BarShell extends StatelessWidget {
+  final Widget child;
+
+  const _BarShell({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
 
     return Container(
       decoration: BoxDecoration(
-        color: bgColor,
+        color: cs.surface,
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.08),
+            color: cs.shadow.withValues(alpha: 0.08),
             offset: const Offset(0, -2),
             blurRadius: 8,
-            spreadRadius: 0,
           ),
         ],
       ),
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 64,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: BottomBarItem.values.map((item) {
-              final config = _getItemConfig(item);
-              final isSelected = item == currentItem;
-
-              return Expanded(
-                child: _BottomBarItemWidget(
-                  config: config,
-                  isSelected: isSelected,
-                  showLabel: showLabels,
-                  selectedColor: selectedColor,
-                  unselectedColor: unselectedColor,
-                  onTap: () => _handleItemTap(context, item),
-                ),
-              );
-            }).toList(),
+          height: 72,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: child,
           ),
         ),
       ),
@@ -141,19 +181,18 @@ class CustomBottomBar extends StatelessWidget {
   }
 }
 
-/// Internal widget for individual bottom bar items
 class _BottomBarItemWidget extends StatelessWidget {
-  final _NavigationItemConfig config;
+  final String label;
+  final IconData icon;
   final bool isSelected;
-  final bool showLabel;
   final Color selectedColor;
   final Color unselectedColor;
   final VoidCallback onTap;
 
   const _BottomBarItemWidget({
-    required this.config,
+    required this.label,
+    required this.icon,
     required this.isSelected,
-    required this.showLabel,
     required this.selectedColor,
     required this.unselectedColor,
     required this.onTap,
@@ -162,52 +201,27 @@ class _BottomBarItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isSelected ? selectedColor : unselectedColor;
-    final icon = isSelected ? config.selectedIcon : config.icon;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        splashColor: selectedColor.withValues(alpha: 0.1),
-        highlightColor: selectedColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Icon with scale animation
-              AnimatedScale(
-                scale: isSelected ? 1.1 : 1.0,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                child: Icon(
-                  icon,
-                  size: 24,
+              Icon(icon, size: 24, color: color),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: color,
                 ),
               ),
-
-              if (showLabel) ...[
-                const SizedBox(height: 4),
-                // Label with fade animation
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeInOut,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: color,
-                    letterSpacing: 0.4,
-                  ),
-                  child: Text(
-                    config.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -216,17 +230,16 @@ class _BottomBarItemWidget extends StatelessWidget {
   }
 }
 
-/// Configuration class for navigation items
-class _NavigationItemConfig {
+class _NavConfig {
+  final String label;
   final IconData icon;
   final IconData selectedIcon;
-  final String label;
   final String route;
 
-  const _NavigationItemConfig({
+  const _NavConfig({
+    required this.label,
     required this.icon,
     required this.selectedIcon,
-    required this.label,
     required this.route,
   });
 }

@@ -101,7 +101,7 @@ class _TransactionsListState extends State<TransactionsList> {
       if (!mounted) return;
 
       setState(() {
-        _allTransactions = transactions;
+        _allTransactions = List<TransactionRecord>.from(transactions);
         _isLoading = false;
       });
     } catch (e, st) {
@@ -322,71 +322,158 @@ void _logFiltersChanged() {
   }
 }
 
-Future<void> _handleDeleteTransaction(TransactionRecord transaction) async {
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Delete transaction'),
-        content: const Text('Are you sure you want to delete this transaction?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      );
-    },
-  );
+  Future<void> _handleDeleteTransaction(TransactionRecord transaction) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-  if (confirmed != true) return;
+    // Optimistic UI update
+    setState(() {
+      _allTransactions.removeWhere((t) => t.id == transaction.id);
+    });
 
-  try {
-    await _repository.deleteTransaction(transactionId: transaction.id);
-    if (!mounted) return;
+    SnackBar _snack(String text, {SnackBarAction? action}) {
+  // CustomBottomBar is visually ~70–80px tall in your UI.
+  // Use a fixed margin that reliably places the SnackBar just above it on web + mobile.
+    final bottomInset = MediaQuery.of(context).padding.bottom;
 
-    await _loadTransactions();
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Transaction deleted')),
-    );
-  } catch (e, st) {
-    AppLogger.e('Error deleting transaction', error: e, stackTrace: st);
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Failed to delete transaction')),
+    return SnackBar(
+      content: Text(
+        text,
+        style: const TextStyle(
+          color: Color(0xFF0A1B2C), // navy
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      action: action == null
+          ? null
+          : SnackBarAction(
+              label: action.label,
+              onPressed: action.onPressed,
+              textColor: const Color(0xFF0A1B2C), // navy
+            ),
+      backgroundColor: const Color(0xFFF4F4F4), // off white
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 5), // <-- ensures it disappears
+      margin: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        // Fixed offset tuned for your bottom bar + FAB overlap.
+        bottom: bottomInset + 96,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      elevation: 2,
     );
   }
-}
 
-  Future<void> _confirmAndDeleteTransaction(TransactionRecord t) async {
+    try {
+      await _repository.deleteTransaction(
+        transactionId: transaction.id,
+      );
+
+      final messenger = ScaffoldMessenger.of(context);
+
+      // Always clear any existing snackbars first
+      messenger.clearSnackBars();
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Transaction deleted',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.fromLTRB(
+            16,
+            0,
+            16,
+            kBottomNavigationBarHeight + MediaQuery.of(context).padding.bottom + 12,
+          ),
+          backgroundColor: const Color(0xFF1C1C1E), // neutral dark (system-like)
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          action: SnackBarAction(
+            label: 'Undo',
+            textColor: const Color(0xFFE5E5EA), // subtle light gray
+            onPressed: () {
+              _undoDeleteTransaction(transaction);
+            },
+          ),
+        ),
+      );
+
+    } catch (e, st) {
+      // Rollback UI on failure
+      setState(() {
+        _allTransactions.add(transaction);
+        _allTransactions.sort((a, b) => b.date.compareTo(a.date));
+      });
+
+      AppLogger.e(
+        '[Transactions] Failed to delete transaction id=${transaction.id}',
+        error: e,
+        stackTrace: st,
+      );
+
+      scaffoldMessenger.showSnackBar(
+        _snack('Failed to delete transaction'),
+      );
+    }
+  }
+
+  Future<void> _undoDeleteTransaction(TransactionRecord transaction) async {
+    try {
+      await _repository.restoreTransaction(
+        transactionId: transaction.id,
+      );
+
+      setState(() {
+        _allTransactions.add(transaction);
+        _allTransactions.sort((a, b) => b.date.compareTo(a.date));
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to restore transaction'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _confirmAndDeleteTransaction(TransactionRecord transaction) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete transaction'),
-        content: const Text('Are you sure you want to delete this transaction?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete transaction?'),
+          content: const Text(
+            'This transaction will be removed from your list. You can undo this action.',
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
     );
 
-    if (confirmed != true) return;
-
-    await _handleDeleteTransaction(t);
+    if (confirmed == true && mounted) {
+      await _handleDeleteTransaction(transaction);
+    }
   }
 
   Future<void> _showFilterBottomSheet() async {
@@ -528,29 +615,7 @@ Future<void> _handleDeleteTransaction(TransactionRecord transaction) async {
                           ],
                         ),
                       ),
-                    ),
-
-                    // Date icon pinned to the right
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: PopupMenuButton<Object>(
-                        icon: const Icon(Icons.date_range),
-                        onSelected: (value) {
-                          setState(() {
-                            final selected = value is DateRangeFilter ? value : null;
-                            _filters = _filters.copyWith(dateRange: selected);
-                          });
-                          _logFiltersChanged();
-                        },
-                        itemBuilder: (context) => const [
-                          PopupMenuItem<Object>(value: null, child: Text('All time')),
-                          PopupMenuItem<Object>(value: DateRangeFilter.today, child: Text('Today')),
-                          PopupMenuItem<Object>(value: DateRangeFilter.week, child: Text('Last 7 days')),
-                          PopupMenuItem<Object>(value: DateRangeFilter.month, child: Text('This month')),
-                          PopupMenuItem<Object>(value: DateRangeFilter.year, child: Text('This year')),
-                        ],
-                      ),
-                    ),
+                    ), 
                   ],
                 ),
               ),
@@ -615,14 +680,10 @@ Future<void> _handleDeleteTransaction(TransactionRecord transaction) async {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _handleAddTransaction,
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: CustomBottomBar(
         currentItem: BottomBarItem.transactions,
         onItemSelected: (item) {},
+        onAddTransaction: _handleAddTransaction,
       ),
     );
   }

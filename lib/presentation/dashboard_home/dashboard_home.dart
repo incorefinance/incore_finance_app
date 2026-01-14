@@ -712,31 +712,11 @@ class _DashboardHomeState extends State<DashboardHome> {
             SliverToBoxAdapter(child: SizedBox(height: 10.h)),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _handleAddTransaction,
-        backgroundColor: AppTheme.accentGold,
-        foregroundColor: AppTheme.primaryNavyLight,
-        elevation: 4.0,
-        icon: CustomIconWidget(
-          iconName: 'add',
-          color: AppTheme.primaryNavyLight,
-          size: 24,
-        ),
-        label: Text(
-          'Add Transaction',
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: AppTheme.primaryNavyLight,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      ), 
       bottomNavigationBar: CustomBottomBar(
         currentItem: BottomBarItem.dashboard,
-        onItemSelected: (item) {
-          // Navigation handled by CustomBottomBar internally
-        },
+        onItemSelected: (item) {},
+        onAddTransaction: _handleAddTransaction,
       ),
     );
   }
