@@ -205,11 +205,17 @@ class _TransactionCardState extends State<TransactionCard> {
                   }
                 },
                 itemBuilder: (context) => [
-                  if (widget.onEdit != null)
-                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  if (widget.onDelete != null)
-                    const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                ],
+                    if (widget.onEdit != null)
+                      const PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Text('Edit'),
+                      ),
+                    if (widget.onDelete != null)
+                      const PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Text('Delete'),
+                      ),
+                  ],
                 icon: Icon(
                   Icons.more_horiz,
                   color: colorScheme.onSurface.withValues(alpha: 0.55),
