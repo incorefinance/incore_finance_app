@@ -333,13 +333,13 @@ class AppTheme {
 
     // SnackBar theme
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: primaryNavyLight,
+      backgroundColor: surfaceLight, // white or off white
       contentTextStyle: GoogleFonts.inter(
-        color: surfaceLight,
+        color: primaryNavyLight,
         fontSize: 14,
-        fontWeight: FontWeight.w400,
+        fontWeight: FontWeight.w500,
       ),
-      actionTextColor: accentGold,
+      actionTextColor: primaryNavyLight,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
@@ -663,31 +663,22 @@ class AppTheme {
     ),
 
     // SnackBar theme
-    snackBarTheme: SnackBarThemeData(
-      backgroundColor: surfaceDark,
-      contentTextStyle: GoogleFonts.inter(
-        color: textPrimaryDark,
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
-      actionTextColor: accentGold,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      elevation: 4.0,
-    ),
-
+      snackBarTheme: SnackBarThemeData(
+  behavior: SnackBarBehavior.floating,
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(12.0),
+  ),
+  elevation: 10.0,
+),
     // Bottom Sheet theme
-    bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: surfaceDark,
-      elevation: 8.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: surfaceDark,
+        elevation: 8.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        clipBehavior: Clip.antiAliasWithSaveLayer,
       ),
-      clipBehavior: Clip.antiAliasWithSaveLayer,
-    ),
-
     // Dialog theme
     dialogTheme: DialogThemeData(
       backgroundColor: cardDark,

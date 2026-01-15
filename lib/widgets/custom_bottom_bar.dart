@@ -69,7 +69,7 @@ class CustomBottomBar extends StatelessWidget {
     final cs = theme.colorScheme;
 
     final selectedColor = cs.primary;
-    final unselectedColor = cs.onSurface.withValues(alpha: 0.55);
+    final unselectedColor = cs.onSurface.withValues(alpha: 0.65);
 
     final showCenterAdd =
       onAddTransaction != null &&
@@ -208,17 +208,16 @@ class _BottomBarItemWidget extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 6),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 24, color: color),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              Semantics(
+                label: label,
+                selected: isSelected,
+                child: Icon(
+                  icon,
+                  size: 28,
                   color: color,
                 ),
               ),
