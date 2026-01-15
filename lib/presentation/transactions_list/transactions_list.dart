@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:collection';
+import 'dart:async';
 import 'package:incore_finance/core/logging/app_logger.dart';
 import 'package:incore_finance/models/payment_method.dart';
 import 'package:sizer/sizer.dart';
@@ -12,6 +13,22 @@ import '../../widgets/custom_bottom_bar.dart';
 import './widgets/empty_state_widget.dart';
 import './widgets/filter_bottom_sheet.dart';
 import './widgets/transaction_card.dart';
+
+class _PendingDelete {
+  final TransactionRecord transaction;
+  final String monthKey;
+  final int indexInMonth;
+  Timer? timer;
+
+  _PendingDelete({
+    required this.transaction,
+    required this.monthKey,
+    required this.indexInMonth,
+    this.timer,
+  });
+}
+
+const double _kBottomBarHeight = 72.0; // matches CustomBottomBar height
 
 enum DateRangeFilter { today, week, month, year }
 
@@ -65,6 +82,7 @@ class _TransactionsListState extends State<TransactionsList> {
   bool _isLoading = true;
   List<TransactionRecord> _allTransactions = [];
   String? _errorMessage;
+  final Map<String, _PendingDelete> _pendingDeletesById = {};
 
   @override
   void initState() {
@@ -87,6 +105,11 @@ class _TransactionsListState extends State<TransactionsList> {
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    for (final pending in _pendingDeletesById.values) {
+      pending.timer?.cancel();
+    }
+    _pendingDeletesById.clear();
+
     super.dispose();
   }
 
@@ -303,6 +326,105 @@ void _logFiltersChanged() {
     );
   }
 
+  List<Widget> _buildMonthRows({
+    required String monthKey,
+    required List<TransactionRecord> monthTransactions,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final pendingForMonth = _pendingDeletesById.values
+        .where((p) => p.monthKey == monthKey)
+        .toList()
+      ..sort((a, b) => a.indexInMonth.compareTo(b.indexInMonth));
+
+    final widgets = <Widget>[];
+    var txIndex = 0;
+    var pendingIndex = 0;
+
+    while (txIndex < monthTransactions.length || pendingIndex < pendingForMonth.length) {
+      if (pendingIndex < pendingForMonth.length) {
+        final pending = pendingForMonth[pendingIndex];
+        final insertAt = pending.indexInMonth.clamp(0, monthTransactions.length);
+
+        if (txIndex == insertAt) {
+          widgets.add(
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 0.5.h),
+              child: _DeletedInlineRow(
+                message: 'Transaction deleted',
+                actionLabel: 'Undo',
+                onAction: () => _undoDeleteTransaction(pending.transaction.id),
+                accentColor: colorScheme.primary,
+              ),
+            ),
+          );
+          pendingIndex++;
+          continue;
+        }
+      }
+
+      if (txIndex < monthTransactions.length) {
+        final transaction = monthTransactions[txIndex];
+
+        widgets.add(
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 0.5.h),
+            child: Dismissible(
+              key: ValueKey('tx_${transaction.id}'),
+              direction: DismissDirection.endToStart,
+              dismissThresholds: const {
+                DismissDirection.endToStart: 0.75,
+              },
+              confirmDismiss: (_) async {
+                await _confirmAndDeleteTransaction(transaction);
+                return false;
+              },
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: EdgeInsets.only(right: 5.w),
+                decoration: BoxDecoration(
+                  color: colorScheme.error,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  Icons.delete_outline,
+                  color: colorScheme.onError,
+                ),
+              ),
+              child: TransactionCard(
+                transaction: transaction,
+                onEdit: () => _handleEditTransaction(transaction),
+                onDelete: () => _confirmAndDeleteTransaction(transaction),
+              ),
+            ),
+          ),
+        );
+
+        txIndex++;
+        continue;
+      }
+
+      if (pendingIndex < pendingForMonth.length) {
+        final pending = pendingForMonth[pendingIndex];
+        widgets.add(
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 0.5.h),
+            child: _DeletedInlineRow(
+              message: 'Transaction deleted',
+              actionLabel: 'Undo',
+              onAction: () => _undoDeleteTransaction(pending.transaction.id),
+              accentColor: colorScheme.primary,
+            ),
+          ),
+        );
+        pendingIndex++;
+      }
+    }
+
+    return widgets;
+  }
+
   Future<void> _handleAddTransaction() async {
     final result = await Navigator.pushNamed(context, AppRoutes.addTransaction);
     if (result == true) {
@@ -323,125 +445,68 @@ void _logFiltersChanged() {
 }
 
   Future<void> _handleDeleteTransaction(TransactionRecord transaction) async {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    if (!mounted) return;
 
-    // Optimistic UI update
+    if (_pendingDeletesById.containsKey(transaction.id)) return;
+
+    final d = transaction.date;
+    final monthKey = '${_getMonthName(d.month)} ${d.year}';
+
+    final monthTransactions = _transactionsByMonth[monthKey] ?? const <TransactionRecord>[];
+    final indexInMonth = monthTransactions.indexWhere((t) => t.id == transaction.id);
+    final safeIndex = indexInMonth < 0 ? 0 : indexInMonth;
+
+    final pending = _PendingDelete(
+      transaction: transaction,
+      monthKey: monthKey,
+      indexInMonth: safeIndex,
+    );
+
     setState(() {
+      _pendingDeletesById[transaction.id] = pending;
       _allTransactions.removeWhere((t) => t.id == transaction.id);
     });
 
-    SnackBar _snack(String text, {SnackBarAction? action}) {
-  // CustomBottomBar is visually ~70–80px tall in your UI.
-  // Use a fixed margin that reliably places the SnackBar just above it on web + mobile.
-    final bottomInset = MediaQuery.of(context).padding.bottom;
-
-    return SnackBar(
-      content: Text(
-        text,
-        style: const TextStyle(
-          color: Color(0xFF0A1B2C), // navy
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      action: action == null
-          ? null
-          : SnackBarAction(
-              label: action.label,
-              onPressed: action.onPressed,
-              textColor: const Color(0xFF0A1B2C), // navy
-            ),
-      backgroundColor: const Color(0xFFF4F4F4), // off white
-      behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 5), // <-- ensures it disappears
-      margin: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        // Fixed offset tuned for your bottom bar + FAB overlap.
-        bottom: bottomInset + 96,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
-      elevation: 2,
-    );
+    pending.timer = Timer(const Duration(seconds: 5), () async {
+      await _commitPendingDelete(transaction.id);
+    });
   }
 
+  void _undoDeleteTransaction(String transactionId) {
+    final pending = _pendingDeletesById.remove(transactionId);
+    if (pending == null) return;
+
+    pending.timer?.cancel();
+
+    if (!mounted) return;
+    setState(() {
+      _allTransactions.add(pending.transaction);
+      _allTransactions.sort((a, b) => b.date.compareTo(a.date));
+    });
+  }
+
+  Future<void> _commitPendingDelete(String transactionId) async {
+    final pending = _pendingDeletesById.remove(transactionId);
+    if (pending == null) return;
+
+    if (mounted) {
+      setState(() {});
+    }
+
     try {
-      await _repository.deleteTransaction(
-        transactionId: transaction.id,
-      );
-
-      final messenger = ScaffoldMessenger.of(context);
-
-      // Always clear any existing snackbars first
-      messenger.clearSnackBars();
-
-      messenger.showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Transaction deleted',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          duration: const Duration(seconds: 4),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.fromLTRB(
-            16,
-            0,
-            16,
-            kBottomNavigationBarHeight + MediaQuery.of(context).padding.bottom + 12,
-          ),
-          backgroundColor: const Color(0xFF1C1C1E), // neutral dark (system-like)
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          action: SnackBarAction(
-            label: 'Undo',
-            textColor: const Color(0xFFE5E5EA), // subtle light gray
-            onPressed: () {
-              _undoDeleteTransaction(transaction);
-            },
-          ),
-        ),
-      );
-
+      await _repository.deleteTransaction(transactionId: transactionId);
     } catch (e, st) {
-      // Rollback UI on failure
-      setState(() {
-        _allTransactions.add(transaction);
-        _allTransactions.sort((a, b) => b.date.compareTo(a.date));
-      });
-
       AppLogger.e(
-        '[Transactions] Failed to delete transaction id=${transaction.id}',
+        '[Transactions] Failed to delete transaction id=$transactionId',
         error: e,
         stackTrace: st,
       );
 
-      scaffoldMessenger.showSnackBar(
-        _snack('Failed to delete transaction'),
-      );
-    }
-  }
-
-  Future<void> _undoDeleteTransaction(TransactionRecord transaction) async {
-    try {
-      await _repository.restoreTransaction(
-        transactionId: transaction.id,
-      );
-
+      if (!mounted) return;
       setState(() {
-        _allTransactions.add(transaction);
+        _allTransactions.add(pending.transaction);
         _allTransactions.sort((a, b) => b.date.compareTo(a.date));
       });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to restore transaction'),
-        ),
-      );
     }
   }
 
@@ -661,15 +726,9 @@ void _logFiltersChanged() {
                                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                                         ),
                                       ),
-                                      ...monthTransactions.map(
-                                        (transaction) => Padding(
-                                          padding: EdgeInsets.symmetric(vertical: 0.5.h),
-                                          child: TransactionCard(
-                                            transaction: transaction,
-                                            onEdit: () => _handleEditTransaction(transaction),
-                                            onDelete: () => _confirmAndDeleteTransaction(transaction),
-                                          ),
-                                        ),
+                                      ..._buildMonthRows(
+                                        monthKey: monthKey,
+                                        monthTransactions: monthTransactions,
                                       ),
                                     ],
                                   );
@@ -684,6 +743,69 @@ void _logFiltersChanged() {
         currentItem: BottomBarItem.transactions,
         onItemSelected: (item) {},
         onAddTransaction: _handleAddTransaction,
+      ),
+    );
+  }
+}
+
+class _DeletedInlineRow extends StatelessWidget {
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+  final Color accentColor;
+
+  const _DeletedInlineRow({
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+    required this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 16,
+            decoration: BoxDecoration(
+              color: accentColor,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: onAction,
+            child: Text(
+              actionLabel,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: accentColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
