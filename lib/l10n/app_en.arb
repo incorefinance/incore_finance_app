@@ -165,5 +165,77 @@
     "transactionDeleted": "Transaction deleted",
     "transactionUpdated": "Transaction updated",
     "errorSavingTransaction": "Error saving transaction",
-    "fillRequiredFields": "Please fill all required fields"
+    "fillRequiredFields": "Please fill all required fields",
+    "noDataYet": "No data yet",
+    "retry": "Retry",
+    "failedToLoadDashboard": "Failed to load dashboard data",
+    "someDashboardDataFailed": "Some dashboard data could not be loaded. Pull to refresh to try again.",
+    "noExpensesRecorded": "No expenses recorded this month yet",
+    "netProfit": "Net Profit",
+    "netLoss": "Net Loss",
+    "cashBalanceTrend": "Cash Balance Trend",
+    "thirtyDays": "30 Days",
+    "exportReport": "Export Report",
+    "threeMonths": "3M",
+    "sixMonths": "6M",
+    "twelveMonths": "12M",
+    "performanceOverview": "Performance overview",
+    "notEnoughData": "Not enough data yet.",
+    "incomeVsExpensesChart": "Income vs expenses",
+    "incomeSources": "Income sources",
+    "expenseBreakdown": "Expense breakdown",
+    "exportAnalytics": "Export Analytics",
+    "exportAsPdf": "Export as PDF",
+    "generatePdfReport": "Generate comprehensive PDF report",
+    "exportAsCsv": "Export as CSV",
+    "downloadCsvData": "Download data in spreadsheet format",
+    "reportExportedSuccessfully": "{format} report exported successfully",
+    "@reportExportedSuccessfully": {
+        "placeholders": {
+            "format": {
+                "type": "String"
+            }
+        }
+    },
+    "view": "View",
+    "notEnoughDataForTrends": "Not enough data yet to show trends.",
+    "profitImproved": "Profit improved compared to last month.",
+    "profitDecreased": "Profit decreased compared to last month.",
+    "profitStable": "Profit was stable compared to last month.",
+    "exportStarted": "{format} export started",
+    "@exportStarted": {
+        "placeholders": {
+            "format": {
+                "type": "String"
+            }
+        }
+    },
+    "resetDataTitle": "Reset Data",
+    "resetDataDescription": "This will permanently delete all your financial data. This action cannot be undone.",
+    "resetDataDescriptionShort": "Permanently delete all data",
+    "dataResetSuccess": "All data has been reset successfully",
+    "generalSettings": "General Settings",
+    "privacySecurity": "Privacy & Security",
+    "goalsAndTracking": "Goals & Tracking",
+    "dataAndExport": "Data & Export",
+    "aboutSection": "About",
+    "aboutTitle": "About InCore Finance",
+    "aboutDescription": "InCore Finance helps you manage your business finances with ease. Track income, expenses, and gain insights into your financial health.",
+    "aboutDescriptionShort": "Version and app information",
+    "languageEnglish": "English",
+    "languagePortuguese": "Portuguese",
+    "darkModeEnabled": "Dark mode enabled",
+    "darkModeDisabled": "Dark mode disabled",
+    "notificationsEnabled": "Notifications enabled",
+    "notificationsDisabled": "Notifications disabled",
+    "goalMilestonesEnabled": "Goal milestones enabled",
+    "goalMilestonesDisabled": "Goal milestones disabled",
+    "weeklySummaryEnabled": "Weekly summary enabled",
+    "weeklySummaryDisabled": "Weekly summary disabled",
+    "spendingAlertsEnabled": "Spending alerts enabled",
+    "spendingAlertsDisabled": "Spending alerts disabled",
+    "googleSheetsSyncEnabled": "Google Sheets sync enabled",
+    "googleSheetsSyncDisabled": "Google Sheets sync disabled",
+    "currency": "Currency",
+    "exportDataDescription": "Download your financial data"
 }

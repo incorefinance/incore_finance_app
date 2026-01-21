@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:incore_finance/widgets/custom_bottom_bar.dart';
 import 'package:sizer/sizer.dart';
+import 'package:incore_finance/services/user_settings_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 import '../../core/app_export.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/custom_app_bar.dart';
-import '../../widgets/custom_bottom_bar.dart';
-import './widgets/category_breakdown_chart_widget.dart';
-import './widgets/chart_section_widget.dart';
-import './widgets/date_range_selector_widget.dart';
-import './widgets/financial_ratio_card_widget.dart';
 import './widgets/income_expenses_chart_widget.dart';
+import './widgets/horizontal_category_breakdown_widget.dart';
 import './widgets/profit_trends_chart_widget.dart';
+import 'package:incore_finance/models/transaction_record.dart';
+import 'package:incore_finance/services/transactions_repository.dart';
+import 'package:incore_finance/models/transaction_category.dart';
+import 'package:intl/intl.dart';
+
+String _dateLocale = 'en_US';
+
+enum _AnalyticsRange { m3, m6, m12 }
 
 /// Analytics Dashboard screen for comprehensive financial insights
 class AnalyticsDashboard extends StatefulWidget {
@@ -20,81 +29,228 @@ class AnalyticsDashboard extends StatefulWidget {
 }
 
 class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
-  int _selectedChartType = 1;
-  String _selectedDateRange = 'Last 30 days';
-  bool _isLoading = false;
+  final TransactionsRepository _transactionsRepository = TransactionsRepository();
+
+  bool _isLoading = true;
+  String? _loadError;
+
+  List<Map<String, dynamic>> _incomeExpensesData = [];
+  List<Map<String, dynamic>> _profitTrendsData = [];
+  List<Map<String, dynamic>> _incomeCategoryData = [];
+  List<Map<String, dynamic>> _expenseCategoryData = [];
+
+  _AnalyticsRange _range = _AnalyticsRange.m3;
+
+  final UserSettingsService _settingsService = UserSettingsService();
 
   // Currency settings
-  String _currencyLocale = 'en_US';
-  String _currencySymbol = '\$';
-
-  // Mock data for Income vs Expenses
-  final List<Map<String, dynamic>> _incomeExpensesData = [
-    {'month': 'Jul', 'income': 8500, 'expenses': 6200},
-    {'month': 'Aug', 'income': 9200, 'expenses': 6800},
-    {'month': 'Sep', 'income': 7800, 'expenses': 5900},
-    {'month': 'Oct', 'income': 10500, 'expenses': 7200},
-    {'month': 'Nov', 'income': 9800, 'expenses': 6500},
-    {'month': 'Dec', 'income': 11200, 'expenses': 7800},
-  ];
-
-  // Mock data for Category Breakdown
-  final List<Map<String, dynamic>> _categoryData = [
-    {'category': 'Software & Tools', 'amount': 2400},
-    {'category': 'Marketing', 'amount': 1800},
-    {'category': 'Office Supplies', 'amount': 950},
-    {'category': 'Travel', 'amount': 1200},
-    {'category': 'Professional Services', 'amount': 1500},
-    {'category': 'Utilities', 'amount': 650},
-    {'category': 'Insurance', 'amount': 800},
-    {'category': 'Miscellaneous', 'amount': 500},
-  ];
-
-  // Mock data for Profit Trends
-  final List<Map<String, dynamic>> _profitTrendsData = [
-    {'month': 'Jul', 'profit': 2300},
-    {'month': 'Aug', 'profit': 2400},
-    {'month': 'Sep', 'profit': 1900},
-    {'month': 'Oct', 'profit': 3300},
-    {'month': 'Nov', 'profit': 3300},
-    {'month': 'Dec', 'profit': 3400},
-  ];
+  String _currencyLocale = 'pt_PT';
+  String _currencySymbol = '€';
+  String _currencyCode = 'EUR';
 
   @override
   void initState() {
     super.initState();
-    _loadCurrencySettings();
+    _loadUserSettings();
+    _loadAnalyticsData();
   }
 
-  Future<void> _loadCurrencySettings() async {
-    // Remove the call to non-existent getCurrencySettings method
-    // Use default currency settings instead
-    setState(() {
-      _currencyLocale = 'en_US';
-      _currencySymbol = '\$';
-    });
-  }
+  Future<void> _loadUserSettings() async {
+    try {
+      final settings = await _settingsService.getCurrencySettings();
 
-  /// Get dynamic subtitle based on selected date range and chart type
-  String _getChartSubtitle() {
-    if (_selectedChartType == 3) {
-      // Profit Trends - dynamic subtitle
-      switch (_selectedDateRange) {
-        case 'Last 30 days':
-          return '30-day profit history and analysis';
-        case 'Last 3 months':
-          return '3-month profit history and analysis';
-        case 'Last 6 months':
-          return '6-month profit history and analysis';
-        default:
-          return '6-month profit history and analysis';
-      }
-    } else if (_selectedChartType == 1) {
-      return 'Monthly comparison of income and expenses';
-    } else if (_selectedChartType == 2) {
-      return 'Expense distribution by category';
+      final prefs = await SharedPreferences.getInstance();
+      final lang = prefs.getString('language') ?? 'en'; // 'en' or 'pt'
+
+      if (!mounted) return;
+
+      setState(() {
+        _currencyLocale = settings.locale;
+        _currencySymbol = settings.symbol;
+        _currencyCode = settings.currencyCode;
+
+        // date locale follows app language, not currency
+        _dateLocale = (lang == 'pt') ? 'pt_PT' : 'en_US';
+      });
+    } catch (_) {
+      // keep defaults
     }
-    return '';
+  }
+
+  Future<void> _loadAnalyticsData() async {
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
+
+    try {
+      final now = DateTime.now();
+      final months = _range == _AnalyticsRange.m3
+          ? 3
+          : _range == _AnalyticsRange.m6
+              ? 6
+              : 12;
+
+      final startMonth = DateTime(now.year, now.month - (months - 1), 1);
+      final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
+
+      final transactions = await _transactionsRepository.getTransactionsByDateRangeTyped(
+        startMonth,
+        endDate,
+      );
+
+      if (!mounted) return;
+
+      _incomeExpensesData = _buildIncomeExpensesMonthlyData(
+        transactions: transactions,
+        startMonth: startMonth,
+        months: months,
+      );
+
+      _profitTrendsData = _buildProfitMonthlyData(
+        incomeExpensesMonthlyData: _incomeExpensesData,
+      );
+
+      _incomeCategoryData = _buildCategoryBreakdownData(
+        transactions: transactions,
+        type: 'income',
+      );
+
+      _expenseCategoryData = _buildCategoryBreakdownData(
+        transactions: transactions,
+        type: 'expense',
+      );
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _loadError = 'Failed to load analytics';
+      });
+    }
+  }
+
+  List<Map<String, dynamic>> _buildIncomeExpensesMonthlyData({
+    required List<TransactionRecord> transactions,
+    required DateTime startMonth,
+    required int months,
+  }) {
+    final result = <Map<String, dynamic>>[];
+
+    for (var i = 0; i < months; i++) {
+      final monthStart = DateTime(startMonth.year, startMonth.month + i, 1);
+      final nextMonthStart = DateTime(startMonth.year, startMonth.month + i + 1, 1);
+
+      double income = 0;
+      double expenses = 0;
+
+      for (final t in transactions) {
+        final d = t.date;
+        final inMonth = !d.isBefore(monthStart) && d.isBefore(nextMonthStart);
+        if (!inMonth) continue;
+
+        if (t.type == 'income') {
+          income += t.amount;
+        } else if (t.type == 'expense') {
+          expenses += t.amount;
+        }
+      }
+
+        final m = DateFormat('MMM', _dateLocale).format(monthStart);
+        final y = DateFormat('yy', _dateLocale).format(monthStart);
+        final monthLabel = '$m$y';
+
+      result.add({
+        'month': monthLabel,
+        'income': income,
+        'expenses': expenses,
+      });
+    }
+
+    return result;
+  }
+
+  List<Map<String, dynamic>> _buildProfitMonthlyData({
+    required List<Map<String, dynamic>> incomeExpensesMonthlyData,
+  }) {
+    return incomeExpensesMonthlyData.map((m) {
+      final income = (m['income'] as num).toDouble();
+      final expenses = (m['expenses'] as num).toDouble();
+      return {
+        'month': m['month'],
+        'profit': income - expenses,
+      };
+    }).toList(growable: false);
+  }
+
+  List<Map<String, dynamic>> _buildCategoryBreakdownData({
+    required List<TransactionRecord> transactions,
+    required String type, // 'income' or 'expense'
+  }) {
+    final totalsByCategory = <String, double>{};
+
+    for (final t in transactions) {
+      if (t.type != type) continue;
+
+      totalsByCategory.update(
+        t.category,
+        (value) => value + t.amount,
+        ifAbsent: () => t.amount,
+      );
+    }
+
+    final entries = totalsByCategory.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    // Top 5 + Other
+    final top = entries.take(5).toList(growable: false);
+    final rest = entries.skip(5);
+
+    double otherTotal = 0;
+    for (final e in rest) {
+      otherTotal += e.value;
+    }
+
+    final result = <Map<String, dynamic>>[];
+
+    for (final e in top) {
+      final category = TransactionCategory.fromDbValue(e.key);
+      result.add({
+        'label': category?.label ?? e.key,
+        'amount': e.value,
+      });
+    }
+
+    if (otherTotal > 0) {
+      result.add({
+        'label': 'Other',
+        'amount': otherTotal,
+      });
+    }
+
+    return result;
+  }
+
+  String _buildPerformanceSummaryText() {
+    if (_profitTrendsData.length < 2) {
+      return 'Not enough data yet to show trends.';
+    }
+
+    final last = (_profitTrendsData.last['profit'] as num).toDouble();
+    final prev = (_profitTrendsData[_profitTrendsData.length - 2]['profit'] as num).toDouble();
+
+    final delta = last - prev;
+
+    if (delta > 0) {
+      return 'Profit improved compared to last month.';
+    }
+    if (delta < 0) {
+      return 'Profit decreased compared to last month.';
+    }
+    return 'Profit was stable compared to last month.';
   }
 
   @override
@@ -102,7 +258,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
       appBar: CustomAppBar(
-        title: 'Analytics',
+        title: AppLocalizations.of(context)!.analytics,
         variant: AppBarVariant.standard,
         actions: [
           IconButton(
@@ -112,323 +268,144 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
               size: 24,
             ),
             onPressed: _handleExport,
-            tooltip: 'Export Report',
+            tooltip: AppLocalizations.of(context)!.exportReport,
           ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: _handleRefresh,
         color: AppTheme.accentGold,
-        child: CustomScrollView(
-          slivers: [
-            // Horizontally Scrollable Tab Navigation - LARGER AND MORE PROMINENT
-            SliverToBoxAdapter(
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-                height: 7.h,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildTabButton('Income vs Expenses', 1),
-                      SizedBox(width: 2.w),
-                      _buildTabButton('Category Breakdown', 2),
-                      SizedBox(width: 2.w),
-                      _buildTabButton('Profit Trends', 3),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Date Range Selector
-            SliverToBoxAdapter(
-              child: DateRangeSelectorWidget(
-                selectedRange: _selectedDateRange,
-                onRangeChanged: (range) {
-                  setState(() {
-                    _selectedDateRange = range;
-                  });
-                  _handleDateRangeChange(range);
-                },
-              ),
-            ),
-
-            SliverToBoxAdapter(child: SizedBox(height: 2.h)),
-
-            // Chart Section
-            SliverToBoxAdapter(
-              child: _isLoading
-                  ? _buildLoadingSkeleton()
-                  : AnimatedSwitcher(
-                      duration: AppTheme.mediumDuration,
-                      transitionBuilder: (child, animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0.1, 0),
-                              end: Offset.zero,
-                            ).animate(animation),
-                            child: child,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _loadError != null
+                ? Center(child: Text(_loadError!))
+                : SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4.w),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: SegmentedButton<_AnalyticsRange>(
+                              segments: [
+                                ButtonSegment(value: _AnalyticsRange.m3, label: Text(AppLocalizations.of(context)!.threeMonths)),
+                                ButtonSegment(value: _AnalyticsRange.m6, label: Text(AppLocalizations.of(context)!.sixMonths)),
+                                ButtonSegment(value: _AnalyticsRange.m12, label: Text(AppLocalizations.of(context)!.twelveMonths)),
+                              ],
+                              selected: {_range},
+                              showSelectedIcon: false,
+                              onSelectionChanged: (value) {
+                                setState(() {
+                                  _range = value.first;
+                                });
+                                _loadAnalyticsData();
+                              },
+                            ),
                           ),
-                        );
-                      },
-                      child: _buildChartSection(),
+                          const SizedBox(height: 24),
+
+                          // Section 1: Performance overview
+                          Text(
+                            AppLocalizations.of(context)!.performanceOverview,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          const SizedBox(height: 18),
+                          if (_profitTrendsData.isEmpty) Text(AppLocalizations.of(context)!.notEnoughData),
+                          if (_profitTrendsData.isNotEmpty)
+                            SizedBox(
+                              height: 30.h,
+                              child: ProfitTrendsChartWidget(
+                                trendData: _profitTrendsData,
+                                locale: _currencyLocale,
+                                symbol: _currencySymbol,
+                                currencyCode: _currencyCode,  
+                              ),
+                            ),
+
+                          const SizedBox(height: 16),
+
+                          _PerformanceSummaryCard(
+                            text: _buildPerformanceSummaryText(),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Section 2: Income vs expenses
+                          Text(
+                            AppLocalizations.of(context)!.incomeVsExpensesChart,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          if (_incomeExpensesData.isEmpty) Text(AppLocalizations.of(context)!.notEnoughData),
+                          if (_incomeExpensesData.isNotEmpty)
+                            SizedBox(
+                              height: 30.h,
+                              child: IncomeExpensesChartWidget(
+                                chartData: _incomeExpensesData,
+                                locale: _currencyLocale,
+                                symbol: _currencySymbol,
+                                currencyCode: _currencyCode,
+                              ),
+                            ),
+                          const SizedBox(height: 24),
+
+                          // Section 3: Income sources
+                          Text(
+                            AppLocalizations.of(context)!.incomeSources,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          HorizontalCategoryBreakdownWidget(
+                            data: _incomeCategoryData,
+                            locale: _currencyLocale,
+                            symbol: _currencySymbol,
+                            currencyCode: _currencyCode,
+                            accentColor: AppTheme.successGreen,
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Section 4: Expense breakdown
+                          Text(
+                            AppLocalizations.of(context)!.expenseBreakdown,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          HorizontalCategoryBreakdownWidget(
+                            data: _expenseCategoryData,
+                            locale: _currencyLocale,
+                            symbol: _currencySymbol,
+                            currencyCode: _currencyCode,
+                            accentColor: AppTheme.errorRed,
+                          ),
+                          const SizedBox(height: 24),
+
+                          SizedBox(height: 3.h),
+                        ],
+                      ),
                     ),
-            ),
-
-            SliverToBoxAdapter(child: SizedBox(height: 3.h)),
-
-            // Financial Ratios Section
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4.w),
-                child: Text(
-                  'Key Financial Ratios',
-                  style: AppTheme.lightTheme.textTheme.titleLarge,
-                ),
-              ),
-            ),
-
-            SliverToBoxAdapter(child: SizedBox(height: 2.h)),
-
-            SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: 4.w),
-              sliver: SliverGrid(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 1,
-                  mainAxisSpacing: 2.h,
-                  childAspectRatio: 2.5,
-                ),
-                delegate: SliverChildListDelegate([
-                  FinancialRatioCardWidget(
-                    title: 'Profit Margin',
-                    value: '32.4%',
-                    description:
-                        'Percentage of revenue remaining after expenses',
-                    indicatorColor: AppTheme.successGreen,
-                    icon: Icons.percent,
                   ),
-                  FinancialRatioCardWidget(
-                    title: 'Burn Rate',
-                    value: '\$6,800/mo',
-                    description: 'Average monthly spending rate',
-                    indicatorColor: AppTheme.warningAmber,
-                    icon: Icons.local_fire_department,
-                  ),
-                  FinancialRatioCardWidget(
-                    title: 'Runway',
-                    value: '8.5 months',
-                    description:
-                        'Time until funds are depleted at current rate',
-                    indicatorColor: AppTheme.accentGold,
-                    icon: Icons.flight_takeoff,
-                  ),
-                ]),
-              ),
-            ),
-
-            SliverToBoxAdapter(child: SizedBox(height: 10.h)),
-          ],
-        ),
       ),
       bottomNavigationBar: CustomBottomBar(
         currentItem: BottomBarItem.analytics,
-        onItemSelected: (item) {
-          // Navigation handled by CustomBottomBar
-        },
-      ),
-    );
-  }
-
-  Widget _buildTabButton(String text, int value) {
-    final bool isSelected = _selectedChartType == value;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedChartType = value;
-        });
-      },
-      child: AnimatedContainer(
-        duration: AppTheme.mediumDuration,
-        curve: AppTheme.defaultCurve,
-        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 1.5.h),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppTheme.primaryNavyLight
-              : AppTheme.neutralGray.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppTheme.shadowLight,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Center(
-          child: Text(
-            text,
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.w600, // Semi-bold
-              fontSize: 14.sp, // Increased font size
-              color: isSelected ? Colors.white : AppTheme.textSecondary,
-              letterSpacing: 0.3,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSegmentChild(String text, int value) {
-    // This method is no longer needed but kept for compatibility
-    final bool isSelected = _selectedChartType == value;
-
-    return Center(
-      child: Text(
-        text,
-        style: GoogleFonts.inter(
-          fontWeight: FontWeight.w600,
-          fontSize: 14.sp,
-          color: isSelected ? Colors.white : AppTheme.textSecondary,
-          letterSpacing: 0.3,
-        ),
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.visible,
-      ),
-    );
-  }
-
-  Widget _buildChartSection() {
-    switch (_selectedChartType) {
-      case 1:
-        return ChartSectionWidget(
-          key: const ValueKey('income-expenses'),
-          title: 'Income vs Expenses',
-          subtitle: _getChartSubtitle(),
-          chart: IncomeExpensesChartWidget(
-            chartData: _incomeExpensesData,
-            locale: _currencyLocale,
-            symbol: _currencySymbol,
-          ),
-        );
-      case 2:
-        return ChartSectionWidget(
-          key: const ValueKey('category-breakdown'),
-          title: 'Category Breakdown',
-          subtitle: _getChartSubtitle(),
-          chart: CategoryBreakdownChartWidget(
-            categoryData: _categoryData,
-            locale: _currencyLocale,
-            symbol: _currencySymbol,
-          ),
-        );
-      case 3:
-        return ChartSectionWidget(
-          key: const ValueKey('profit-trends'),
-          title: 'Profit Trends',
-          subtitle: _getChartSubtitle(),
-          chart: ProfitTrendsChartWidget(
-            trendData: _profitTrendsData,
-            locale: _currencyLocale,
-            symbol: _currencySymbol,
-          ),
-        );
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-
-  Widget _buildLoadingSkeleton() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-      padding: EdgeInsets.all(4.w),
-      decoration: BoxDecoration(
-        color: AppTheme.lightTheme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.shadowLight,
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40.w,
-            height: 2.h,
-            decoration: BoxDecoration(
-              color: AppTheme.neutralGray.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-            ),
-          ),
-          SizedBox(height: 1.h),
-          Container(
-            width: 60.w,
-            height: 1.5.h,
-            decoration: BoxDecoration(
-              color: AppTheme.neutralGray.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-            ),
-          ),
-          SizedBox(height: 3.h),
-          Container(
-            height: 30.h,
-            decoration: BoxDecoration(
-              color: AppTheme.neutralGray.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-            ),
-          ),
-        ],
+        onItemSelected: (_) {},
+        onAddTransaction: null,
       ),
     );
   }
 
   Future<void> _handleRefresh() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    // Simulate data refresh
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Analytics data refreshed'),
-          backgroundColor: AppTheme.successGreen,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  void _handleDateRangeChange(String range) {
-    // In a real app, this would fetch data for the selected date range
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Loading data for: $range'),
-        backgroundColor: AppTheme.primaryNavyLight,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    await _loadAnalyticsData();
   }
 
   void _handleExport() {
@@ -447,7 +424,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Export Analytics',
+                  AppLocalizations.of(context)!.exportAnalytics,
                   style: AppTheme.lightTheme.textTheme.titleLarge,
                 ),
                 SizedBox(height: 2.h),
@@ -457,8 +434,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                     color: AppTheme.errorRed,
                     size: 24,
                   ),
-                  title: const Text('Export as PDF'),
-                  subtitle: const Text('Generate comprehensive PDF report'),
+                  title: Text(AppLocalizations.of(context)!.exportAsPdf),
+                  subtitle: Text(AppLocalizations.of(context)!.generatePdfReport),
                   onTap: () {
                     Navigator.pop(context);
                     _showExportSuccess('PDF');
@@ -470,8 +447,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                     color: AppTheme.successGreen,
                     size: 24,
                   ),
-                  title: const Text('Export as CSV'),
-                  subtitle: const Text('Download data in spreadsheet format'),
+                  title: Text(AppLocalizations.of(context)!.exportAsCsv),
+                  subtitle: Text(AppLocalizations.of(context)!.downloadCsvData),
                   onTap: () {
                     Navigator.pop(context);
                     _showExportSuccess('CSV');
@@ -499,6 +476,60 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
             // Open exported file
           },
         ),
+      ),
+    );
+  }
+}
+
+class _PerformanceSummaryCard extends StatelessWidget {
+  final String text;
+
+  const _PerformanceSummaryCard({
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDecreased = text.toLowerCase().contains('decreased');
+    final isImproved = text.toLowerCase().contains('improved');
+
+    final accent = isDecreased
+        ? AppTheme.errorRed
+        : isImproved
+            ? AppTheme.successGreen
+            : AppTheme.neutralGray;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.4.h),
+      decoration: BoxDecoration(
+        color: AppTheme.neutralGray.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.35),
+          width: 1.6,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 24,
+            decoration: BoxDecoration(
+              color: accent,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          SizedBox(width: 3.w),
+          Expanded(
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -8,7 +8,7 @@ final Logger _logger = Logger(
     lineLength: 120,
     colors: true,
     printEmojis: true,
-    printTime: false,
+    dateTimeFormat: DateTimeFormat.none,
   ),
   level: kReleaseMode ? Level.warning : Level.debug,
 );

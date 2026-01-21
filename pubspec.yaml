@@ -38,6 +38,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0 # CRITICAL: Required for code quality - DO NOT REMOVE
 
 flutter:
+  generate: true
   uses-material-design: true # CRITICAL: Required for Material icon font - DO NOT REMOVE
   assets:
     - assets/
