@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:collection';
 import 'dart:async';
+import 'package:intl/intl.dart';
 import 'package:incore_finance/core/logging/app_logger.dart';
 import 'package:incore_finance/models/payment_method.dart';
 import 'package:sizer/sizer.dart';
@@ -24,11 +25,8 @@ class _PendingDelete {
     required this.transaction,
     required this.monthKey,
     required this.indexInMonth,
-    this.timer,
   });
 }
-
-const double _kBottomBarHeight = 72.0; // matches CustomBottomBar height
 
 enum DateRangeFilter { today, week, month, year }
 
@@ -174,8 +172,7 @@ void _logFiltersChanged() {
   List<TransactionRecord> get _filteredTransactions {
   final filtered = _allTransactions.where((transaction) {
     final matchesSearch = _filters.query.isEmpty ||
-        (transaction.description?.toLowerCase().contains(_filters.query) ??
-            false) ||
+        transaction.description.toLowerCase().contains(_filters.query) ||
         (transaction.client?.toLowerCase().contains(_filters.query) ?? false);
 
     final matchesCategory = _filters.categoryId == null ||
@@ -201,15 +198,17 @@ void _logFiltersChanged() {
   Map<String, List<TransactionRecord>> get _transactionsByMonth {
     final grouped = <String, List<TransactionRecord>>{};
     final monthStartByKey = <String, DateTime>{};
+    final uiLocale = Localizations.localeOf(context).toString();
 
     for (final transaction in _filteredTransactions) {
       final d = transaction.date;
-      final key = '${_getMonthName(d.month)} ${d.year}';
+      final monthDate = DateTime(d.year, d.month, 1);
+      final key = DateFormat('MMMM yyyy', uiLocale).format(monthDate);
 
       grouped.putIfAbsent(key, () => []);
       grouped[key]!.add(transaction);
 
-      monthStartByKey.putIfAbsent(key, () => DateTime(d.year, d.month));
+      monthStartByKey.putIfAbsent(key, () => monthDate);
     }
 
     final sortedKeys = grouped.keys.toList()
@@ -221,14 +220,6 @@ void _logFiltersChanged() {
     }
 
     return sorted;
-  }
-
-  String _getMonthName(int month) {
-    const months = [
-      'January','February','March','April','May','June',
-      'July','August','September','October','November','December'
-    ];
-    return months[month - 1];
   }
 
   DateRangeFilter? _parseDateRangeFilter(String? raw) {
@@ -253,13 +244,6 @@ void _logFiltersChanged() {
       return date.year == now.year;
   }
 }
-
-  void _clearFilters() {
-    setState(() {
-      _filters = const TransactionFilters();
-      _searchController.clear();
-    });
-  }
 
   void _clearOnlyFilters() {
     setState(() {
@@ -450,7 +434,9 @@ void _logFiltersChanged() {
     if (_pendingDeletesById.containsKey(transaction.id)) return;
 
     final d = transaction.date;
-    final monthKey = '${_getMonthName(d.month)} ${d.year}';
+    final uiLocale = Localizations.localeOf(context).toString();
+    final monthDate = DateTime(d.year, d.month, 1);
+    final monthKey = DateFormat('MMMM yyyy', uiLocale).format(monthDate);
 
     final monthTransactions = _transactionsByMonth[monthKey] ?? const <TransactionRecord>[];
     final indexInMonth = monthTransactions.indexWhere((t) => t.id == transaction.id);

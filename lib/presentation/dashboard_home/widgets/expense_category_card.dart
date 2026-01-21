@@ -11,6 +11,7 @@ class ExpenseCategoryCard extends StatelessWidget {
   final double percentage;
   final String locale;
   final String symbol;
+  final String currencyCode;
   final VoidCallback? onTap;
 
   const ExpenseCategoryCard({
@@ -21,6 +22,7 @@ class ExpenseCategoryCard extends StatelessWidget {
     required this.percentage,
     required this.locale,
     required this.symbol,
+    required this.currencyCode,
     this.onTap,
   });
 
@@ -29,10 +31,11 @@ class ExpenseCategoryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final formatted = IncoreNumberFormatter.formatAmountWithCurrency(
+    final formatted = IncoreNumberFormatter.formatMoney(
       amount.abs(),
       locale: locale,
       symbol: symbol,
+      currencyCode: currencyCode,
     );
 
     return Container(

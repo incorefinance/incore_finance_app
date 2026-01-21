@@ -6,6 +6,7 @@ import 'package:sizer/sizer.dart';
 import '../../../core/app_export.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/number_formatter.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Cash balance trend chart widget
 /// Displays 30-day balance trend with interactive line chart
@@ -13,18 +14,22 @@ class CashBalanceChart extends StatelessWidget {
   final List<Map<String, dynamic>> balanceData;
   final String locale;
   final String symbol;
+  final String currencyCode;
 
   const CashBalanceChart({
     super.key,
     required this.balanceData,
     required this.locale,
     required this.symbol,
+    required this.currencyCode,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final uiLocale = Localizations.localeOf(context).toString();
 
     return Container(
       width: double.infinity,
@@ -50,14 +55,14 @@ class CashBalanceChart extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Cash Balance Trend',
+                l10n.cashBalanceTrend,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
-                '30 Days',
+                l10n.thirtyDays,
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -158,14 +163,15 @@ class CashBalanceChart extends StatelessWidget {
                         final balance = barSpot.y;
 
                         final formattedAmount =
-                            IncoreNumberFormatter.formatAmountWithCurrency(
+                            IncoreNumberFormatter.formatMoney(
                               balance,
                               locale: locale,
                               symbol: symbol,
+                              currencyCode: currencyCode,
                             );
 
                         return LineTooltipItem(
-                          '${DateFormat('MMM d').format(date)}\n$formattedAmount',
+                          '${DateFormat('MMM d', uiLocale).format(date)}\n$formattedAmount',
                           const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,

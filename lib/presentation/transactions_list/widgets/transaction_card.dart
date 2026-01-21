@@ -3,11 +3,10 @@ import 'package:incore_finance/models/payment_method.dart';
 import 'package:incore_finance/models/transaction_category.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
-import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
-import '../../../widgets/custom_icon_widget.dart';
+import '../../../utils/number_formatter.dart';
 
 class TransactionCard extends StatefulWidget {
   final TransactionRecord transaction;
@@ -30,6 +29,7 @@ class _TransactionCardState extends State<TransactionCard> {
 
   String _currencyLocale = 'en_US';
   String _currencySymbol = '€';
+  String _currencyCode = 'EUR';
 
   @override
   void initState() {
@@ -45,6 +45,7 @@ class _TransactionCardState extends State<TransactionCard> {
       setState(() {
       _currencyLocale = settings.locale;
       _currencySymbol = settings.symbol;
+      _currencyCode = settings.currencyCode;
     });
 
     } catch (_) {
@@ -53,11 +54,12 @@ class _TransactionCardState extends State<TransactionCard> {
   }
 
   String _formatCurrency(num value) {
-    final formatter = NumberFormat.currency(
+    return IncoreNumberFormatter.formatMoney(
+      value,
       locale: _currencyLocale,
       symbol: _currencySymbol,
+      currencyCode: _currencyCode,
     );
-    return formatter.format(value);
   }
 
   @override
@@ -71,7 +73,7 @@ class _TransactionCardState extends State<TransactionCard> {
 
     // Category shown as title (label)
     final category = TransactionCategory.fromDbValue(t.category);
-    final categoryLabel = category?.label ?? (t.category ?? 'Uncategorized');
+    final categoryLabel = category?.label ?? t.category;
     final categoryIcon = category?.iconName ?? 'category';
 
     // Description shown as subtitle (smaller)

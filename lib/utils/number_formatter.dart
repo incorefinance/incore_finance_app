@@ -1,51 +1,94 @@
 import 'package:intl/intl.dart';
 
 /// Centralized number formatting utility for Incore Finance
+///
+/// Rules:
+/// - Currency formatting uses intl's currency formatter (locale + currencyCode + symbol)
+/// - Decimal formatting is used only when you explicitly want "no symbol"
+/// - Parsing keeps your existing tolerant behavior for user input
 class IncoreNumberFormatter {
-  /// Returns a NumberFormat instance for the given locale
-  static NumberFormat amountFormatForLocale(String locale) {
-    return NumberFormat('#,##0.00', locale);
+  // ----------------------------
+  // Formatters
+  // ----------------------------
+
+  static NumberFormat _decimal2(String locale) {
+    final f = NumberFormat.decimalPattern(locale);
+    f.minimumFractionDigits = 2;
+    f.maximumFractionDigits = 2;
+    return f;
   }
 
-  /// Formats a numeric amount according to the given locale
+  static NumberFormat _currency({
+    required String locale,
+    required String currencyCode,
+    required String symbol,
+  }) {
+    // This is the correct way: intl will handle spacing and separators per locale.
+    return NumberFormat.currency(
+      locale: locale,
+      name: currencyCode,
+      symbol: symbol,
+    );
+  }
+
+  // ----------------------------
+  // Public formatting API
+  // ----------------------------
+
+  /// Formats a numeric amount with 2 decimals (no currency symbol).
   static String formatAmount(
     num value, {
     required String locale,
   }) {
-    final format = amountFormatForLocale(locale);
-    return format.format(value);
+    return _decimal2(locale).format(value);
   }
 
-  /// Formats amount with currency symbol
-  static String formatAmountWithCurrency(
+  /// Formats amount as currency using locale + currencyCode + symbol.
+  static String formatMoney(
     num value, {
     required String locale,
+    required String currencyCode,
     required String symbol,
   }) {
-    final format = amountFormatForLocale(locale);
-    return '$symbol ${format.format(value)}';
+    return _currency(
+      locale: locale,
+      currencyCode: currencyCode,
+      symbol: symbol,
+    ).format(value);
   }
 
-  /// Formats amount with currency symbol and sign for transactions
-  static String formatTransactionAmount(
+  /// Formats a transaction amount with a sign.
+  /// - Positive: "+ €1,234.56" (optional)
+  /// - Negative: "- €1,234.56"
+  ///
+  /// If you want "expenses show minus, income shows no plus", set `showPlus=false`.
+  static String formatTransactionMoney(
     num value, {
     required String locale,
+    required String currencyCode,
     required String symbol,
+    bool showPlus = false,
   }) {
-    final sign = value >= 0 ? '+' : '';
-    final format = amountFormatForLocale(locale);
-    return '$sign $symbol ${format.format(value.abs())}';
+    final absFormatted = formatMoney(
+      value.abs(),
+      locale: locale,
+      currencyCode: currencyCode,
+      symbol: symbol,
+    );
+
+    if (value < 0) return '- $absFormatted';
+    if (value > 0 && showPlus) return '+ $absFormatted';
+    return absFormatted;
   }
+
+  // ----------------------------
+  // Parsing (kept from your version)
+  // ----------------------------
 
   /// Parses a user-typed amount string into a double, respecting the given locale.
   ///
-  /// Handles both European format (€1.234,56) and US format ($1,234.56).
+  /// Handles both European format (1.234,56) and US format (1,234.56).
   /// Returns null if the input cannot be parsed into a valid amount.
-  ///
-  /// Examples:
-  /// - parseAmount("1.234,56", locale: "pt_PT") -> 1234.56
-  /// - parseAmount("1,234.56", locale: "en_US") -> 1234.56
-  /// - parseAmount("1234", locale: "pt_PT") -> 1234.0
   static double? parseAmount(
     String input, {
     required String locale,
@@ -61,7 +104,6 @@ class IncoreNumberFormatter {
 
     String normalized = cleaned;
 
-    // Determine the decimal separator based on locale
     final usesCommaAsDecimal = locale.startsWith('pt') ||
         locale.startsWith('de') ||
         locale.startsWith('fr') ||
@@ -69,46 +111,33 @@ class IncoreNumberFormatter {
         locale.startsWith('es');
 
     if (lastComma != -1 && lastDot != -1) {
-      // Both separators present - determine which is decimal
       if (usesCommaAsDecimal) {
-        // European format: dot is thousands, comma is decimal
-        // Example: 1.234,56 -> 1234.56
         if (lastComma > lastDot) {
           normalized = cleaned.replaceAll('.', '').replaceAll(',', '.');
         } else {
-          // Unusual case: comma before dot, treat dot as decimal
           normalized = cleaned.replaceAll(',', '');
         }
       } else {
-        // US format: comma is thousands, dot is decimal
-        // Example: 1,234.56 -> 1234.56
         if (lastDot > lastComma) {
           normalized = cleaned.replaceAll(',', '');
         } else {
-          // Unusual case: dot before comma, treat comma as decimal
           normalized = cleaned.replaceAll('.', '').replaceAll(',', '.');
         }
       }
     } else if (lastComma != -1) {
-      // Only comma present
       final charsAfterComma = cleaned.length - lastComma - 1;
 
       if (usesCommaAsDecimal && charsAfterComma <= 2) {
-        // Likely decimal separator: 123,45 -> 123.45
         normalized = cleaned.replaceAll(',', '.');
       } else {
-        // Likely thousands separator: 1,234 -> 1234
         normalized = cleaned.replaceAll(',', '');
       }
     } else if (lastDot != -1) {
-      // Only dot present
       final charsAfterDot = cleaned.length - lastDot - 1;
 
       if (!usesCommaAsDecimal || charsAfterDot <= 2) {
-        // Keep dot as decimal separator
         normalized = cleaned;
       } else {
-        // Treat dot as thousands separator: 1.234 -> 1234
         normalized = cleaned.replaceAll('.', '');
       }
     }

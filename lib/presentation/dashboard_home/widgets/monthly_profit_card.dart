@@ -3,6 +3,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../../utils/number_formatter.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Monthly profit overview card widget
 /// Displays current month's profit/loss with percentage change
@@ -12,6 +13,7 @@ class MonthlyProfitCard extends StatelessWidget {
   final bool isProfit;
   final String locale;
   final String symbol;
+  final String currencyCode;
 
   const MonthlyProfitCard({
     super.key,
@@ -20,17 +22,20 @@ class MonthlyProfitCard extends StatelessWidget {
     required this.isProfit,
     required this.locale,
     required this.symbol,
+    required this.currencyCode,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
-    final formatted = IncoreNumberFormatter.formatAmountWithCurrency(
+    final formatted = IncoreNumberFormatter.formatMoney(
       profit.abs(),
       locale: locale,
       symbol: symbol,
+      currencyCode: currencyCode,
     );
 
     return Container(
@@ -70,7 +75,7 @@ class MonthlyProfitCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Monthly Profit',
+                l10n.monthlyProfit,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colorScheme.onPrimary,
                   fontWeight: FontWeight.w500,
@@ -123,7 +128,7 @@ class MonthlyProfitCard extends StatelessWidget {
           ),
           SizedBox(height: 0.8.h),
           Text(
-            isProfit ? 'Net Profit' : 'Net Loss',
+            isProfit ? l10n.netProfit : l10n.netLoss,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onPrimary.withValues(alpha: 0.8),
             ),

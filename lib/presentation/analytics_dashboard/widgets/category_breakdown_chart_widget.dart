@@ -11,12 +11,14 @@ class CategoryBreakdownChartWidget extends StatefulWidget {
   final List<Map<String, dynamic>> categoryData;
   final String locale;
   final String symbol;
+  final String currencyCode;
 
   const CategoryBreakdownChartWidget({
     super.key,
     required this.categoryData,
     required this.locale,
     required this.symbol,
+    required this.currencyCode,
   });
 
   @override
@@ -123,10 +125,11 @@ class _CategoryBreakdownChartWidgetState
         final data = widget.categoryData[index];
         final amount = (data['amount'] as num).toDouble();
         final percentage = (amount / total * 100);
-        final formattedAmount = IncoreNumberFormatter.formatAmountWithCurrency(
+        final formattedAmount = IncoreNumberFormatter.formatMoney(
           amount,
           locale: widget.locale,
           symbol: widget.symbol,
+          currencyCode: widget.currencyCode,
         );
 
         return InkWell(

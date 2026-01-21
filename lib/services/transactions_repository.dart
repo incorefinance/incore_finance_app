@@ -31,9 +31,6 @@ class TransactionsRepository {
     String? client,
   }) async {
     final userId = _supabaseService.currentUserId;
-    if (userId == null) {
-      throw Exception('User not logged in');
-    }
 
     final payload = <String, dynamic>{
       'user_id': userId,
@@ -82,9 +79,6 @@ class TransactionsRepository {
     String? client,
   }) async {
     final userId = _supabaseService.currentUserId;
-    if (userId == null) {
-      throw Exception('User not logged in');
-    }
 
     final payload = <String, dynamic>{
       'amount': amount,
@@ -107,9 +101,6 @@ class TransactionsRepository {
     required String transactionId,
   }) async {
     final userId = _supabaseService.currentUserId;
-    if (userId == null) {
-      throw Exception('User not logged in');
-    }
 
     await _client
         .from('transactions')
@@ -121,9 +112,6 @@ class TransactionsRepository {
   /// Raw fetch: used by legacy code.
   Future<List<Map<String, dynamic>>> getTransactionsForCurrentUser() async {
     final userId = _supabaseService.currentUserId;
-    if (userId == null) {
-      throw Exception('User not logged in');
-    }
 
     final response = await _client
         .from('transactions')
@@ -151,9 +139,6 @@ class TransactionsRepository {
     DateTime endDate,
   ) async {
     final userId = _supabaseService.currentUserId;
-    if (userId == null) {
-      throw Exception('User not logged in');
-    }
 
     final response = await _client
         .from('transactions')
@@ -177,9 +162,6 @@ class TransactionsRepository {
     required String transactionId,
   }) async {
     final userId = _supabaseService.currentUserId;
-    if (userId == null) {
-      throw Exception('User not logged in');
-    }
 
     await _client
         .from('transactions')

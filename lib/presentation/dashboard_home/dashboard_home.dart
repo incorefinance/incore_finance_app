@@ -6,6 +6,7 @@ import 'package:incore_finance/services/transactions_repository.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
 
 import '../../core/app_export.dart';
+import '../../l10n/app_localizations.dart';
 import '../../main.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_bottom_bar.dart';
@@ -24,12 +25,12 @@ class DashboardHome extends StatefulWidget {
 }
 
 class _DashboardHomeState extends State<DashboardHome> {
-  bool _isRefreshing = false;
-
   // Repository and real state fields
   final TransactionsRepository _transactionsRepository =
       TransactionsRepository();
   final UserSettingsService _userSettingsService = UserSettingsService();
+
+  bool _isRefreshing = false;
 
   double _monthlyProfit = 0.0;
   double _profitPercentageChange = 0.0;
@@ -60,10 +61,11 @@ class _DashboardHomeState extends State<DashboardHome> {
   @override
   void initState() {
     super.initState();
-    _loadCurrencySettings();
+    _loadCurrencySettings().then((_) {
     _loadCashBalanceData();
     _loadMonthlyProfit();
     _loadTopExpenses();
+  });
   }
 
   Future<void> _loadCurrencySettings() async {
@@ -366,13 +368,14 @@ class _DashboardHomeState extends State<DashboardHome> {
   }
 
   String _getGreeting() {
+    final l10n = AppLocalizations.of(context)!;
     final hour = DateTime.now().hour;
     if (hour < 12) {
-      return 'Good Morning';
+      return l10n.goodMorning;
     } else if (hour < 18) {
-      return 'Good Afternoon';
+      return l10n.goodAfternoon;
     } else {
-      return 'Good Evening';
+      return l10n.goodEvening;
     }
   }
 
@@ -465,7 +468,7 @@ class _DashboardHomeState extends State<DashboardHome> {
       backgroundColor: AppTheme.backgroundLight,
       appBar: CustomAppBar(
         variant: AppBarVariant.transparent,
-        title: 'Dashboard',
+        title: AppLocalizations.of(context)!.dashboard,
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
@@ -476,8 +479,8 @@ class _DashboardHomeState extends State<DashboardHome> {
             ),
             onPressed: _toggleLanguage,
             tooltip: currentLocale.languageCode == 'en'
-                ? 'Switch to Portuguese'
-                : 'Switch to English',
+                ? AppLocalizations.of(context)!.switchToPortuguese
+                : AppLocalizations.of(context)!.switchToEnglish,
           ),
           SizedBox(width: 2.w),
         ],
@@ -533,7 +536,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                             SizedBox(width: 2.w),
                             Expanded(
                               child: Text(
-                                _dashboardError!,
+                                AppLocalizations.of(context)!.someDashboardDataFailed,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onErrorContainer,
                                 ),
@@ -548,7 +551,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                                     MaterialTapTargetSize.shrinkWrap,
                               ),
                               child: Text(
-                                'Retry',
+                                AppLocalizations.of(context)!.retry,
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   color: colorScheme.onErrorContainer,
                                   fontWeight: FontWeight.w600,
@@ -587,6 +590,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                       isProfit: _isProfit,
                       locale: _currencySettings.locale,
                       symbol: _currencySettings.symbol,
+                      currencyCode: _currencySettings.currencyCode,
                     ),
             ),
 
@@ -595,7 +599,7 @@ class _DashboardHomeState extends State<DashboardHome> {
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
                 child: Text(
-                  'Top Expenses',
+                  AppLocalizations.of(context)!.topExpenses,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
@@ -639,7 +643,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                               ),
                             ),
                             child: Text(
-                              'No expenses recorded this month yet',
+                              AppLocalizations.of(context)!.noExpensesRecorded,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
@@ -669,6 +673,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                                 percentage: expense['percentage'] as double,
                                 locale: _currencySettings.locale,
                                 symbol: _currencySettings.symbol,
+                                currencyCode: _currencySettings.currencyCode,
                                 onTap: () => _handleCategoryTap(categoryId),
                               );
                             },
@@ -697,6 +702,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                       balanceData: _balanceData,
                       locale: _currencySettings.locale,
                       symbol: _currencySettings.symbol,
+                      currencyCode: _currencySettings.currencyCode,
                     ),
             ),
 

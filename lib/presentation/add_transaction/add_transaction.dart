@@ -45,7 +45,6 @@ class _AddTransactionState extends State<AddTransaction> {
   DateTime _selectedDate = DateTime.now();
   bool _isSaveEnabled = false;
   bool _isSaving = false;
-  final _formKey = GlobalKey<FormState>();
   bool get _isEditing => widget.initialTransaction != null;
 
   // Currency settings
@@ -54,15 +53,6 @@ class _AddTransactionState extends State<AddTransaction> {
 
   // Add this getter for transaction type
   String get _transactionType => _isIncome ? 'income' : 'expense';
-
-  // Recent transactions for autocomplete
-  final List<String> _recentDescriptions = [
-    'Coffee at Starbucks',
-    'Uber ride',
-    'Grocery shopping',
-    'Client project payment',
-    'Monthly subscription',
-  ];
 
   @override
   void initState() {
