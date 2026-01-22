@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../theme/app_colors.dart';
 
 /// Toggle widget for switching between Income and Expense
 class TransactionTypeToggle extends StatelessWidget {
@@ -38,7 +39,7 @@ class TransactionTypeToggle extends StatelessWidget {
               label: 'Income',
               icon: 'arrow_downward',
               isSelected: isIncome,
-              color: AppTheme.successGreen,
+              color: AppColors.income,
               onTap: () {
                 HapticFeedback.selectionClick();
                 onToggle(true);
@@ -52,7 +53,7 @@ class TransactionTypeToggle extends StatelessWidget {
               label: 'Expense',
               icon: 'arrow_upward',
               isSelected: !isIncome,
-              color: AppTheme.errorRed,
+              color: AppColors.expense,
               onTap: () {
                 HapticFeedback.selectionClick();
                 onToggle(false);

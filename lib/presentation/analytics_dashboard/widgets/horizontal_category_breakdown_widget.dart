@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
-import 'package:incore_finance/core/app_export.dart';
 import 'package:incore_finance/utils/number_formatter.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
+import 'package:incore_finance/theme/app_colors.dart';
 
 class HorizontalCategoryBreakdownWidget extends StatelessWidget {
   final List<Map<String, dynamic>> data;
@@ -77,7 +77,7 @@ class _BreakdownRow extends StatelessWidget {
     required this.share,
     required this.locale,
     required this.symbol,
-    required this.currencyCode, 
+    required this.currencyCode,
     required this.isTop,
     this.accentColor,
   });
@@ -86,15 +86,18 @@ class _BreakdownRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final base = accentColor ?? AppTheme.primaryNavyLight;
+    // Keep your API, but make the fill more saturated (less washed out),
+    // similar to the updated bar chart.
+    final base = accentColor ?? AppColors.primary;
 
+    // More contrast between top item and others, without looking neon.
     final fillColor = isTop
-        ? base.withValues(alpha: 0.55)
-        : base.withValues(alpha: 0.35);
+        ? base.withValues(alpha: 0.70)
+        : base.withValues(alpha: 0.52);
 
     final labelStyle = theme.textTheme.bodyMedium?.copyWith(
       fontWeight: isTop ? FontWeight.w700 : FontWeight.w600,
-      color: AppTheme.primaryNavyLight,
+      color: AppColors.textPrimary,
     );
 
     final formattedAmount = IncoreNumberFormatter.formatMoney(
@@ -124,7 +127,8 @@ class _BreakdownRow extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progressValue,
               minHeight: isTop ? 11 : 9,
-              backgroundColor: AppTheme.primaryNavyLight.withValues(alpha: 0.08),
+              // Slightly lighter track so fill pops more.
+              backgroundColor: AppColors.borderSubtle.withValues(alpha: 0.55),
               valueColor: AlwaysStoppedAnimation<Color>(fillColor),
             ),
           ),
@@ -137,7 +141,7 @@ class _BreakdownRow extends StatelessWidget {
             textAlign: TextAlign.right,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppTheme.primaryNavyLight,
+              color: AppColors.textPrimary,
             ),
           ),
         ),

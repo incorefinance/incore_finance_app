@@ -4,12 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
+import '../../../theme/app_colors.dart';
 import '../../../utils/number_formatter.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// Cash balance trend chart widget
-/// Displays 30-day balance trend with interactive line chart
 class CashBalanceChart extends StatelessWidget {
   final List<Map<String, dynamic>> balanceData;
   final String locale;
@@ -31,6 +29,9 @@ class CashBalanceChart extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final uiLocale = Localizations.localeOf(context).toString();
 
+    final maxY = _getNiceMaxY();
+    final interval = _getNiceYAxisInterval();
+
     return Container(
       width: double.infinity,
       constraints: BoxConstraints(minHeight: 28.h, maxHeight: 35.h),
@@ -39,11 +40,15 @@ class CashBalanceChart extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.18),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.05),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
+            color: colorScheme.shadow.withValues(alpha: 0.06),
+            offset: const Offset(0, 6),
+            blurRadius: 18,
             spreadRadius: 0,
           ),
         ],
@@ -58,7 +63,7 @@ class CashBalanceChart extends StatelessWidget {
                 l10n.cashBalanceTrend,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               Text(
@@ -70,21 +75,17 @@ class CashBalanceChart extends StatelessWidget {
             ],
           ),
           SizedBox(height: 2.h),
-
-          // ✅ Minimal fix: chart expands to available height instead of forcing 25.h
           Expanded(
             child: LineChart(
               LineChartData(
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
-                  horizontalInterval: 1000,
-                  getDrawingHorizontalLine: (value) {
-                    return FlLine(
-                      color: colorScheme.outline.withValues(alpha: 0.1),
-                      strokeWidth: 1,
-                    );
-                  },
+                  horizontalInterval: interval,
+                  getDrawingHorizontalLine: (value) => FlLine(
+                    color: colorScheme.outline.withValues(alpha: 0.10),
+                    strokeWidth: 1,
+                  ),
                 ),
                 titlesData: FlTitlesData(
                   show: true,
@@ -100,32 +101,33 @@ class CashBalanceChart extends StatelessWidget {
                       reservedSize: 30,
                       interval: 7,
                       getTitlesWidget: (value, meta) {
-                        if (value.toInt() >= 0 &&
-                            value.toInt() < balanceData.length) {
-                          final date =
-                              balanceData[value.toInt()]["date"] as DateTime;
-                          return Padding(
-                            padding: EdgeInsets.only(top: 1.h),
-                            child: Text(
-                              '${date.day}/${date.month}',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          );
+                        final i = value.toInt();
+                        if (i < 0 || i >= balanceData.length) {
+                          return const SizedBox.shrink();
                         }
-                        return const SizedBox.shrink();
+                        final date = balanceData[i]['date'] as DateTime;
+                        return Padding(
+                          padding: EdgeInsets.only(top: 1.h),
+                          child: Text(
+                            '${date.day}/${date.month}',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        );
                       },
                     ),
                   ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 40,
-                      interval: 1000,
+                      reservedSize: 12.w,
+                      interval: interval,
                       getTitlesWidget: (value, meta) {
+                        final txt = _formatYAxisValue(value);
+                        if (txt.isEmpty) return const SizedBox.shrink();
                         return Text(
-                          '$symbol${(value / 1000).toStringAsFixed(0)}k',
+                          txt,
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -134,47 +136,35 @@ class CashBalanceChart extends StatelessWidget {
                     ),
                   ),
                 ),
-                borderData: FlBorderData(
-                  show: true,
-                  border: Border(
-                    bottom: BorderSide(
-                      color: colorScheme.outline.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
-                    left: BorderSide(
-                      color: colorScheme.outline.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
-                  ),
-                ),
+                borderData: FlBorderData(show: false),
                 minX: 0,
                 maxX: (balanceData.length - 1).toDouble(),
                 minY: 0,
-                maxY: _getMaxBalance() * 1.2,
+                maxY: maxY,
                 lineTouchData: LineTouchData(
                   enabled: true,
                   touchTooltipData: LineTouchTooltipData(
-                    tooltipBgColor: colorScheme.primary.withValues(alpha: 0.9),
-                    tooltipRoundedRadius: 8,
-                    getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-                      return touchedBarSpots.map((barSpot) {
+                    tooltipBgColor: AppColors.textPrimary.withValues(alpha: 0.92),
+                    tooltipRoundedRadius: 10,
+                    tooltipPadding: EdgeInsets.all(2.w),
+                    getTooltipItems: (spots) {
+                      return spots.map((barSpot) {
                         final date =
                             balanceData[barSpot.x.toInt()]['date'] as DateTime;
                         final balance = barSpot.y;
 
-                        final formattedAmount =
-                            IncoreNumberFormatter.formatMoney(
-                              balance,
-                              locale: locale,
-                              symbol: symbol,
-                              currencyCode: currencyCode,
-                            );
+                        final formattedAmount = IncoreNumberFormatter.formatMoney(
+                          balance,
+                          locale: locale,
+                          symbol: symbol,
+                          currencyCode: currencyCode,
+                        );
 
                         return LineTooltipItem(
                           '${DateFormat('MMM d', uiLocale).format(date)}\n$formattedAmount',
                           const TextStyle(
                             color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                           ),
                         );
                       }).toList();
@@ -183,14 +173,15 @@ class CashBalanceChart extends StatelessWidget {
                 ),
                 lineBarsData: [
                   LineChartBarData(
-                    spots: balanceData.asMap().entries.map((entry) {
+                    spots: balanceData.asMap().entries.map((e) {
                       return FlSpot(
-                        entry.key.toDouble(),
-                        (entry.value["balance"] as double),
+                        e.key.toDouble(),
+                        (e.value['balance'] as num).toDouble(),
                       );
                     }).toList(),
                     isCurved: true,
-                    color: AppTheme.accentGold,
+                    curveSmoothness: 0.25,
+                    color: AppColors.primarySoft,
                     barWidth: 3,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
@@ -198,7 +189,7 @@ class CashBalanceChart extends StatelessWidget {
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
                           radius: 3,
-                          color: AppTheme.accentGold,
+                          color: AppColors.primarySoft,
                           strokeWidth: 1.5,
                           strokeColor: colorScheme.surface,
                         );
@@ -210,8 +201,8 @@ class CashBalanceChart extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          AppTheme.accentGold.withValues(alpha: 0.3),
-                          AppTheme.accentGold.withValues(alpha: 0.05),
+                          AppColors.primarySoft.withValues(alpha: 0.22),
+                          AppColors.primarySoft.withValues(alpha: 0.04),
                         ],
                       ),
                     ),
@@ -225,10 +216,68 @@ class CashBalanceChart extends StatelessWidget {
     );
   }
 
-  double _getMaxBalance() {
-    if (balanceData.isEmpty) return 5000;
-    return balanceData
-        .map((data) => data["balance"] as double)
-        .reduce((a, b) => a > b ? a : b);
+  double _getMaxValue() {
+    if (balanceData.isEmpty) return 0;
+    double max = 0;
+    for (final item in balanceData) {
+      final v = (item['balance'] as num).toDouble();
+      if (v > max) max = v;
+    }
+    return max;
+  }
+
+  double _getNiceYAxisInterval() {
+    final max = _getMaxValue();
+    if (max <= 0) return 100;
+
+    final raw = max / 4;
+
+    const steps = <double>[
+      50,
+      100,
+      250,
+      500,
+      1000,
+      2500,
+      5000,
+      10000,
+      25000,
+      50000,
+      100000,
+    ];
+
+    for (final s in steps) {
+      if (raw <= s) return s;
+    }
+    return steps.last;
+  }
+
+  double _getNiceMaxY() {
+    final max = _getMaxValue();
+    if (max <= 0) return 1000;
+
+    final interval = _getNiceYAxisInterval();
+    return (max / interval).ceil() * interval;
+  }
+
+  String _formatYAxisValue(double value) {
+    final interval = _getNiceYAxisInterval();
+    if (interval <= 0) return '';
+
+    if (value.abs() < 1e-6) return '${symbol}0';
+
+    final snapped = (value / interval).round() * interval;
+    final isTick = (value - snapped).abs() < (interval * 0.001);
+    if (!isTick) return '';
+
+    final abs = snapped.abs();
+    if (abs >= 1000) {
+      final k = snapped / 1000.0;
+      final needsDecimal = (interval % 1000 != 0);
+      final txt = needsDecimal ? k.toStringAsFixed(1) : k.toStringAsFixed(0);
+      return '${symbol}${txt}k';
+    }
+
+    return '${symbol}${snapped.toStringAsFixed(0)}';
   }
 }

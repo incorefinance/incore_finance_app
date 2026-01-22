@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../theme/app_colors.dart';
 
 /// Financial ratio card widget
 class FinancialRatioCardWidget extends StatelessWidget {
@@ -22,10 +23,13 @@ class FinancialRatioCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
-        color: AppTheme.lightTheme.colorScheme.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         border: Border.all(
           color: indicatorColor.withValues(alpha: 0.3),
@@ -33,7 +37,7 @@ class FinancialRatioCardWidget extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.shadowLight,
+            color: AppColors.shadowLight,
             offset: const Offset(0, 2),
             blurRadius: 8,
             spreadRadius: 0,
@@ -61,14 +65,14 @@ class FinancialRatioCardWidget extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: AppTheme.lightTheme.textTheme.titleMedium,
+                  style: theme.textTheme.titleMedium,
                 ),
               ),
               Tooltip(
                 message: description,
                 child: CustomIconWidget(
                   iconName: 'info_outline',
-                  color: AppTheme.textSecondary,
+                  color: AppColors.textSecondary,
                   size: 20,
                 ),
               ),
@@ -77,7 +81,7 @@ class FinancialRatioCardWidget extends StatelessWidget {
           SizedBox(height: 2.h),
           Text(
             value,
-            style: AppTheme.lightTheme.textTheme.headlineMedium?.copyWith(
+            style: theme.textTheme.headlineMedium?.copyWith(
               color: indicatorColor,
               fontWeight: FontWeight.w700,
             ),
@@ -85,8 +89,8 @@ class FinancialRatioCardWidget extends StatelessWidget {
           SizedBox(height: 1.h),
           Text(
             description,
-            style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-              color: AppTheme.textSecondary,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

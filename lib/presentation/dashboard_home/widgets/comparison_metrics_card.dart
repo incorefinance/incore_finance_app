@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../theme/app_colors.dart';
 
 /// Month-over-month comparison metrics card
 /// Displays income and expenses comparison against last month
@@ -99,15 +100,14 @@ class ComparisonMetricsCard extends StatelessWidget {
       isGood = !positiveIsGood;
     }
 
-    final Color trendColor =
-        isGood ? AppTheme.successGreen : AppTheme.errorRed;
+    final Color trendColor = isGood ? AppColors.success : AppColors.error;
 
     return Row(
       children: [
         Container(
           padding: EdgeInsets.all(2.w),
           decoration: BoxDecoration(
-            color: colorScheme.primaryContainer.withValues(alpha: 0.1),
+            color: AppColors.borderSubtle.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
           ),
           child: CustomIconWidget(

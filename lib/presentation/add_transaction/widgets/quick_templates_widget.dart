@@ -3,6 +3,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../../utils/number_formatter.dart';
+import '../../../theme/app_colors.dart';
 
 /// Widget for quick transaction templates
 class QuickTemplatesWidget extends StatelessWidget {
@@ -84,8 +85,8 @@ class QuickTemplatesWidget extends StatelessWidget {
             itemBuilder: (context, index) {
               final template = templates[index];
               final formatted = IncoreNumberFormatter.formatAmount(
-                  template['amount'] as double,
-                  locale: locale,
+                template['amount'] as double,
+                locale: locale,
               );
 
               return InkWell(
@@ -116,9 +117,8 @@ class QuickTemplatesWidget extends StatelessWidget {
                         children: [
                           CustomIconWidget(
                             iconName: template['icon'] as String,
-                            color: isIncome
-                                ? AppTheme.successGreen
-                                : AppTheme.errorRed,
+                            color:
+                                isIncome ? AppColors.income : AppColors.expense,
                             size: 20,
                           ),
                           SizedBox(width: 2.w),

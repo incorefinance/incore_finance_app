@@ -583,7 +583,12 @@ void _logFiltersChanged() {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.all(4.w),
+              padding: EdgeInsets.fromLTRB(
+                4.w,
+                AppTheme.screenTopPadding, // ✅ normalized top padding
+                4.w,
+                4.w,
+              ),
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
