@@ -3,6 +3,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import 'package:incore_finance/models/payment_method.dart';
+import '../../../theme/app_colors.dart';
 
 /// Widget for selecting payment method
 class PaymentMethodSelector extends StatelessWidget {
@@ -71,12 +72,12 @@ class PaymentMethodSelector extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppTheme.accentGold.withValues(alpha: 0.15)
+                        ? AppColors.primarySoft.withValues(alpha: 0.15)
                         : colorScheme.surface,
                     borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                     border: Border.all(
                       color: isSelected
-                          ? AppTheme.accentGold
+                          ? AppColors.primary
                           : colorScheme.outline.withValues(alpha: 0.2),
                       width: isSelected ? 2 : 1,
                     ),
@@ -87,7 +88,7 @@ class PaymentMethodSelector extends StatelessWidget {
                       CustomIconWidget(
                         iconName: _iconFor(method),
                         color: isSelected
-                            ? AppTheme.accentGold
+                            ? AppColors.primary
                             : colorScheme.onSurface.withValues(alpha: 0.7),
                         size: 20,
                       ),
@@ -96,7 +97,7 @@ class PaymentMethodSelector extends StatelessWidget {
                         label,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: isSelected
-                              ? AppTheme.accentGold
+                              ? AppColors.primary
                               : colorScheme.onSurface.withValues(alpha: 0.7),
                           fontWeight:
                               isSelected ? FontWeight.w600 : FontWeight.w400,

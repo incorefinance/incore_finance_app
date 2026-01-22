@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:incore_finance/theme/app_colors.dart';
 import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
@@ -251,7 +252,7 @@ class _AddTransactionState extends State<AddTransaction> {
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(
               context,
-            ).colorScheme.copyWith(primary: AppTheme.accentGold),
+            ).colorScheme.copyWith(primary: AppColors.primary),
           ),
           child: child!,
         );
@@ -317,7 +318,7 @@ class _AddTransactionState extends State<AddTransaction> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            AppTheme.accentGold,
+                            colorScheme.primary,
                           ),
                         ),
                       )
@@ -329,7 +330,7 @@ class _AddTransactionState extends State<AddTransaction> {
                           style: theme.textTheme.titleMedium?.copyWith(
                             color:
                                 _isSaveEnabled && !_isSaving
-                                    ? AppTheme.accentGold
+                                    ? colorScheme.primary
                                     : colorScheme.onSurface.withValues(
                                       alpha: 0.3,
                                     ),

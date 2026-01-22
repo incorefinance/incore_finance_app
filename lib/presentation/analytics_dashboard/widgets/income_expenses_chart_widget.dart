@@ -4,6 +4,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../../theme/app_theme.dart';
+import '../../../theme/app_colors.dart';
 import '../../../utils/number_formatter.dart';
 
 /// Income vs Expenses bar chart widget
@@ -31,6 +32,8 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Semantics(
       label: "Income vs Expenses Bar Chart showing monthly comparison",
       child: BarChart(
@@ -41,7 +44,7 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
-              tooltipBgColor: AppTheme.primaryNavyLight.withValues(alpha: 0.9),
+              tooltipBgColor: AppColors.primary.withValues(alpha: 0.9),
               tooltipPadding: EdgeInsets.all(2.w),
               tooltipMargin: 2.h,
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
@@ -49,8 +52,7 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
                     widget.chartData[group.x.toInt()]['month'] as String;
                 final value = rod.toY;
                 final type = rodIndex == 0 ? 'Income' : 'Expenses';
-                final formattedValue =
-                    IncoreNumberFormatter.formatMoney(
+                final formattedValue = IncoreNumberFormatter.formatMoney(
                   value,
                   locale: widget.locale,
                   symbol: widget.symbol,
@@ -58,8 +60,8 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
                 );
                 return BarTooltipItem(
                   '$month\n$type: $formattedValue',
-                  AppTheme.lightTheme.textTheme.bodySmall!.copyWith(
-                    color: AppTheme.surfaceLight,
+                  theme.textTheme.bodySmall!.copyWith(
+                    color: AppColors.surface,
                     fontWeight: FontWeight.w600,
                   ),
                 );
@@ -104,7 +106,10 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
 
                   return Padding(
                     padding: EdgeInsets.only(top: 1.h),
-                    child: Text(month, style: AppTheme.lightTheme.textTheme.bodySmall),
+                    child: Text(
+                      month,
+                      style: theme.textTheme.bodySmall,
+                    ),
                   );
                 },
                 reservedSize: 4.h,
@@ -121,7 +126,7 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
 
                   return Text(
                     text,
-                    style: AppTheme.lightTheme.textTheme.bodySmall,
+                    style: theme.textTheme.bodySmall,
                   );
                 },
               ),
@@ -134,7 +139,8 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
             horizontalInterval: _getNiceYAxisInterval(),
             getDrawingHorizontalLine: (value) {
               return FlLine(
-                color: AppTheme.neutralGray.withValues(alpha: 0.3),
+                // slightly clearer grid without tinting the whole chart
+                color: AppColors.borderSubtle.withValues(alpha: 0.45),
                 strokeWidth: 1,
               );
             },
@@ -212,7 +218,6 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
     return '${widget.symbol}${snapped.toStringAsFixed(0)}';
   }
 
-
   List<BarChartGroupData> _buildBarGroups() {
     return List.generate(widget.chartData.length, (index) {
       final data = widget.chartData[index];
@@ -222,25 +227,30 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
       final rodWidth = groupCount >= 10 ? 6.0 : 10.0;
       final rodsSpace = groupCount >= 10 ? 4.0 : 6.0;
 
+      // Make bars fully solid (no alpha) to avoid washed out look.
+      // Use a subtle outline only for the touched group.
+      final BorderSide touchOutline = BorderSide(
+        color: AppColors.textPrimary.withValues(alpha: 0.12),
+        width: 1,
+      );
+
       return BarChartGroupData(
         x: index,
         barsSpace: rodsSpace,
         barRods: [
           BarChartRodData(
             toY: (data['income'] as num).toDouble(),
-            color: isTouched
-                ? AppTheme.successGreen
-                : AppTheme.successGreen.withValues(alpha: 0.8),
+            color: AppColors.income,
             width: rodWidth,
             borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+            borderSide: isTouched ? touchOutline : BorderSide.none,
           ),
           BarChartRodData(
             toY: (data['expenses'] as num).toDouble(),
-            color: isTouched
-                ? AppTheme.errorRed
-                : AppTheme.errorRed.withValues(alpha: 0.8),
+            color: AppColors.expense,
             width: rodWidth,
             borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+            borderSide: isTouched ? touchOutline : BorderSide.none,
           ),
         ],
       );

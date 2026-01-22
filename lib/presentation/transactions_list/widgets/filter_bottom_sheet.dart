@@ -4,6 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../../core/app_export.dart';
 import '../../../models/payment_method.dart';
 import '../../../models/transaction_category.dart';
+import '../../../theme/app_colors.dart';
 
 /// Bottom sheet for transaction filtering options
 class FilterBottomSheet extends StatefulWidget {
@@ -76,7 +77,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     }
   }
 
-
   Widget _buildDateChip(String? value, String label) {
     final isSelected = _filters['dateRange'] == value;
 
@@ -121,12 +121,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           padding: EdgeInsets.symmetric(vertical: 1.4.h),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppTheme.accentGold.withValues(alpha: 0.12)
+                ? AppColors.primarySoft.withValues(alpha: 0.12)
                 : colorScheme.surface,
             borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
             border: Border.all(
               color: isSelected
-                  ? AppTheme.accentGold
+                  ? AppColors.primarySoft
                   : colorScheme.outline.withValues(alpha: 0.18),
               width: isSelected ? 2 : 1,
             ),
@@ -137,7 +137,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               CustomIconWidget(
                 iconName: iconName,
                 color: isSelected
-                    ? AppTheme.accentGold
+                    ? AppColors.primarySoft
                     : colorScheme.onSurface.withValues(alpha: 0.65),
                 size: 22,
               ),
@@ -151,7 +151,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: isSelected
-                        ? AppTheme.accentGold
+                        ? AppColors.primarySoft
                         : colorScheme.onSurface.withValues(alpha: 0.8),
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   ),
@@ -234,7 +234,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   height: 4,
                   margin: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppTheme.neutralGray,
+                    color: AppColors.borderSubtle,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -254,7 +254,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         child: Text(
                           'Clear All',
                           style: theme.textTheme.labelLarge?.copyWith(
-                            color: AppTheme.errorRed,
+                            color: AppColors.error,
                           ),
                         ),
                       ),
@@ -275,16 +275,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 16),
-
                         Text(
                           'Date range',
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-
                         const SizedBox(height: 8),
-
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
@@ -296,9 +293,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                             _buildDateChip('year', 'This year'),
                           ],
                         ),
-
                         SizedBox(height: 3.h),
-
                         Text(
                           'Category',
                           style: theme.textTheme.titleMedium,

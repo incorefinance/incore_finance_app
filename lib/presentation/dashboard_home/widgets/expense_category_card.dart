@@ -3,6 +3,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../../utils/number_formatter.dart';
+import '../../../theme/app_colors.dart';
 
 class ExpenseCategoryCard extends StatelessWidget {
   final String categoryName;
@@ -71,12 +72,12 @@ class ExpenseCategoryCard extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(2.w),
               decoration: BoxDecoration(
-                color: AppTheme.accentGold.withValues(alpha: 0.1),
+                color: AppColors.primaryTint,
                 borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: CustomIconWidget(
                 iconName: categoryIcon,
-                color: AppTheme.accentGold,
+                color: AppColors.primarySoft,
                 size: 20,
               ),
             ),
@@ -94,7 +95,7 @@ class ExpenseCategoryCard extends StatelessWidget {
             Text(
               formatted,
               style: theme.textTheme.titleMedium?.copyWith(
-                color: colorScheme.onSurface,
+                color: AppColors.expense,
                 fontWeight: FontWeight.w700,
               ),
               maxLines: 1,
@@ -110,7 +111,7 @@ class ExpenseCategoryCard extends StatelessWidget {
               child: Text(
                 '${percentage.toStringAsFixed(1)}%',
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: colorScheme.primary,
+                  color: AppColors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
               ),

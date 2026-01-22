@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../theme/app_theme.dart';
+import '../theme/app_colors.dart';
 
 /// Helper class for showing consistent snackbars throughout the app
 class SnackbarHelper {
@@ -25,7 +26,7 @@ class SnackbarHelper {
             ),
           ],
         ),
-        backgroundColor: AppTheme.successGreen,
+        backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.all(4.w),
         shape: RoundedRectangleBorder(
@@ -56,7 +57,7 @@ class SnackbarHelper {
             ),
           ],
         ),
-        backgroundColor: AppTheme.errorRed,
+        backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.all(4.w),
         shape: RoundedRectangleBorder(
@@ -87,7 +88,7 @@ class SnackbarHelper {
             ),
           ],
         ),
-        backgroundColor: AppTheme.accentGold,
+        backgroundColor: AppColors.primarySoft,
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.all(4.w),
         shape: RoundedRectangleBorder(
@@ -118,7 +119,7 @@ class SnackbarHelper {
             ),
           ],
         ),
-        backgroundColor: Colors.orange,
+        backgroundColor: AppColors.warning,
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.all(4.w),
         shape: RoundedRectangleBorder(

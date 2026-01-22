@@ -5,9 +5,9 @@ import 'package:incore_finance/l10n/app_localizations.dart';
 import 'package:incore_finance/widgets/custom_bottom_bar.dart';
 import '../../core/app_export.dart';
 import '../../main.dart';
-import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_icon_widget.dart';
 import '../../utils/snackbar_helper.dart';
+import '../../theme/app_theme.dart';
 import './widgets/currency_selector_dialog.dart';
 import './widgets/export_options_dialog.dart';
 import './widgets/language_selector_dialog.dart';
@@ -15,8 +15,6 @@ import './widgets/setting_section_header.dart';
 import './widgets/setting_tile.dart';
 
 /// Settings screen for app configuration and preferences
-/// Provides comprehensive settings management with grouped sections
-/// and persistent storage via SharedPreferences.
 class Settings extends StatefulWidget {
   const Settings({super.key});
 
@@ -25,7 +23,6 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  // Current settings state
   String _currentLanguage = 'en';
   bool _isDarkMode = false;
   String _currentCurrency = 'USD';
@@ -42,7 +39,6 @@ class _SettingsState extends State<Settings> {
     _loadSettings();
   }
 
-  /// Load saved settings from SharedPreferences
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -58,7 +54,6 @@ class _SettingsState extends State<Settings> {
     });
   }
 
-  /// Save settings to SharedPreferences
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language', _currentLanguage);
@@ -72,143 +67,112 @@ class _SettingsState extends State<Settings> {
     await prefs.setBool('googleSheetsSync', _googleSheetsSync);
   }
 
-  /// Toggle dark mode and update app theme
   void _toggleDarkMode(bool value) {
-    setState(() {
-      _isDarkMode = value;
-    });
+    setState(() => _isDarkMode = value);
     _saveSettings();
     MyApp.setLocale(context, Locale(_currentLanguage));
   }
 
-  /// Toggle biometric authentication
   void _toggleBiometric(bool value) {
-    setState(() {
-      _biometricEnabled = value;
-    });
+    setState(() => _biometricEnabled = value);
     _saveSettings();
   }
 
-  /// Toggle notifications
   void _toggleNotifications(bool value) {
-    setState(() {
-      _notificationsEnabled = value;
-    });
+    setState(() => _notificationsEnabled = value);
     _saveSettings();
   }
 
-  /// Toggle goal milestones
   void _toggleGoalMilestones(bool value) {
-    setState(() {
-      _goalMilestonesEnabled = value;
-    });
+    setState(() => _goalMilestonesEnabled = value);
     _saveSettings();
   }
 
-  /// Toggle weekly summary emails
   void _toggleWeeklySummary(bool value) {
-    setState(() {
-      _weeklySummaryEnabled = value;
-    });
+    setState(() => _weeklySummaryEnabled = value);
     _saveSettings();
   }
 
-  /// Toggle spending alerts
   void _toggleSpendingAlerts(bool value) {
-    setState(() {
-      _spendingAlertsEnabled = value;
-    });
+    setState(() => _spendingAlertsEnabled = value);
     _saveSettings();
   }
 
-  /// Toggle Google Sheets sync
   void _toggleGoogleSheetsSync(bool value) {
-    setState(() {
-      _googleSheetsSync = value;
-    });
+    setState(() => _googleSheetsSync = value);
     _saveSettings();
   }
 
-  /// Show language selector dialog
   void _showLanguageSelector() {
     showDialog(
       context: context,
-      builder: (context) => LanguageSelectorDialog(
+      builder: (_) => LanguageSelectorDialog(
         currentLanguage: _currentLanguage,
         onLanguageSelected: (language) {
-          setState(() {
-            _currentLanguage = language;
-          });
+          setState(() => _currentLanguage = language);
           _saveSettings();
           MyApp.setLocale(context, Locale(language));
 
-          final l10n = AppLocalizations.of(context)!;
-          SnackbarHelper.showSuccess(context, l10n.languageUpdated);
+          SnackbarHelper.showSuccess(
+            context,
+            AppLocalizations.of(context)!.languageUpdated,
+          );
         },
       ),
     );
   }
 
-  /// Show currency selector dialog
   void _showCurrencySelector() {
     showDialog(
       context: context,
-      builder: (context) => CurrencySelectorDialog(
+      builder: (_) => CurrencySelectorDialog(
         currentCurrency: _currentCurrency,
         onCurrencySelected: (currency) {
-          setState(() {
-            _currentCurrency = currency;
-          });
+          setState(() => _currentCurrency = currency);
           _saveSettings();
 
-          final l10n = AppLocalizations.of(context)!;
           SnackbarHelper.showSuccess(
             context,
-            l10n.currencyUpdated(_currentCurrency),
+            AppLocalizations.of(context)!.currencyUpdated(currency),
           );
         },
       ),
     );
   }
 
-  /// Show export options dialog
   Future<void> _showExportOptions() async {
     await showDialog(
       context: context,
-      builder: (context) => ExportOptionsDialog(
+      builder: (_) => ExportOptionsDialog(
         onExportSelected: (format) {
-          final l10n = AppLocalizations.of(context)!;
           SnackbarHelper.showSuccess(
             context,
-            l10n.exportStarted(format),
+            AppLocalizations.of(context)!.exportStarted(format),
           );
         },
       ),
     );
   }
 
-  /// Reset all data confirmation dialog
   void _confirmResetData() {
     final l10n = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (_) => AlertDialog(
         title: Text(l10n.resetDataTitle),
         content: Text(l10n.resetDataDescription),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.pop(context),
             child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              Navigator.pop(context);
               await _resetData();
             },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text(l10n.confirm),
           ),
         ],
@@ -216,26 +180,20 @@ class _SettingsState extends State<Settings> {
     );
   }
 
-  /// Reset all local data (demo implementation)
   Future<void> _resetData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
-      final l10n = AppLocalizations.of(context)!;
       SnackbarHelper.showSuccess(
         context,
-        l10n.dataResetSuccess,
+        AppLocalizations.of(context)!.dataResetSuccess,
       );
     } catch (e) {
-      SnackbarHelper.showError(
-        context,
-        'Failed to reset data: $e',
-      );
+      SnackbarHelper.showError(context, 'Failed to reset data: $e');
     }
   }
 
-  /// Show about dialog
   void _showAboutDialog() {
     final l10n = AppLocalizations.of(context)!;
 
@@ -247,10 +205,7 @@ class _SettingsState extends State<Settings> {
       children: [
         Text(
           l10n.aboutDescription,
-          style: TextStyle(
-            fontSize: 11.sp,
-            height: 1.4,
-          ),
+          style: TextStyle(fontSize: 11.sp, height: 1.4),
         ),
       ],
     );
@@ -264,15 +219,18 @@ class _SettingsState extends State<Settings> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: theme.colorScheme.surface,
-        appBar: CustomAppBar(
-          title: l10n.settings,
-        ),
+        appBar: null, // ✅ removed top bar
         bottomNavigationBar: CustomBottomBar(
           currentItem: BottomBarItem.settings,
-          onItemSelected: (item) {}, // CustomBottomBar handles navigation internally
+          onItemSelected: (_) {},
         ),
         body: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+          padding: EdgeInsets.fromLTRB(
+            4.w,
+            AppTheme.screenTopPadding,
+            4.w,
+            2.h,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

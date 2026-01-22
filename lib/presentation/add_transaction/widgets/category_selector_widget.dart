@@ -3,6 +3,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../../models/transaction_category.dart';
+import '../../../theme/app_colors.dart';
 
 /// Widget for selecting transaction category
 class CategorySelectorWidget extends StatelessWidget {
@@ -52,12 +53,12 @@ class CategorySelectorWidget extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppTheme.accentGold.withValues(alpha: 0.15)
+                      ? AppColors.primarySoft.withValues(alpha: 0.15)
                       : colorScheme.surface,
                   borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                   border: Border.all(
                     color: isSelected
-                        ? AppTheme.accentGold
+                        ? AppColors.primary
                         : colorScheme.outline.withValues(alpha: 0.2),
                     width: isSelected ? 2 : 1,
                   ),
@@ -68,7 +69,7 @@ class CategorySelectorWidget extends StatelessWidget {
                     CustomIconWidget(
                       iconName: cat.iconName, // ✅ enum icon
                       color: isSelected
-                          ? AppTheme.accentGold
+                          ? AppColors.primary
                           : colorScheme.onSurface.withValues(alpha: 0.7),
                       size: 20,
                     ),
@@ -77,7 +78,7 @@ class CategorySelectorWidget extends StatelessWidget {
                       cat.label, // ✅ enum label
                       style: theme.textTheme.labelLarge?.copyWith(
                         color: isSelected
-                            ? AppTheme.accentGold
+                            ? AppColors.primary
                             : colorScheme.onSurface.withValues(alpha: 0.7),
                         fontWeight:
                             isSelected ? FontWeight.w600 : FontWeight.w400,

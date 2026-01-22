@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
+import '../../../theme/app_colors.dart';
 
 /// Chart section widget for displaying different chart types
 class ChartSectionWidget extends StatelessWidget {
@@ -19,15 +19,18 @@ class ChartSectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
-        color: AppTheme.lightTheme.colorScheme.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.shadowLight,
+            color: AppColors.shadowLight,
             offset: const Offset(0, 2),
             blurRadius: 8,
             spreadRadius: 0,
@@ -39,14 +42,14 @@ class ChartSectionWidget extends StatelessWidget {
         children: [
           Text(
             title,
-            style: AppTheme.lightTheme.textTheme.titleLarge,
+            style: theme.textTheme.titleLarge,
           ),
           if (subtitle != null) ...[
             SizedBox(height: 1.h),
             Text(
               subtitle!,
-              style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-                color: AppTheme.textSecondary,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
               ),
             ),
           ],

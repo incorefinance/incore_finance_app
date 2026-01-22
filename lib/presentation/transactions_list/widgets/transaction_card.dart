@@ -3,6 +3,7 @@ import 'package:incore_finance/models/payment_method.dart';
 import 'package:incore_finance/models/transaction_category.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
+import 'package:incore_finance/theme/app_colors.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
@@ -191,7 +192,7 @@ class _TransactionCardState extends State<TransactionCard> {
                 formattedAmount,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: isExpense ? colorScheme.error : AppTheme.successGreen,
+                  color: isExpense ? colorScheme.error : AppColors.success,
                 ),
               ),
               SizedBox(height: 0.6.h),

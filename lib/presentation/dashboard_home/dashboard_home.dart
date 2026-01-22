@@ -8,15 +8,14 @@ import 'package:incore_finance/services/user_settings_service.dart';
 import '../../core/app_export.dart';
 import '../../l10n/app_localizations.dart';
 import '../../main.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../theme/app_colors.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import './widgets/cash_balance_chart.dart';
 import './widgets/comparison_metrics_card.dart';
 import './widgets/expense_category_card.dart';
 import './widgets/monthly_profit_card.dart';
 
-/// Dashboard Home Screen - Primary financial overview
-/// Displays monthly profit, top expenses, cash balance trend, and comparisons
+/// Dashboard Home Screen
 class DashboardHome extends StatefulWidget {
   const DashboardHome({super.key});
 
@@ -25,9 +24,7 @@ class DashboardHome extends StatefulWidget {
 }
 
 class _DashboardHomeState extends State<DashboardHome> {
-  // Repository and real state fields
-  final TransactionsRepository _transactionsRepository =
-      TransactionsRepository();
+  final TransactionsRepository _transactionsRepository = TransactionsRepository();
   final UserSettingsService _userSettingsService = UserSettingsService();
 
   bool _isRefreshing = false;
@@ -39,22 +36,18 @@ class _DashboardHomeState extends State<DashboardHome> {
   bool _isLoadingDashboard = true;
   String? _dashboardError;
 
-  // Currency settings
   UserCurrencySettings _currencySettings = const UserCurrencySettings(
     currencyCode: 'EUR',
     symbol: '€',
     locale: 'pt_PT',
   );
 
-  // Real top expenses data loaded from Supabase
   List<Map<String, dynamic>> _topExpenses = [];
   bool _isLoadingTopExpenses = true;
 
-  // Real cash balance data for 30 days
   List<Map<String, dynamic>> _balanceData = [];
   bool _isLoadingBalanceData = true;
 
-  // Month-over-month percentage changes (real data)
   double _incomeChange = 0.0;
   double _expenseChange = 0.0;
 
@@ -62,10 +55,10 @@ class _DashboardHomeState extends State<DashboardHome> {
   void initState() {
     super.initState();
     _loadCurrencySettings().then((_) {
-    _loadCashBalanceData();
-    _loadMonthlyProfit();
-    _loadTopExpenses();
-  });
+      _loadCashBalanceData();
+      _loadMonthlyProfit();
+      _loadTopExpenses();
+    });
   }
 
   Future<void> _loadCurrencySettings() async {
@@ -75,7 +68,7 @@ class _DashboardHomeState extends State<DashboardHome> {
         _currencySettings = settings;
       });
     } catch (e) {
-      // Use default EUR settings if loading fails
+      // keep defaults
     }
   }
 
@@ -88,7 +81,6 @@ class _DashboardHomeState extends State<DashboardHome> {
     try {
       final now = DateTime.now();
 
-      // Current month range
       final currentMonthStart = DateTime(now.year, now.month, 1);
       final nextMonthStart = now.month == 12
           ? DateTime(now.year + 1, 1, 1)
@@ -117,7 +109,6 @@ class _DashboardHomeState extends State<DashboardHome> {
 
       final currentProfit = currentIncome - currentExpense;
 
-      // Previous month range
       final prevMonthEnd = currentMonthStart.subtract(const Duration(days: 1));
       final prevMonthStart = DateTime(prevMonthEnd.year, prevMonthEnd.month, 1);
 
@@ -143,28 +134,23 @@ class _DashboardHomeState extends State<DashboardHome> {
 
       final prevProfit = prevIncome - prevExpense;
 
-      // Profit percentage change month over month
       double profitPercentageChange = 0.0;
       if (prevProfit != 0) {
         profitPercentageChange =
             ((currentProfit - prevProfit) / prevProfit) * 100;
       }
 
-      // Income month over month change
       double incomeChange = 0.0;
       if (prevIncome != 0) {
         incomeChange = ((currentIncome - prevIncome) / prevIncome) * 100;
       } else if (currentIncome != 0) {
-        // No previous income but we have income now
         incomeChange = 100.0;
       }
 
-      // Expenses month over month change
       double expenseChange = 0.0;
       if (prevExpense != 0) {
         expenseChange = ((currentExpense - prevExpense) / prevExpense) * 100;
       } else if (currentExpense != 0) {
-        // No previous expenses but we have expenses now
         expenseChange = 100.0;
       }
 
@@ -192,7 +178,6 @@ class _DashboardHomeState extends State<DashboardHome> {
     try {
       final now = DateTime.now();
 
-      // Current month range
       final currentMonthStart = DateTime(now.year, now.month, 1);
       final nextMonthStart = now.month == 12
           ? DateTime(now.year + 1, 1, 1)
@@ -205,19 +190,15 @@ class _DashboardHomeState extends State<DashboardHome> {
         currentMonthEnd,
       );
 
-      // Filter only expense transactions
       final expenseTransactions =
           transactions.where((tx) => tx.type == 'expense').toList();
 
-      // Aggregate by category
       final Map<String, double> categoryTotals = {};
 
       for (final tx in expenseTransactions) {
         final category = tx.category;
         final amount = tx.amount;
-
         if (category.isEmpty) continue;
-
         categoryTotals[category] = (categoryTotals[category] ?? 0.0) + amount;
       }
 
@@ -226,7 +207,6 @@ class _DashboardHomeState extends State<DashboardHome> {
         (sum, value) => sum + value,
       );
 
-      // Convert to list with percentages
       final categoriesWithPercentages = categoryTotals.entries.map((entry) {
         final amount = entry.value;
         final percentage =
@@ -238,10 +218,10 @@ class _DashboardHomeState extends State<DashboardHome> {
         };
       }).toList();
 
-      // Sort by amount descending and take top 3
       categoriesWithPercentages.sort(
         (a, b) => (b['amount'] as double).compareTo(a['amount'] as double),
       );
+
       final topCategories = categoriesWithPercentages.take(3).toList();
 
       setState(() {
@@ -266,7 +246,6 @@ class _DashboardHomeState extends State<DashboardHome> {
     try {
       final now = DateTime.now();
 
-      // Calculate 30 day window (including today)
       final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
       final startDate = endDate.subtract(const Duration(days: 29));
       final startDateNormalized = DateTime(
@@ -275,17 +254,14 @@ class _DashboardHomeState extends State<DashboardHome> {
         startDate.day,
       );
 
-      // Fetch all transactions for the 30 day period
       final List<TransactionRecord> transactions =
           await _transactionsRepository.getTransactionsByDateRangeTyped(
         startDateNormalized,
         endDate,
       );
 
-      // Create a map to store daily net changes
       final Map<String, double> dailyNetChanges = {};
 
-      // Initialize all 30 days with zero net change
       for (int i = 0; i < 30; i++) {
         final date = startDateNormalized.add(Duration(days: i));
         final dateKey =
@@ -293,27 +269,23 @@ class _DashboardHomeState extends State<DashboardHome> {
         dailyNetChanges[dateKey] = 0.0;
       }
 
-      // Process transactions and calculate daily net changes
       for (final tx in transactions) {
         final txDate = tx.date;
         final txNormalizedDate = DateTime(txDate.year, txDate.month, txDate.day);
         final dateKey =
             '${txNormalizedDate.year}-${txNormalizedDate.month.toString().padLeft(2, '0')}-${txNormalizedDate.day.toString().padLeft(2, '0')}';
-        final type = tx.type;
-        final amount = tx.amount;
 
-        if (dailyNetChanges.containsKey(dateKey)) {
-          if (type == 'income') {
-            dailyNetChanges[dateKey] =
-                (dailyNetChanges[dateKey] ?? 0.0) + amount;
-          } else if (type == 'expense') {
-            dailyNetChanges[dateKey] =
-                (dailyNetChanges[dateKey] ?? 0.0) - amount;
-          }
+        if (!dailyNetChanges.containsKey(dateKey)) continue;
+
+        if (tx.type == 'income') {
+          dailyNetChanges[dateKey] =
+              (dailyNetChanges[dateKey] ?? 0.0) + tx.amount;
+        } else if (tx.type == 'expense') {
+          dailyNetChanges[dateKey] =
+              (dailyNetChanges[dateKey] ?? 0.0) - tx.amount;
         }
       }
 
-      // Build running balance series
       final List<Map<String, dynamic>> balanceSeries = [];
       double runningBalance = 0.0;
 
@@ -322,9 +294,7 @@ class _DashboardHomeState extends State<DashboardHome> {
         final dateKey =
             '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
-        // Add daily net change to running balance
         runningBalance += dailyNetChanges[dateKey] ?? 0.0;
-
         balanceSeries.add({'date': date, 'balance': runningBalance});
       }
 
@@ -370,13 +340,9 @@ class _DashboardHomeState extends State<DashboardHome> {
   String _getGreeting() {
     final l10n = AppLocalizations.of(context)!;
     final hour = DateTime.now().hour;
-    if (hour < 12) {
-      return l10n.goodMorning;
-    } else if (hour < 18) {
-      return l10n.goodAfternoon;
-    } else {
-      return l10n.goodEvening;
-    }
+    if (hour < 12) return l10n.goodMorning;
+    if (hour < 18) return l10n.goodAfternoon;
+    return l10n.goodEvening;
   }
 
   String _getFormattedDate() {
@@ -386,7 +352,6 @@ class _DashboardHomeState extends State<DashboardHome> {
   }
 
   String _getCategoryName(BuildContext context, String categoryId) {
-    // Map category ID to display name
     const categoryLabels = {
       'rev_sales': 'Sales and client income',
       'mkt_ads': 'Advertising and marketing',
@@ -436,7 +401,6 @@ class _DashboardHomeState extends State<DashboardHome> {
 
   void _handleCategoryTap(String categoryId) {
     final categoryName = _getCategoryName(context, categoryId);
-    // Navigate to transactions list with category filter applied
     Navigator.pushNamed(
       context,
       AppRoutes.transactionsList,
@@ -447,10 +411,7 @@ class _DashboardHomeState extends State<DashboardHome> {
   }
 
   Future<void> _handleAddTransaction() async {
-    // Navigate to Add Transaction screen and wait for result
     final result = await Navigator.pushNamed(context, AppRoutes.addTransaction);
-
-    // If transaction was added successfully, reload the dashboard data
     if (result == true) {
       await _loadMonthlyProfit();
       await _loadTopExpenses();
@@ -462,263 +423,233 @@ class _DashboardHomeState extends State<DashboardHome> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final currentLocale = Localizations.localeOf(context);
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
-      appBar: CustomAppBar(
-        variant: AppBarVariant.transparent,
-        title: AppLocalizations.of(context)!.dashboard,
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: CustomIconWidget(
-              iconName: 'language',
-              color: colorScheme.onSurface,
-              size: 24,
-            ),
-            onPressed: _toggleLanguage,
-            tooltip: currentLocale.languageCode == 'en'
-                ? AppLocalizations.of(context)!.switchToPortuguese
-                : AppLocalizations.of(context)!.switchToEnglish,
-          ),
-          SizedBox(width: 2.w),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _handleRefresh,
-        color: AppTheme.accentGold,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // Header Section
-            // Header Section
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _getGreeting(),
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: 0.5.h),
-                    Text(
-                      _getFormattedDate(),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-
-                    // Global dashboard error banner
-                    if (_dashboardError != null) ...[
-                      SizedBox(height: 1.5.h),
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(3.w),
-                        decoration: BoxDecoration(
-                          color: colorScheme.errorContainer,
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusSmall),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 16,
-                              color: colorScheme.onErrorContainer,
-                            ),
-                            SizedBox(width: 2.w),
-                            Expanded(
-                              child: Text(
-                                AppLocalizations.of(context)!.someDashboardDataFailed,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onErrorContainer,
-                                ),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: _handleRefresh,
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: const Size(0, 0),
-                                tapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: Text(
-                                AppLocalizations.of(context)!.retry,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: colorScheme.onErrorContainer,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
+      backgroundColor: AppColors.canvas,
+      appBar: null,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          color: AppColors.primary,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    4.w,
+                    AppTheme.screenTopPadding,
+                    4.w,
+                    0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _getGreeting(),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-
-            // Monthly Profit Card
-            SliverToBoxAdapter(
-              child: _isLoadingDashboard
-                  ? Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 4.w,
-                        vertical: 2.h,
+                      SizedBox(height: 0.5.h),
+                      Text(
+                        _getFormattedDate(),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                      child: SizedBox(
-                        height: 20.h,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: AppTheme.accentGold,
+                      if (_dashboardError != null) ...[
+                        SizedBox(height: 1.5.h),
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(3.w),
+                          decoration: BoxDecoration(
+                            color: colorScheme.errorContainer,
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusSmall,
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: colorScheme.onErrorContainer,
+                              ),
+                              SizedBox(width: 2.w),
+                              Expanded(
+                                child: Text(
+                                  AppLocalizations.of(context)!
+                                      .someDashboardDataFailed,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onErrorContainer,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: _handleRefresh,
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(0, 0),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  AppLocalizations.of(context)!.retry,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: colorScheme.onErrorContainer,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    )
-                  : MonthlyProfitCard(
-                      profit: _monthlyProfit,
-                      percentageChange: _profitPercentageChange,
-                      isProfit: _isProfit,
-                      locale: _currencySettings.locale,
-                      symbol: _currencySettings.symbol,
-                      currencyCode: _currencySettings.currencyCode,
-                    ),
-            ),
-
-            // Top 3 Expense Categories Section
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-                child: Text(
-                  AppLocalizations.of(context)!.topExpenses,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
+                      ],
+                    ],
                   ),
                 ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: _isLoadingTopExpenses
-                  ? Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 4.w,
-                        vertical: 2.h,
-                      ),
-                      child: SizedBox(
-                        height: 18.h,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: AppTheme.accentGold,
-                          ),
-                        ),
-                      ),
-                    )
-                  : _topExpenses.isEmpty
-                      ? Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 4.w,
-                            vertical: 2.h,
-                          ),
-                          child: Container(
-                            padding: EdgeInsets.all(4.w),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surface,
-                              borderRadius: BorderRadius.circular(
-                                AppTheme.radiusMedium,
-                              ),
-                              border: Border.all(
-                                color:
-                                    colorScheme.outline.withValues(alpha: 0.2),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              AppLocalizations.of(context)!.noExpensesRecorded,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                              textAlign: TextAlign.center,
+              SliverToBoxAdapter(
+                child: _isLoadingDashboard
+                    ? Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                        child: SizedBox(
+                          height: 20.h,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
                             ),
                           ),
-                        )
-                      : SizedBox(
-                          height: 24.h,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            padding: EdgeInsets.symmetric(horizontal: 4.w),
-                            itemCount: _topExpenses.length,
-                            separatorBuilder: (context, index) =>
-                                SizedBox(width: 3.w),
-                            itemBuilder: (context, index) {
-                              final expense = _topExpenses[index];
-                              final categoryId =
-                                  expense['categoryId'] as String;
-                              return ExpenseCategoryCard(
-                                categoryName: _getCategoryName(
-                                  context,
-                                  categoryId,
-                                ),
-                                categoryIcon: _getCategoryIcon(categoryId),
-                                amount: expense['amount'] as double,
-                                percentage: expense['percentage'] as double,
-                                locale: _currencySettings.locale,
-                                symbol: _currencySettings.symbol,
-                                currencyCode: _currencySettings.currencyCode,
-                                onTap: () => _handleCategoryTap(categoryId),
-                              );
-                            },
-                          ),
                         ),
-            ),
-
-            // Cash Balance Trend Chart
-            SliverToBoxAdapter(
-              child: _isLoadingBalanceData
-                  ? Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 4.w,
-                        vertical: 2.h,
+                      )
+                    : MonthlyProfitCard(
+                        profit: _monthlyProfit,
+                        percentageChange: _profitPercentageChange,
+                        isProfit: _isProfit,
+                        locale: _currencySettings.locale,
+                        symbol: _currencySettings.symbol,
+                        currencyCode: _currencySettings.currencyCode,
                       ),
-                      child: SizedBox(
-                        height: 28.h,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: AppTheme.accentGold,
-                          ),
-                        ),
-                      ),
-                    )
-                  : CashBalanceChart(
-                      balanceData: _balanceData,
-                      locale: _currencySettings.locale,
-                      symbol: _currencySettings.symbol,
-                      currencyCode: _currencySettings.currencyCode,
-                    ),
-            ),
-
-            // Month-over-Month Comparison
-            SliverToBoxAdapter(
-              child: ComparisonMetricsCard(
-                incomeChange: _incomeChange,
-                expenseChange: _expenseChange,
               ),
-            ),
-
-            // Bottom spacing for FAB
-            SliverToBoxAdapter(child: SizedBox(height: 10.h)),
-          ],
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                  child: Text(
+                    AppLocalizations.of(context)!.topExpenses,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: _isLoadingTopExpenses
+                    ? Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                        child: SizedBox(
+                          height: 18.h,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      )
+                    : _topExpenses.isEmpty
+                        ? Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 4.w,
+                              vertical: 2.h,
+                            ),
+                            child: Container(
+                              padding: EdgeInsets.all(4.w),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surface,
+                                borderRadius: BorderRadius.circular(
+                                  AppTheme.radiusMedium,
+                                ),
+                                border: Border.all(
+                                  color:
+                                      colorScheme.outline.withValues(alpha: 0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context)!.noExpensesRecorded,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          )
+                        : SizedBox(
+                            height: 24.h,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              padding: EdgeInsets.symmetric(horizontal: 4.w),
+                              itemCount: _topExpenses.length,
+                              separatorBuilder: (context, index) =>
+                                  SizedBox(width: 3.w),
+                              itemBuilder: (context, index) {
+                                final expense = _topExpenses[index];
+                                final categoryId =
+                                    expense['categoryId'] as String;
+                                return ExpenseCategoryCard(
+                                  categoryName:
+                                      _getCategoryName(context, categoryId),
+                                  categoryIcon: _getCategoryIcon(categoryId),
+                                  amount: expense['amount'] as double,
+                                  percentage: expense['percentage'] as double,
+                                  locale: _currencySettings.locale,
+                                  symbol: _currencySettings.symbol,
+                                  currencyCode:
+                                      _currencySettings.currencyCode,
+                                  onTap: () =>
+                                      _handleCategoryTap(categoryId),
+                                );
+                              },
+                            ),
+                          ),
+              ),
+              SliverToBoxAdapter(
+                child: _isLoadingBalanceData
+                    ? Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                        child: SizedBox(
+                          height: 28.h,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      )
+                    : CashBalanceChart(
+                        balanceData: _balanceData,
+                        locale: _currencySettings.locale,
+                        symbol: _currencySettings.symbol,
+                        currencyCode: _currencySettings.currencyCode,
+                      ),
+              ),
+              SliverToBoxAdapter(
+                child: ComparisonMetricsCard(
+                  incomeChange: _incomeChange,
+                  expenseChange: _expenseChange,
+                ),
+              ),
+              SliverToBoxAdapter(child: SizedBox(height: 10.h)),
+            ],
+          ),
         ),
-      ), 
+      ),
       bottomNavigationBar: CustomBottomBar(
         currentItem: BottomBarItem.dashboard,
         onItemSelected: (item) {},

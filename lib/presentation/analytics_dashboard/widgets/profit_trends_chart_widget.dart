@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../theme/app_colors.dart';
 import '../../../utils/number_formatter.dart';
 
 /// Profit trends line chart widget
@@ -18,12 +19,10 @@ class ProfitTrendsChartWidget extends StatefulWidget {
     required this.locale,
     required this.symbol,
     required this.currencyCode,
-
   });
 
   @override
-  State<ProfitTrendsChartWidget> createState() =>
-      _ProfitTrendsChartWidgetState();
+  State<ProfitTrendsChartWidget> createState() => _ProfitTrendsChartWidgetState();
 }
 
 class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
@@ -31,6 +30,11 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // ✅ Use your main accent instead of gold
+    final accent = AppColors.primarySoft;
+
     return Semantics(
       label: "Profit Trends Line Chart showing profit history",
       child: LineChart(
@@ -38,7 +42,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
           lineTouchData: LineTouchData(
             enabled: true,
             touchTooltipData: LineTouchTooltipData(
-              tooltipBgColor: AppTheme.primaryNavyLight.withValues(alpha: 0.9),
+              tooltipBgColor: AppColors.primary.withValues(alpha: 0.9),
               tooltipPadding: EdgeInsets.all(2.w),
               tooltipMargin: 2.h,
               getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
@@ -46,8 +50,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
                   final month =
                       widget.trendData[barSpot.x.toInt()]['month'] as String;
                   final profit = barSpot.y;
-                  final formattedProfit =
-                      IncoreNumberFormatter.formatMoney(
+                  final formattedProfit = IncoreNumberFormatter.formatMoney(
                     profit,
                     locale: widget.locale,
                     symbol: widget.symbol,
@@ -55,8 +58,8 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
                   );
                   return LineTooltipItem(
                     '$month\nProfit: $formattedProfit',
-                    AppTheme.lightTheme.textTheme.bodySmall!.copyWith(
-                      color: AppTheme.surfaceLight,
+                    theme.textTheme.bodySmall!.copyWith(
+                      color: AppColors.surface,
                       fontWeight: FontWeight.w600,
                     ),
                   );
@@ -69,7 +72,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
               return spotIndexes.map((index) {
                 return TouchedSpotIndicatorData(
                   FlLine(
-                    color: AppTheme.accentGold,
+                    color: accent,
                     strokeWidth: 2,
                     dashArray: [5, 5],
                   ),
@@ -78,9 +81,9 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
                     getDotPainter: (spot, percent, barData, index) {
                       return FlDotCirclePainter(
                         radius: 1.2.w,
-                        color: AppTheme.accentGold,
+                        color: accent,
                         strokeWidth: 1.5,
-                        strokeColor: AppTheme.surfaceLight,
+                        strokeColor: AppColors.surface,
                       );
                     },
                   ),
@@ -94,7 +97,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
             horizontalInterval: _getNiceYAxisInterval(),
             getDrawingHorizontalLine: (value) {
               return FlLine(
-                color: AppTheme.neutralGray.withValues(alpha: 0.3),
+                color: AppColors.borderSubtle.withValues(alpha: 0.3),
                 strokeWidth: 1,
               );
             },
@@ -124,7 +127,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
                     padding: EdgeInsets.only(top: 1.h),
                     child: Text(
                       month,
-                      style: AppTheme.lightTheme.textTheme.bodySmall,
+                      style: theme.textTheme.bodySmall,
                     ),
                   );
                 },
@@ -141,7 +144,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
 
                   return Text(
                     text,
-                    style: AppTheme.lightTheme.textTheme.bodySmall,
+                    style: theme.textTheme.bodySmall,
                   );
                 },
               ),
@@ -157,7 +160,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
               spots: _buildSpots(),
               isCurved: true,
               curveSmoothness: 0.3,
-              color: AppTheme.accentGold,
+              color: accent,
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: FlDotData(
@@ -165,9 +168,9 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
                 getDotPainter: (spot, percent, barData, index) {
                   return FlDotCirclePainter(
                     radius: 1.0.w,
-                    color: AppTheme.accentGold,
+                    color: accent,
                     strokeWidth: 1.5,
-                    strokeColor: AppTheme.surfaceLight,
+                    strokeColor: AppColors.surface,
                   );
                 },
               ),
@@ -177,8 +180,8 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppTheme.accentGold.withValues(alpha: 0.3),
-                    AppTheme.accentGold.withValues(alpha: 0.0),
+                    accent.withValues(alpha: 0.25),
+                    accent.withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -234,7 +237,6 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
     // Aim for ~4 grid lines
     final raw = max / 4;
 
-    // “Nice” steps (extend if you want)
     const steps = <double>[
       50,
       100,
@@ -255,29 +257,19 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
     return steps.last;
   }
 
- String _formatYAxisValue(double value) {
+  String _formatYAxisValue(double value) {
     final interval = _getNiceYAxisInterval();
-
-    // Only label clean tick marks (prevents duplicates like 3.1k + 3k)
     if (!_isMultipleOf(value, interval)) return '';
 
     final abs = value.abs();
 
-    // Show in “k” once we’re in thousands
     if (abs >= 1000) {
       final k = value / 1000.0;
-
-      // If interval is 2500 => 2.5k ticks, keep one decimal
       final needsDecimal = (interval % 1000 != 0);
-
-      final txt = needsDecimal
-          ? k.toStringAsFixed(1)
-          : k.toStringAsFixed(0);
-
+      final txt = needsDecimal ? k.toStringAsFixed(1) : k.toStringAsFixed(0);
       return '${widget.symbol}${txt}k';
     }
 
-    // Under 1000, show plain
     return '${widget.symbol}${value.toStringAsFixed(0)}';
   }
 
@@ -286,16 +278,11 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
     if (max <= 0) return 1000;
 
     final interval = _getNiceYAxisInterval();
-
-    // Round UP to the next tick
     final niceTop = (max / interval).ceil() * interval;
-
-    // Tiny headroom so line doesn’t kiss the top border
     return niceTop * 1.02;
   }
 
   bool _isMultipleOf(double value, double step) {
-    // Avoid float errors from fl_chart tick values
     if (step == 0) return false;
     final m = value / step;
     return (m - m.round()).abs() < 1e-6;

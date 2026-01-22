@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_theme.dart';
+import '../../../theme/app_colors.dart';
 
 /// Date range selector widget
 class DateRangeSelectorWidget extends StatelessWidget {
@@ -17,6 +17,9 @@ class DateRangeSelectorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     final ranges = ['Last 30 days', '3 months', '6 months', 'Year'];
 
     return Container(
@@ -39,23 +42,23 @@ class DateRangeSelectorWidget extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppTheme.primaryNavyLight
-                    : AppTheme.neutralGray.withValues(alpha: 0.15),
+                    ? AppColors.primary
+                    : AppColors.borderSubtle.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                 border: Border.all(
                   color: isSelected
-                      ? AppTheme.primaryNavyLight
-                      : AppTheme.neutralGray.withValues(alpha: 0.3),
+                      ? AppColors.primary
+                      : AppColors.borderSubtle.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
               child: Center(
                 child: Text(
                   range,
-                  style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                  style: theme.textTheme.bodySmall?.copyWith(
                     color: isSelected
-                        ? AppTheme.surfaceLight
-                        : AppTheme.textPrimary,
+                        ? AppColors.surface
+                        : AppColors.textPrimary,
                     fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
                     fontSize: 11.sp,
                   ),

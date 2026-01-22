@@ -4,10 +4,7 @@ import 'package:sizer/sizer.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
-import '../../core/app_export.dart';
 import '../../l10n/app_localizations.dart';
-import '../../widgets/custom_app_bar.dart';
 import './widgets/income_expenses_chart_widget.dart';
 import './widgets/horizontal_category_breakdown_widget.dart';
 import './widgets/profit_trends_chart_widget.dart';
@@ -15,6 +12,8 @@ import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
 import 'package:incore_finance/models/transaction_category.dart';
 import 'package:intl/intl.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_theme.dart';
 
 String _dateLocale = 'en_US';
 
@@ -94,7 +93,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
       final startMonth = DateTime(now.year, now.month - (months - 1), 1);
       final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
 
-      final transactions = await _transactionsRepository.getTransactionsByDateRangeTyped(
+      final transactions =
+          await _transactionsRepository.getTransactionsByDateRangeTyped(
         startMonth,
         endDate,
       );
@@ -142,7 +142,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
 
     for (var i = 0; i < months; i++) {
       final monthStart = DateTime(startMonth.year, startMonth.month + i, 1);
-      final nextMonthStart = DateTime(startMonth.year, startMonth.month + i + 1, 1);
+      final nextMonthStart =
+          DateTime(startMonth.year, startMonth.month + i + 1, 1);
 
       double income = 0;
       double expenses = 0;
@@ -159,9 +160,9 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
         }
       }
 
-        final m = DateFormat('MMM', _dateLocale).format(monthStart);
-        final y = DateFormat('yy', _dateLocale).format(monthStart);
-        final monthLabel = '$m$y';
+      final m = DateFormat('MMM', _dateLocale).format(monthStart);
+      final y = DateFormat('yy', _dateLocale).format(monthStart);
+      final monthLabel = '$m$y';
 
       result.add({
         'month': monthLabel,
@@ -240,7 +241,9 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
     }
 
     final last = (_profitTrendsData.last['profit'] as num).toDouble();
-    final prev = (_profitTrendsData[_profitTrendsData.length - 2]['profit'] as num).toDouble();
+    final prev =
+        (_profitTrendsData[_profitTrendsData.length - 2]['profit'] as num)
+            .toDouble();
 
     final delta = last - prev;
 
@@ -256,145 +259,163 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
-      appBar: CustomAppBar(
-        title: AppLocalizations.of(context)!.analytics,
-        variant: AppBarVariant.standard,
-        actions: [
-          IconButton(
-            icon: CustomIconWidget(
-              iconName: 'file_download',
-              color: AppTheme.primaryNavyLight,
-              size: 24,
-            ),
-            onPressed: _handleExport,
-            tooltip: AppLocalizations.of(context)!.exportReport,
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _handleRefresh,
-        color: AppTheme.accentGold,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _loadError != null
-                ? Center(child: Text(_loadError!))
-                : SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4.w),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: SegmentedButton<_AnalyticsRange>(
-                              segments: [
-                                ButtonSegment(value: _AnalyticsRange.m3, label: Text(AppLocalizations.of(context)!.threeMonths)),
-                                ButtonSegment(value: _AnalyticsRange.m6, label: Text(AppLocalizations.of(context)!.sixMonths)),
-                                ButtonSegment(value: _AnalyticsRange.m12, label: Text(AppLocalizations.of(context)!.twelveMonths)),
-                              ],
-                              selected: {_range},
-                              showSelectedIcon: false,
-                              onSelectionChanged: (value) {
-                                setState(() {
-                                  _range = value.first;
-                                });
-                                _loadAnalyticsData();
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Section 1: Performance overview
-                          Text(
-                            AppLocalizations.of(context)!.performanceOverview,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                          const SizedBox(height: 18),
-                          if (_profitTrendsData.isEmpty) Text(AppLocalizations.of(context)!.notEnoughData),
-                          if (_profitTrendsData.isNotEmpty)
-                            SizedBox(
-                              height: 30.h,
-                              child: ProfitTrendsChartWidget(
-                                trendData: _profitTrendsData,
-                                locale: _currencyLocale,
-                                symbol: _currencySymbol,
-                                currencyCode: _currencyCode,  
+      backgroundColor: AppColors.surface,
+      appBar: null, // ✅ removed app bar
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          color: Theme.of(context).colorScheme.primary,
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _loadError != null
+                  ? Center(child: Text(_loadError!))
+                  : SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          4.w,
+                          AppTheme.screenTopPadding,
+                          4.w,
+                          0,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: SegmentedButton<_AnalyticsRange>(
+                                segments: [
+                                  ButtonSegment(
+                                    value: _AnalyticsRange.m3,
+                                    label: Text(
+                                      AppLocalizations.of(context)!.threeMonths,
+                                    ),
+                                  ),
+                                  ButtonSegment(
+                                    value: _AnalyticsRange.m6,
+                                    label: Text(
+                                      AppLocalizations.of(context)!.sixMonths,
+                                    ),
+                                  ),
+                                  ButtonSegment(
+                                    value: _AnalyticsRange.m12,
+                                    label: Text(
+                                      AppLocalizations.of(context)!.twelveMonths,
+                                    ),
+                                  ),
+                                ],
+                                selected: {_range},
+                                showSelectedIcon: false,
+                                onSelectionChanged: (value) {
+                                  setState(() {
+                                    _range = value.first;
+                                  });
+                                  _loadAnalyticsData();
+                                },
                               ),
                             ),
+                            const SizedBox(height: 24),
 
-                          const SizedBox(height: 16),
-
-                          _PerformanceSummaryCard(
-                            text: _buildPerformanceSummaryText(),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Section 2: Income vs expenses
-                          Text(
-                            AppLocalizations.of(context)!.incomeVsExpensesChart,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                          const SizedBox(height: 12),
-                          if (_incomeExpensesData.isEmpty) Text(AppLocalizations.of(context)!.notEnoughData),
-                          if (_incomeExpensesData.isNotEmpty)
-                            SizedBox(
-                              height: 30.h,
-                              child: IncomeExpensesChartWidget(
-                                chartData: _incomeExpensesData,
-                                locale: _currencyLocale,
-                                symbol: _currencySymbol,
-                                currencyCode: _currencyCode,
-                              ),
+                            // Section 1: Performance overview
+                            Text(
+                              AppLocalizations.of(context)!.performanceOverview,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                             ),
-                          const SizedBox(height: 24),
-
-                          // Section 3: Income sources
-                          Text(
-                            AppLocalizations.of(context)!.incomeSources,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
+                            const SizedBox(height: 18),
+                            if (_profitTrendsData.isEmpty)
+                              Text(AppLocalizations.of(context)!.notEnoughData),
+                            if (_profitTrendsData.isNotEmpty)
+                              SizedBox(
+                                height: 30.h,
+                                child: ProfitTrendsChartWidget(
+                                  trendData: _profitTrendsData,
+                                  locale: _currencyLocale,
+                                  symbol: _currencySymbol,
+                                  currencyCode: _currencyCode,
                                 ),
-                          ),
-                          const SizedBox(height: 12),
-                          HorizontalCategoryBreakdownWidget(
-                            data: _incomeCategoryData,
-                            locale: _currencyLocale,
-                            symbol: _currencySymbol,
-                            currencyCode: _currencyCode,
-                            accentColor: AppTheme.successGreen,
-                          ),
-                          const SizedBox(height: 32),
+                              ),
+                            const SizedBox(height: 16),
+                            _PerformanceSummaryCard(
+                              text: _buildPerformanceSummaryText(),
+                            ),
+                            const SizedBox(height: 24),
 
-                          // Section 4: Expense breakdown
-                          Text(
-                            AppLocalizations.of(context)!.expenseBreakdown,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
+                            // Section 2: Income vs expenses
+                            Text(
+                              AppLocalizations.of(context)!.incomeVsExpensesChart,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+                            if (_incomeExpensesData.isEmpty)
+                              Text(AppLocalizations.of(context)!.notEnoughData),
+                            if (_incomeExpensesData.isNotEmpty)
+                              SizedBox(
+                                height: 30.h,
+                                child: IncomeExpensesChartWidget(
+                                  chartData: _incomeExpensesData,
+                                  locale: _currencyLocale,
+                                  symbol: _currencySymbol,
+                                  currencyCode: _currencyCode,
                                 ),
-                          ),
-                          const SizedBox(height: 12),
-                          HorizontalCategoryBreakdownWidget(
-                            data: _expenseCategoryData,
-                            locale: _currencyLocale,
-                            symbol: _currencySymbol,
-                            currencyCode: _currencyCode,
-                            accentColor: AppTheme.errorRed,
-                          ),
-                          const SizedBox(height: 24),
+                              ),
+                            const SizedBox(height: 24),
 
-                          SizedBox(height: 3.h),
-                        ],
+                            // Section 3: Income sources
+                            Text(
+                              AppLocalizations.of(context)!.incomeSources,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+                            HorizontalCategoryBreakdownWidget(
+                              data: _incomeCategoryData,
+                              locale: _currencyLocale,
+                              symbol: _currencySymbol,
+                              currencyCode: _currencyCode,
+                              accentColor: AppColors.income,
+                            ),
+                            const SizedBox(height: 32),
+
+                            // Section 4: Expense breakdown
+                            Text(
+                              AppLocalizations.of(context)!.expenseBreakdown,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+                            HorizontalCategoryBreakdownWidget(
+                              data: _expenseCategoryData,
+                              locale: _currencyLocale,
+                              symbol: _currencySymbol,
+                              currencyCode: _currencyCode,
+                              accentColor: AppColors.expense,
+                            ),
+                            const SizedBox(height: 24),
+
+                            SizedBox(height: 3.h),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+        ),
       ),
       bottomNavigationBar: CustomBottomBar(
         currentItem: BottomBarItem.analytics,
@@ -406,78 +427,6 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
 
   Future<void> _handleRefresh() async {
     await _loadAnalyticsData();
-  }
-
-  void _handleExport() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppTheme.surfaceLight,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: EdgeInsets.all(4.w),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.exportAnalytics,
-                  style: AppTheme.lightTheme.textTheme.titleLarge,
-                ),
-                SizedBox(height: 2.h),
-                ListTile(
-                  leading: CustomIconWidget(
-                    iconName: 'picture_as_pdf',
-                    color: AppTheme.errorRed,
-                    size: 24,
-                  ),
-                  title: Text(AppLocalizations.of(context)!.exportAsPdf),
-                  subtitle: Text(AppLocalizations.of(context)!.generatePdfReport),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showExportSuccess('PDF');
-                  },
-                ),
-                ListTile(
-                  leading: CustomIconWidget(
-                    iconName: 'table_chart',
-                    color: AppTheme.successGreen,
-                    size: 24,
-                  ),
-                  title: Text(AppLocalizations.of(context)!.exportAsCsv),
-                  subtitle: Text(AppLocalizations.of(context)!.downloadCsvData),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showExportSuccess('CSV');
-                  },
-                ),
-                SizedBox(height: 2.h),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showExportSuccess(String format) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$format report exported successfully'),
-        backgroundColor: AppTheme.successGreen,
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: 'View',
-          textColor: AppTheme.surfaceLight,
-          onPressed: () {
-            // Open exported file
-          },
-        ),
-      ),
-    );
   }
 }
 
@@ -494,16 +443,16 @@ class _PerformanceSummaryCard extends StatelessWidget {
     final isImproved = text.toLowerCase().contains('improved');
 
     final accent = isDecreased
-        ? AppTheme.errorRed
+        ? AppColors.error
         : isImproved
-            ? AppTheme.successGreen
-            : AppTheme.neutralGray;
+            ? AppColors.success
+            : AppColors.borderSubtle;
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.4.h),
       decoration: BoxDecoration(
-        color: AppTheme.neutralGray.withValues(alpha: 0.08),
+        color: AppColors.borderSubtle.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
         border: Border.all(
           color: accent.withValues(alpha: 0.35),

@@ -4,6 +4,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../../theme/app_theme.dart';
+import '../../../theme/app_colors.dart';
 
 /// Widget for amount input with currency formatting
 class AmountInputWidget extends StatefulWidget {
@@ -80,8 +81,8 @@ class _AmountInputWidgetState extends State<AmountInputWidget> {
       decoration: BoxDecoration(
         color:
             widget.isIncome
-                ? AppTheme.successGreen.withValues(alpha: 0.1)
-                : AppTheme.errorRed.withValues(alpha: 0.1),
+                ? AppColors.income.withValues(alpha: 0.1)
+                : AppColors.expense.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       ),
       child: Column(
@@ -100,8 +101,7 @@ class _AmountInputWidgetState extends State<AmountInputWidget> {
             inputFormatters: [_formatter],
             style: theme.textTheme.displaySmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color:
-                  widget.isIncome ? AppTheme.successGreen : AppTheme.errorRed,
+              color: widget.isIncome ? AppColors.income : AppColors.expense,
             ),
             decoration: InputDecoration(
               border: InputBorder.none,
