@@ -27,6 +27,58 @@ class ExpenseCategoryCard extends StatelessWidget {
     this.onTap,
   });
 
+  void _defaultTap(BuildContext context, String formatted, String percentLabel) {
+    showDialog<void>(
+      context: context,
+      builder: (_) {
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+
+        return AlertDialog(
+          title: Text(
+            categoryName,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                formatted,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: AppColors.expense,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              SizedBox(height: 0.8.h),
+              Text(
+                percentLabel,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'OK',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -39,12 +91,10 @@ class ExpenseCategoryCard extends StatelessWidget {
       currencyCode: currencyCode,
     );
 
-    return Container(
-      width: 28.w,
-      constraints: BoxConstraints(
-        minHeight: 16.h,
-        maxHeight: 20.h,
-      ),
+    final percentRounded = percentage.isFinite ? percentage.round() : 0;
+    final percentLabel = '$percentRounded% of expenses';
+
+    final cardChild = Container(
       padding: EdgeInsets.all(3.w),
       decoration: BoxDecoration(
         color: colorScheme.surface,
@@ -62,62 +112,64 @@ class ExpenseCategoryCard extends StatelessWidget {
           ),
         ],
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          // ✅ Minimal fix: shrink-wrap + no spaceBetween
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Container(
-              padding: EdgeInsets.all(2.w),
-              decoration: BoxDecoration(
-                color: AppColors.primaryTint,
-                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-              ),
-              child: CustomIconWidget(
-                iconName: categoryIcon,
-                color: AppColors.primarySoft,
-                size: 20,
-              ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(2.w),
+            decoration: BoxDecoration(
+              color: AppColors.primaryTint,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             ),
-            SizedBox(height: 0.8.h),
-            Text(
-              categoryName,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            child: CustomIconWidget(
+              iconName: categoryIcon,
+              color: AppColors.primarySoft,
+              size: 22,
             ),
-            SizedBox(height: 0.3.h),
-            Text(
+          ),
+          SizedBox(height: 1.0.h),
+
+          // ✅ amount will never overflow
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
               formatted,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: AppColors.expense,
                 fontWeight: FontWeight.w700,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
-            SizedBox(height: 0.3.h),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 1.5.w, vertical: 0.3.h),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(4),
+          ),
+
+          SizedBox(height: 0.5.h),
+
+          // ✅ label will never overflow
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              percentLabel,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
               ),
-              child: Text(
-                '${percentage.toStringAsFixed(1)}%',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              textAlign: TextAlign.center,
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        onTap: onTap ??
+            () {
+              _defaultTap(context, formatted, percentLabel);
+            },
+        child: cardChild,
       ),
     );
   }

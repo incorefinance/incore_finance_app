@@ -38,7 +38,7 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
       label: "Income vs Expenses Bar Chart showing monthly comparison",
       child: BarChart(
         BarChartData(
-          alignment: BarChartAlignment.spaceBetween,
+          alignment: BarChartAlignment.spaceAround,
           groupsSpace: 3.w,
           maxY: _getNiceMaxY(),
           barTouchData: BarTouchData(

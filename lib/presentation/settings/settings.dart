@@ -8,6 +8,7 @@ import '../../main.dart';
 import '../../widgets/custom_icon_widget.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/app_colors.dart';
 import './widgets/currency_selector_dialog.dart';
 import './widgets/export_options_dialog.dart';
 import './widgets/language_selector_dialog.dart';
@@ -214,11 +215,10 @@ class _SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: theme.colorScheme.surface,
+        backgroundColor: AppColors.canvas,
         appBar: null, // ✅ removed top bar
         bottomNavigationBar: CustomBottomBar(
           currentItem: BottomBarItem.settings,
@@ -226,10 +226,10 @@ class _SettingsState extends State<Settings> {
         ),
         body: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
-            4.w,
+            AppTheme.screenHorizontalPadding,
             AppTheme.screenTopPadding,
-            4.w,
-            2.h,
+            AppTheme.screenHorizontalPadding,
+            0,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

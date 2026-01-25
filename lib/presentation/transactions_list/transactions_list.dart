@@ -11,6 +11,8 @@ import 'package:incore_finance/presentation/add_transaction/add_transaction.dart
 
 import '../../core/app_export.dart';
 import '../../widgets/custom_bottom_bar.dart';
+import '../../theme/app_theme.dart';
+import '../../theme/app_colors.dart';
 import './widgets/empty_state_widget.dart';
 import './widgets/filter_bottom_sheet.dart';
 import './widgets/transaction_card.dart';
@@ -261,7 +263,7 @@ void _logFiltersChanged() {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8.w),
+        padding: EdgeInsets.symmetric(horizontal: AppTheme.screenHorizontalPadding),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -578,16 +580,16 @@ void _logFiltersChanged() {
     final hasActiveFilters = _filters.hasActiveFilters;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: AppColors.canvas,
       body: SafeArea(
         child: Column(
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(
-                4.w,
-                AppTheme.screenTopPadding, // ✅ normalized top padding
-                4.w,
-                4.w,
+                AppTheme.screenHorizontalPadding,
+                AppTheme.screenTopPadding,
+                AppTheme.screenHorizontalPadding,
+                0,
               ),
               child: TextField(
                 controller: _searchController,
@@ -604,7 +606,7 @@ void _logFiltersChanged() {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4.w),
+              padding: EdgeInsets.symmetric(horizontal: AppTheme.screenHorizontalPadding),
               child: SizedBox(
                 width: double.infinity,
                 height: 44,
@@ -677,7 +679,6 @@ void _logFiltersChanged() {
               ),
             ),
 
-
             SizedBox(height: 1.h),
 
             Expanded(
@@ -688,11 +689,14 @@ void _logFiltersChanged() {
                     : _errorMessage != null
                         ? Center(
                             child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8.w),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppTheme.screenHorizontalPadding,
+                              ),
                               child: Text(
                                 _errorMessage!,
                                 textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+                                style: theme.textTheme.bodyMedium
+                                    ?.copyWith(color: colorScheme.error),
                               ),
                             ),
                           )
@@ -701,7 +705,12 @@ void _logFiltersChanged() {
                                 ? EmptyStateWidget(onAddTransaction: _handleAddTransaction)
                                 : _buildNoResultsState(theme, colorScheme))
                             : ListView.builder(
-                                padding: EdgeInsets.only(left: 4.w, right: 4.w, top: 2.h, bottom: 12.h),
+                                padding: EdgeInsets.only(
+                                  left: AppTheme.screenHorizontalPadding,
+                                  right: AppTheme.screenHorizontalPadding,
+                                  top: 2.h,
+                                  bottom: 12.h,
+                                ),
                                 itemCount: transactionsByMonth.length,
                                 itemBuilder: (context, index) {
                                   final monthKey = transactionsByMonth.keys.elementAt(index);
@@ -714,7 +723,8 @@ void _logFiltersChanged() {
                                         padding: EdgeInsets.symmetric(vertical: 1.h),
                                         child: Text(
                                           monthKey,
-                                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(fontWeight: FontWeight.w600),
                                         ),
                                       ),
                                       ..._buildMonthRows(

@@ -24,10 +24,9 @@ class DashboardHome extends StatefulWidget {
 }
 
 class _DashboardHomeState extends State<DashboardHome> {
-  final TransactionsRepository _transactionsRepository = TransactionsRepository();
+  final TransactionsRepository _transactionsRepository =
+      TransactionsRepository();
   final UserSettingsService _userSettingsService = UserSettingsService();
-
-  bool _isRefreshing = false;
 
   double _monthlyProfit = 0.0;
   double _profitPercentageChange = 0.0;
@@ -67,7 +66,7 @@ class _DashboardHomeState extends State<DashboardHome> {
       setState(() {
         _currencySettings = settings;
       });
-    } catch (e) {
+    } catch (_) {
       // keep defaults
     }
   }
@@ -85,7 +84,9 @@ class _DashboardHomeState extends State<DashboardHome> {
       final nextMonthStart = now.month == 12
           ? DateTime(now.year + 1, 1, 1)
           : DateTime(now.year, now.month + 1, 1);
-      final currentMonthEnd = nextMonthStart.subtract(const Duration(days: 1));
+
+      final currentMonthEnd =
+          nextMonthStart.subtract(const Duration(milliseconds: 1));
 
       final List<TransactionRecord> currentTxs =
           await _transactionsRepository.getTransactionsByDateRangeTyped(
@@ -97,13 +98,10 @@ class _DashboardHomeState extends State<DashboardHome> {
       double currentExpense = 0;
 
       for (final tx in currentTxs) {
-        final type = tx.type;
-        final amount = tx.amount;
-
-        if (type == 'income') {
-          currentIncome += amount;
-        } else if (type == 'expense') {
-          currentExpense += amount;
+        if (tx.type == 'income') {
+          currentIncome += tx.amount;
+        } else if (tx.type == 'expense') {
+          currentExpense += tx.amount;
         }
       }
 
@@ -122,13 +120,10 @@ class _DashboardHomeState extends State<DashboardHome> {
       double prevExpense = 0;
 
       for (final tx in prevTxs) {
-        final type = tx.type;
-        final amount = tx.amount;
-
-        if (type == 'income') {
-          prevIncome += amount;
-        } else if (type == 'expense') {
-          prevExpense += amount;
+        if (tx.type == 'income') {
+          prevIncome += tx.amount;
+        } else if (tx.type == 'expense') {
+          prevExpense += tx.amount;
         }
       }
 
@@ -162,7 +157,7 @@ class _DashboardHomeState extends State<DashboardHome> {
         _isProfit = currentProfit >= 0;
         _isLoadingDashboard = false;
       });
-    } catch (e) {
+    } catch (_) {
       setState(() {
         _dashboardError = 'Failed to load dashboard data';
         _isLoadingDashboard = false;
@@ -182,7 +177,8 @@ class _DashboardHomeState extends State<DashboardHome> {
       final nextMonthStart = now.month == 12
           ? DateTime(now.year + 1, 1, 1)
           : DateTime(now.year, now.month + 1, 1);
-      final currentMonthEnd = nextMonthStart.subtract(const Duration(days: 1));
+      final currentMonthEnd =
+          nextMonthStart.subtract(const Duration(milliseconds: 1));
 
       final List<TransactionRecord> transactions =
           await _transactionsRepository.getTransactionsByDateRangeTyped(
@@ -196,39 +192,33 @@ class _DashboardHomeState extends State<DashboardHome> {
       final Map<String, double> categoryTotals = {};
 
       for (final tx in expenseTransactions) {
-        final category = tx.category;
-        final amount = tx.amount;
-        if (category.isEmpty) continue;
-        categoryTotals[category] = (categoryTotals[category] ?? 0.0) + amount;
+        if (tx.category.isEmpty) continue;
+        categoryTotals[tx.category] =
+            (categoryTotals[tx.category] ?? 0.0) + tx.amount;
       }
 
-      final totalExpenses = categoryTotals.values.fold<double>(
-        0.0,
-        (sum, value) => sum + value,
-      );
+      final totalExpenses =
+          categoryTotals.values.fold(0.0, (sum, v) => sum + v);
 
       final categoriesWithPercentages = categoryTotals.entries.map((entry) {
-        final amount = entry.value;
         final percentage =
-            totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0.0;
+            totalExpenses > 0 ? (entry.value / totalExpenses) * 100 : 0.0;
         return {
           'categoryId': entry.key,
-          'amount': amount,
+          'amount': entry.value,
           'percentage': percentage,
         };
-      }).toList();
-
-      categoriesWithPercentages.sort(
-        (a, b) => (b['amount'] as double).compareTo(a['amount'] as double),
-      );
-
-      final topCategories = categoriesWithPercentages.take(3).toList();
+      }).toList()
+        ..sort(
+          (a, b) =>
+              (b['amount'] as double).compareTo(a['amount'] as double),
+        );
 
       setState(() {
-        _topExpenses = topCategories;
+        _topExpenses = categoriesWithPercentages.take(3).toList();
         _isLoadingTopExpenses = false;
       });
-    } catch (e) {
+    } catch (_) {
       setState(() {
         _topExpenses = [];
         _isLoadingTopExpenses = false;
@@ -248,13 +238,10 @@ class _DashboardHomeState extends State<DashboardHome> {
 
       final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
       final startDate = endDate.subtract(const Duration(days: 29));
-      final startDateNormalized = DateTime(
-        startDate.year,
-        startDate.month,
-        startDate.day,
-      );
+      final startDateNormalized =
+          DateTime(startDate.year, startDate.month, startDate.day);
 
-      final List<TransactionRecord> transactions =
+      final transactions =
           await _transactionsRepository.getTransactionsByDateRangeTyped(
         startDateNormalized,
         endDate,
@@ -264,45 +251,39 @@ class _DashboardHomeState extends State<DashboardHome> {
 
       for (int i = 0; i < 30; i++) {
         final date = startDateNormalized.add(Duration(days: i));
-        final dateKey =
+        final key =
             '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-        dailyNetChanges[dateKey] = 0.0;
+        dailyNetChanges[key] = 0.0;
       }
 
       for (final tx in transactions) {
-        final txDate = tx.date;
-        final txNormalizedDate = DateTime(txDate.year, txDate.month, txDate.day);
-        final dateKey =
-            '${txNormalizedDate.year}-${txNormalizedDate.month.toString().padLeft(2, '0')}-${txNormalizedDate.day.toString().padLeft(2, '0')}';
+        final d = DateTime(tx.date.year, tx.date.month, tx.date.day);
+        final key =
+            '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-        if (!dailyNetChanges.containsKey(dateKey)) continue;
+        if (!dailyNetChanges.containsKey(key)) continue;
 
-        if (tx.type == 'income') {
-          dailyNetChanges[dateKey] =
-              (dailyNetChanges[dateKey] ?? 0.0) + tx.amount;
-        } else if (tx.type == 'expense') {
-          dailyNetChanges[dateKey] =
-              (dailyNetChanges[dateKey] ?? 0.0) - tx.amount;
-        }
+        dailyNetChanges[key] =
+            (dailyNetChanges[key] ?? 0) +
+                (tx.type == 'income' ? tx.amount : -tx.amount);
       }
 
-      final List<Map<String, dynamic>> balanceSeries = [];
-      double runningBalance = 0.0;
+      final List<Map<String, dynamic>> series = [];
+      double runningBalance = 0;
 
       for (int i = 0; i < 30; i++) {
         final date = startDateNormalized.add(Duration(days: i));
-        final dateKey =
+        final key =
             '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-
-        runningBalance += dailyNetChanges[dateKey] ?? 0.0;
-        balanceSeries.add({'date': date, 'balance': runningBalance});
+        runningBalance += dailyNetChanges[key] ?? 0;
+        series.add({'date': date, 'balance': runningBalance});
       }
 
       setState(() {
-        _balanceData = balanceSeries;
+        _balanceData = series;
         _isLoadingBalanceData = false;
       });
-    } catch (e) {
+    } catch (_) {
       setState(() {
         _balanceData = [];
         _isLoadingBalanceData = false;
@@ -314,7 +295,6 @@ class _DashboardHomeState extends State<DashboardHome> {
 
   Future<void> _handleRefresh() async {
     setState(() {
-      _isRefreshing = true;
       _dashboardError = null;
     });
 
@@ -323,18 +303,6 @@ class _DashboardHomeState extends State<DashboardHome> {
       _loadTopExpenses(),
       _loadCashBalanceData(),
     ]);
-
-    setState(() {
-      _isRefreshing = false;
-    });
-  }
-
-  void _toggleLanguage() {
-    final currentLocale = Localizations.localeOf(context);
-    final newLocale = currentLocale.languageCode == 'en'
-        ? const Locale('pt')
-        : const Locale('en');
-    MyApp.setLocale(context, newLocale);
   }
 
   String _getGreeting() {
@@ -346,13 +314,12 @@ class _DashboardHomeState extends State<DashboardHome> {
   }
 
   String _getFormattedDate() {
-    final now = DateTime.now();
     final locale = Localizations.localeOf(context);
-    return DateFormat.yMMMMd(locale.toString()).format(now);
+    return DateFormat.yMMMMd(locale.toString()).format(DateTime.now());
   }
 
   String _getCategoryName(BuildContext context, String categoryId) {
-    const categoryLabels = {
+    const labels = {
       'rev_sales': 'Sales and client income',
       'mkt_ads': 'Advertising and marketing',
       'mkt_software': 'Website and software',
@@ -372,11 +339,11 @@ class _DashboardHomeState extends State<DashboardHome> {
       'other_expense': 'Other expense',
       'other_refunds': 'Refunds and adjustments',
     };
-    return categoryLabels[categoryId] ?? categoryId;
+    return labels[categoryId] ?? categoryId;
   }
 
   String _getCategoryIcon(String categoryId) {
-    const iconMap = {
+    const icons = {
       'rev_sales': 'attach_money',
       'mkt_ads': 'campaign',
       'mkt_software': 'code',
@@ -396,26 +363,13 @@ class _DashboardHomeState extends State<DashboardHome> {
       'other_expense': 'more_horiz',
       'other_refunds': 'sync',
     };
-    return iconMap[categoryId] ?? 'category';
-  }
-
-  void _handleCategoryTap(String categoryId) {
-    final categoryName = _getCategoryName(context, categoryId);
-    Navigator.pushNamed(
-      context,
-      AppRoutes.transactionsList,
-      arguments: {
-        'prefilter': {'categoryId': categoryId, 'categoryName': categoryName},
-      },
-    );
+    return icons[categoryId] ?? 'category';
   }
 
   Future<void> _handleAddTransaction() async {
     final result = await Navigator.pushNamed(context, AppRoutes.addTransaction);
     if (result == true) {
-      await _loadMonthlyProfit();
-      await _loadTopExpenses();
-      await _loadCashBalanceData();
+      await _handleRefresh();
     }
   }
 
@@ -426,7 +380,6 @@ class _DashboardHomeState extends State<DashboardHome> {
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: null,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _handleRefresh,
@@ -436,19 +389,14 @@ class _DashboardHomeState extends State<DashboardHome> {
             slivers: [
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    4.w,
-                    AppTheme.screenTopPadding,
-                    4.w,
-                    0,
-                  ),
+                  padding:
+                      EdgeInsets.fromLTRB(4.w, AppTheme.screenTopPadding, 4.w, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         _getGreeting(),
                         style: theme.textTheme.headlineSmall?.copyWith(
-                          color: colorScheme.onSurface,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -459,55 +407,6 @@ class _DashboardHomeState extends State<DashboardHome> {
                           color: colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      if (_dashboardError != null) ...[
-                        SizedBox(height: 1.5.h),
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(3.w),
-                          decoration: BoxDecoration(
-                            color: colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(
-                              AppTheme.radiusSmall,
-                            ),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                size: 16,
-                                color: colorScheme.onErrorContainer,
-                              ),
-                              SizedBox(width: 2.w),
-                              Expanded(
-                                child: Text(
-                                  AppLocalizations.of(context)!
-                                      .someDashboardDataFailed,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onErrorContainer,
-                                  ),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: _handleRefresh,
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(0, 0),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: Text(
-                                  AppLocalizations.of(context)!.retry,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: colorScheme.onErrorContainer,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -537,13 +436,11 @@ class _DashboardHomeState extends State<DashboardHome> {
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                  padding: EdgeInsets.fromLTRB(4.w, 2.h, 4.w, 1.h),
                   child: Text(
                     AppLocalizations.of(context)!.topExpenses,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -561,62 +458,34 @@ class _DashboardHomeState extends State<DashboardHome> {
                           ),
                         ),
                       )
-                    : _topExpenses.isEmpty
-                        ? Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 4.w,
-                              vertical: 2.h,
-                            ),
-                            child: Container(
-                              padding: EdgeInsets.all(4.w),
-                              decoration: BoxDecoration(
-                                color: colorScheme.surface,
-                                borderRadius: BorderRadius.circular(
-                                  AppTheme.radiusMedium,
+                    : Padding(
+                        padding: EdgeInsets.fromLTRB(4.w, 0, 4.w, 2.h),
+                        child: Row(
+                          children: _topExpenses.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final e = entry.value;
+                            final id = e['categoryId'] as String;
+                            return Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  right: index < _topExpenses.length - 1 ? 2.w : 0,
                                 ),
-                                border: Border.all(
-                                  color:
-                                      colorScheme.outline.withValues(alpha: 0.2),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                AppLocalizations.of(context)!.noExpensesRecorded,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          )
-                        : SizedBox(
-                            height: 24.h,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              padding: EdgeInsets.symmetric(horizontal: 4.w),
-                              itemCount: _topExpenses.length,
-                              separatorBuilder: (context, index) =>
-                                  SizedBox(width: 3.w),
-                              itemBuilder: (context, index) {
-                                final expense = _topExpenses[index];
-                                final categoryId =
-                                    expense['categoryId'] as String;
-                                return ExpenseCategoryCard(
-                                  categoryName:
-                                      _getCategoryName(context, categoryId),
-                                  categoryIcon: _getCategoryIcon(categoryId),
-                                  amount: expense['amount'] as double,
-                                  percentage: expense['percentage'] as double,
+                                child: ExpenseCategoryCard(
+                                  categoryName: _getCategoryName(context, id),
+                                  categoryIcon: _getCategoryIcon(id),
+                                  amount: e['amount'] as double,
+                                  percentage: e['percentage'] as double,
                                   locale: _currencySettings.locale,
                                   symbol: _currencySettings.symbol,
                                   currencyCode:
                                       _currencySettings.currencyCode,
-                                  onTap: () =>
-                                      _handleCategoryTap(categoryId),
-                                );
-                              },
-                            ),
-                          ),
+                                  onTap: null,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
               ),
               SliverToBoxAdapter(
                 child: _isLoadingBalanceData
@@ -636,7 +505,8 @@ class _DashboardHomeState extends State<DashboardHome> {
                         balanceData: _balanceData,
                         locale: _currencySettings.locale,
                         symbol: _currencySettings.symbol,
-                        currencyCode: _currencySettings.currencyCode,
+                        currencyCode:
+                            _currencySettings.currencyCode,
                       ),
               ),
               SliverToBoxAdapter(
@@ -652,7 +522,7 @@ class _DashboardHomeState extends State<DashboardHome> {
       ),
       bottomNavigationBar: CustomBottomBar(
         currentItem: BottomBarItem.dashboard,
-        onItemSelected: (item) {},
+        onItemSelected: (_) {},
         onAddTransaction: _handleAddTransaction,
       ),
     );

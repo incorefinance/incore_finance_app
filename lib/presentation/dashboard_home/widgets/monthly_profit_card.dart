@@ -37,7 +37,9 @@ class MonthlyProfitCard extends StatelessWidget {
       currencyCode: currencyCode,
     );
 
-    final trendColor = isProfit ? AppColors.success : AppColors.error;
+    // ✅ Correct up/down color logic: based on percentageChange direction.
+    final bool isUp = percentageChange >= 0;
+    final Color trendColor = isUp ? AppColors.success : AppColors.error;
 
     return Container(
       width: double.infinity,
@@ -66,13 +68,28 @@ class MonthlyProfitCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                l10n.monthlyProfit,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
+              // ✅ Profit + This month hierarchy
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.profit, // was l10n.monthlyProfit
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 0.3.h),
+                  Text(
+                    l10n.thisMonth, // new: explicit timeframe
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
+              // ✅ Explicit chip label: Up/Down vs last month
               _TrendChip(
                 value: percentageChange,
                 color: trendColor,
@@ -87,13 +104,8 @@ class MonthlyProfitCard extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
           ),
-          SizedBox(height: 0.6.h),
-          Text(
-            isProfit ? l10n.netProfit : l10n.netLoss,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
+
+          // ✅ Removed redundant "Net Profit / Net Loss" line
         ],
       ),
     );
@@ -112,6 +124,10 @@ class _TrendChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
+    final bool isUp = value >= 0;
+    final String directionText = isUp ? l10n.up : l10n.down;
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 0.7.h),
@@ -124,13 +140,13 @@ class _TrendChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            value >= 0 ? Icons.trending_up : Icons.trending_down,
+            isUp ? Icons.trending_up : Icons.trending_down,
             size: 16,
             color: color,
           ),
           SizedBox(width: 1.w),
           Text(
-            '${value.abs().toStringAsFixed(1)}%',
+            '$directionText ${value.abs().toStringAsFixed(1)}% ${l10n.vsLastMonth}',
             style: theme.textTheme.labelMedium?.copyWith(
               color: color,
               fontWeight: FontWeight.w700,
