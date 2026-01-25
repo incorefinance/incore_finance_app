@@ -798,9 +798,10 @@ class AppTheme {
     );
   }
 
-  /// Top screen padding 
+  /// Screen padding
   static const double screenTopPadding = 12;
-  
+  static const double screenHorizontalPadding = 16;
+
   /// Animation curves for consistent motion design
   static const Curve defaultCurve = Curves.easeInOut;
   static const Curve fastOutSlowIn = Curves.fastOutSlowIn;

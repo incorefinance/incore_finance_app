@@ -259,7 +259,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.canvas,
       appBar: null, // ✅ removed app bar
       body: SafeArea(
         child: RefreshIndicator(
@@ -273,9 +273,9 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                       physics: const AlwaysScrollableScrollPhysics(),
                       child: Padding(
                         padding: EdgeInsets.fromLTRB(
-                          4.w,
+                          AppTheme.screenHorizontalPadding,
                           AppTheme.screenTopPadding,
-                          4.w,
+                          AppTheme.screenHorizontalPadding,
                           0,
                         ),
                         child: Column(

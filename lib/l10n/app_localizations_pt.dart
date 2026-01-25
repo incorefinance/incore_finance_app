@@ -51,6 +51,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get vsLastMonth => 'vs mês anterior';
 
   @override
+  String get up => 'Up';
+
+  @override
+  String get down => 'Down';
+
+  @override
   String get topExpenses => 'Principais Despesas';
 
   @override

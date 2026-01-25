@@ -179,6 +179,18 @@ abstract class AppLocalizations {
   /// **'vs last month'**
   String get vsLastMonth;
 
+  /// No description provided for @up.
+  ///
+  /// In en, this message translates to:
+  /// **'Up'**
+  String get up;
+
+  /// No description provided for @down.
+  ///
+  /// In en, this message translates to:
+  /// **'Down'**
+  String get down;
+
   /// No description provided for @topExpenses.
   ///
   /// In en, this message translates to:

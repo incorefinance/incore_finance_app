@@ -35,7 +35,7 @@ class CashBalanceChart extends StatelessWidget {
     return Container(
       width: double.infinity,
       constraints: BoxConstraints(minHeight: 28.h, maxHeight: 35.h),
-      margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+      margin: EdgeInsets.fromLTRB(4.w, 0, 4.w, 2.h),
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
         color: colorScheme.surface,
@@ -99,10 +99,16 @@ class CashBalanceChart extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 30,
-                      interval: 7,
+                      interval: 1,
                       getTitlesWidget: (value, meta) {
                         final i = value.toInt();
                         if (i < 0 || i >= balanceData.length) {
+                          return const SizedBox.shrink();
+                        }
+                        // Show labels at indices 0, 7, 14, 21, and last (29)
+                        // Skip 28 to avoid overlap with 29
+                        final isKeyIndex = i == 0 || i == 7 || i == 14 || i == 21 || i == balanceData.length - 1;
+                        if (!isKeyIndex) {
                           return const SizedBox.shrink();
                         }
                         final date = balanceData[i]['date'] as DateTime;
@@ -128,9 +134,7 @@ class CashBalanceChart extends StatelessWidget {
                         if (txt.isEmpty) return const SizedBox.shrink();
                         return Text(
                           txt,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                          style: theme.textTheme.bodySmall,
                         );
                       },
                     ),

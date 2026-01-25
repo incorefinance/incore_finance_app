@@ -35,6 +35,9 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
     // ✅ Use your main accent instead of gold
     final accent = AppColors.primarySoft;
 
+    final xMax = (widget.trendData.length - 1).toDouble();
+    const double xPadding = 0.25;
+
     return Semantics(
       label: "Profit Trends Line Chart showing profit history",
       child: LineChart(
@@ -116,7 +119,12 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
                 reservedSize: 4.h,
                 interval: _getXAxisInterval(),
                 getTitlesWidget: (value, meta) {
-                  final index = value.toInt();
+                  // Only show labels for integer ticks (avoid duplicates like Jan26 twice)
+                  if ((value - value.round()).abs() > 1e-6) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final index = value.round();
                   if (index < 0 || index >= widget.trendData.length) {
                     return const SizedBox.shrink();
                   }
@@ -151,8 +159,8 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
             ),
           ),
           borderData: FlBorderData(show: false),
-          minX: 0,
-          maxX: (widget.trendData.length - 1).toDouble(),
+          minX: -xPadding,
+          maxX: xMax + xPadding,
           minY: (_getMinValue() >= 0) ? 0 : _getMinValue() * 1.1,
           maxY: _getNiceMaxY(),
           lineBarsData: [
