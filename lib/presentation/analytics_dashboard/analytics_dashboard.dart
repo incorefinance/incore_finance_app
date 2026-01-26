@@ -8,6 +8,8 @@ import '../../l10n/app_localizations.dart';
 import './widgets/income_expenses_chart_widget.dart';
 import './widgets/horizontal_category_breakdown_widget.dart';
 import './widgets/profit_trends_chart_widget.dart';
+import './widgets/cash_balance_chart.dart';
+import './widgets/comparison_metrics_card.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
 import 'package:incore_finance/models/transaction_category.dart';
@@ -37,6 +39,11 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
   List<Map<String, dynamic>> _profitTrendsData = [];
   List<Map<String, dynamic>> _incomeCategoryData = [];
   List<Map<String, dynamic>> _expenseCategoryData = [];
+  List<Map<String, dynamic>> _balanceData = [];
+
+  // Month-over-month change data
+  double _incomeChange = 0.0;
+  double _expenseChange = 0.0;
 
   _AnalyticsRange _range = _AnalyticsRange.m3;
 
@@ -121,6 +128,12 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
         type: 'expense',
       );
 
+      // Calculate month-over-month changes
+      _calculateMonthOverMonthChanges(transactions, now);
+
+      // Load cash balance data (30 days)
+      await _loadCashBalanceData();
+
       setState(() {
         _isLoading = false;
       });
@@ -130,6 +143,113 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
         _isLoading = false;
         _loadError = 'Failed to load analytics';
       });
+    }
+  }
+
+  void _calculateMonthOverMonthChanges(List<TransactionRecord> transactions, DateTime now) {
+    final currentMonthStart = DateTime(now.year, now.month, 1);
+    final nextMonthStart = now.month == 12
+        ? DateTime(now.year + 1, 1, 1)
+        : DateTime(now.year, now.month + 1, 1);
+    final currentMonthEnd = nextMonthStart.subtract(const Duration(milliseconds: 1));
+
+    final prevMonthEnd = currentMonthStart.subtract(const Duration(days: 1));
+    final prevMonthStart = DateTime(prevMonthEnd.year, prevMonthEnd.month, 1);
+
+    double currentIncome = 0;
+    double currentExpense = 0;
+    double prevIncome = 0;
+    double prevExpense = 0;
+
+    for (final tx in transactions) {
+      final d = tx.date;
+
+      // Current month
+      if (!d.isBefore(currentMonthStart) && !d.isAfter(currentMonthEnd)) {
+        if (tx.type == 'income') {
+          currentIncome += tx.amount;
+        } else if (tx.type == 'expense') {
+          currentExpense += tx.amount;
+        }
+      }
+
+      // Previous month
+      if (!d.isBefore(prevMonthStart) && !d.isAfter(prevMonthEnd)) {
+        if (tx.type == 'income') {
+          prevIncome += tx.amount;
+        } else if (tx.type == 'expense') {
+          prevExpense += tx.amount;
+        }
+      }
+    }
+
+    if (prevIncome != 0) {
+      _incomeChange = ((currentIncome - prevIncome) / prevIncome) * 100;
+    } else if (currentIncome != 0) {
+      _incomeChange = 100.0;
+    } else {
+      _incomeChange = 0.0;
+    }
+
+    if (prevExpense != 0) {
+      _expenseChange = ((currentExpense - prevExpense) / prevExpense) * 100;
+    } else if (currentExpense != 0) {
+      _expenseChange = 100.0;
+    } else {
+      _expenseChange = 0.0;
+    }
+  }
+
+  Future<void> _loadCashBalanceData() async {
+    try {
+      final now = DateTime.now();
+
+      final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
+      final startDate = endDate.subtract(const Duration(days: 29));
+      final startDateNormalized =
+          DateTime(startDate.year, startDate.month, startDate.day);
+
+      final transactions =
+          await _transactionsRepository.getTransactionsByDateRangeTyped(
+        startDateNormalized,
+        endDate,
+      );
+
+      final Map<String, double> dailyNetChanges = {};
+
+      for (int i = 0; i < 30; i++) {
+        final date = startDateNormalized.add(Duration(days: i));
+        final key =
+            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        dailyNetChanges[key] = 0.0;
+      }
+
+      for (final tx in transactions) {
+        final d = DateTime(tx.date.year, tx.date.month, tx.date.day);
+        final key =
+            '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+        if (!dailyNetChanges.containsKey(key)) continue;
+
+        dailyNetChanges[key] =
+            (dailyNetChanges[key] ?? 0) +
+                (tx.type == 'income' ? tx.amount : -tx.amount);
+      }
+
+      final List<Map<String, dynamic>> series = [];
+      double runningBalance = 0;
+
+      for (int i = 0; i < 30; i++) {
+        final date = startDateNormalized.add(Duration(days: i));
+        final key =
+            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        runningBalance += dailyNetChanges[key] ?? 0;
+        series.add({'date': date, 'balance': runningBalance});
+      }
+
+      _balanceData = series;
+    } catch (_) {
+      _balanceData = [];
     }
   }
 
@@ -235,32 +355,13 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
     return result;
   }
 
-  String _buildPerformanceSummaryText() {
-    if (_profitTrendsData.length < 2) {
-      return 'Not enough data yet to show trends.';
-    }
-
-    final last = (_profitTrendsData.last['profit'] as num).toDouble();
-    final prev =
-        (_profitTrendsData[_profitTrendsData.length - 2]['profit'] as num)
-            .toDouble();
-
-    final delta = last - prev;
-
-    if (delta > 0) {
-      return 'Profit improved compared to last month.';
-    }
-    if (delta < 0) {
-      return 'Profit decreased compared to last month.';
-    }
-    return 'Profit was stable compared to last month.';
-  }
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: null, // ✅ removed app bar
+      appBar: null,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _handleRefresh,
@@ -281,27 +382,22 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Range selector
                             Align(
                               alignment: Alignment.centerRight,
                               child: SegmentedButton<_AnalyticsRange>(
                                 segments: [
                                   ButtonSegment(
                                     value: _AnalyticsRange.m3,
-                                    label: Text(
-                                      AppLocalizations.of(context)!.threeMonths,
-                                    ),
+                                    label: Text(l10n.threeMonths),
                                   ),
                                   ButtonSegment(
                                     value: _AnalyticsRange.m6,
-                                    label: Text(
-                                      AppLocalizations.of(context)!.sixMonths,
-                                    ),
+                                    label: Text(l10n.sixMonths),
                                   ),
                                   ButtonSegment(
                                     value: _AnalyticsRange.m12,
-                                    label: Text(
-                                      AppLocalizations.of(context)!.twelveMonths,
-                                    ),
+                                    label: Text(l10n.twelveMonths),
                                   ),
                                 ],
                                 selected: {_range},
@@ -316,38 +412,11 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                             ),
                             const SizedBox(height: 24),
 
-                            // Section 1: Performance overview
+                            // ========================================
+                            // Section 1: Overview
+                            // ========================================
                             Text(
-                              AppLocalizations.of(context)!.performanceOverview,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                            ),
-                            const SizedBox(height: 18),
-                            if (_profitTrendsData.isEmpty)
-                              Text(AppLocalizations.of(context)!.notEnoughData),
-                            if (_profitTrendsData.isNotEmpty)
-                              SizedBox(
-                                height: 30.h,
-                                child: ProfitTrendsChartWidget(
-                                  trendData: _profitTrendsData,
-                                  locale: _currencyLocale,
-                                  symbol: _currencySymbol,
-                                  currencyCode: _currencyCode,
-                                ),
-                              ),
-                            const SizedBox(height: 16),
-                            _PerformanceSummaryCard(
-                              text: _buildPerformanceSummaryText(),
-                            ),
-                            const SizedBox(height: 24),
-
-                            // Section 2: Income vs expenses
-                            Text(
-                              AppLocalizations.of(context)!.incomeVsExpensesChart,
+                              'Overview',
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
@@ -356,8 +425,10 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                                   ),
                             ),
                             const SizedBox(height: 12),
+
+                            // Income vs Expenses chart
                             if (_incomeExpensesData.isEmpty)
-                              Text(AppLocalizations.of(context)!.notEnoughData),
+                              Text(l10n.notEnoughData),
                             if (_incomeExpensesData.isNotEmpty)
                               SizedBox(
                                 height: 30.h,
@@ -368,11 +439,20 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                                   currencyCode: _currencyCode,
                                 ),
                               ),
+                            const SizedBox(height: 16),
+
+                            // Month-over-month comparison card
+                            ComparisonMetricsCard(
+                              incomeChange: _incomeChange,
+                              expenseChange: _expenseChange,
+                            ),
                             const SizedBox(height: 24),
 
-                            // Section 3: Income sources
+                            // ========================================
+                            // Section 2: Breakdown
+                            // ========================================
                             Text(
-                              AppLocalizations.of(context)!.incomeSources,
+                              'Breakdown',
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
@@ -381,6 +461,18 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                                   ),
                             ),
                             const SizedBox(height: 12),
+
+                            // Income sources
+                            Text(
+                              l10n.incomeSources,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
                             HorizontalCategoryBreakdownWidget(
                               data: _incomeCategoryData,
                               locale: _currencyLocale,
@@ -388,19 +480,19 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                               currencyCode: _currencyCode,
                               accentColor: AppColors.income,
                             ),
-                            const SizedBox(height: 32),
+                            const SizedBox(height: 24),
 
-                            // Section 4: Expense breakdown
+                            // Expense breakdown
                             Text(
-                              AppLocalizations.of(context)!.expenseBreakdown,
+                              l10n.expenseBreakdown,
                               style: Theme.of(context)
                                   .textTheme
-                                  .titleMedium
+                                  .titleSmall
                                   ?.copyWith(
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                   ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
                             HorizontalCategoryBreakdownWidget(
                               data: _expenseCategoryData,
                               locale: _currencyLocale,
@@ -410,7 +502,45 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                             ),
                             const SizedBox(height: 24),
 
-                            SizedBox(height: 3.h),
+                            // ========================================
+                            // Section 3: Trends
+                            // ========================================
+                            Text(
+                              'Trends',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Cash Balance chart
+                            if (_balanceData.isNotEmpty)
+                              CashBalanceChart(
+                                balanceData: _balanceData,
+                                locale: _currencyLocale,
+                                symbol: _currencySymbol,
+                                currencyCode: _currencyCode,
+                              ),
+                            const SizedBox(height: 16),
+
+                            // Profit trends chart
+                            if (_profitTrendsData.isEmpty)
+                              Text(l10n.notEnoughData),
+                            if (_profitTrendsData.isNotEmpty)
+                              SizedBox(
+                                height: 30.h,
+                                child: ProfitTrendsChartWidget(
+                                  trendData: _profitTrendsData,
+                                  locale: _currencyLocale,
+                                  symbol: _currencySymbol,
+                                  currencyCode: _currencyCode,
+                                ),
+                              ),
+
+                            SizedBox(height: 10.h),
                           ],
                         ),
                       ),
@@ -427,59 +557,5 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
 
   Future<void> _handleRefresh() async {
     await _loadAnalyticsData();
-  }
-}
-
-class _PerformanceSummaryCard extends StatelessWidget {
-  final String text;
-
-  const _PerformanceSummaryCard({
-    required this.text,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDecreased = text.toLowerCase().contains('decreased');
-    final isImproved = text.toLowerCase().contains('improved');
-
-    final accent = isDecreased
-        ? AppColors.error
-        : isImproved
-            ? AppColors.success
-            : AppColors.borderSubtle;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.4.h),
-      decoration: BoxDecoration(
-        color: AppColors.borderSubtle.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-        border: Border.all(
-          color: accent.withValues(alpha: 0.35),
-          width: 1.6,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 24,
-            decoration: BoxDecoration(
-              color: accent,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          SizedBox(width: 3.w),
-          Expanded(
-            child: Text(
-              text,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
