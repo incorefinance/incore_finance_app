@@ -9,6 +9,8 @@ import '../../../theme/app_colors.dart';
 class MonthlyProfitCard extends StatelessWidget {
   final double profit;
   final double percentageChange;
+  final double prevMonthProfit;
+  final bool prevMonthHasData;
   final bool isProfit;
   final String locale;
   final String symbol;
@@ -18,11 +20,40 @@ class MonthlyProfitCard extends StatelessWidget {
     super.key,
     required this.profit,
     required this.percentageChange,
+    required this.prevMonthProfit,
+    required this.prevMonthHasData,
     required this.isProfit,
     required this.locale,
     required this.symbol,
     required this.currencyCode,
   });
+
+  /// Determines if the trend badge should be shown.
+  /// Returns true only when the comparison is meaningful.
+  bool _shouldShowTrendBadge() {
+    // Case C: Last month has no data - hide badge
+    if (!prevMonthHasData) {
+      return false;
+    }
+
+    // Case A & B: prevProfit == 0 - hide badge
+    if (prevMonthProfit == 0) {
+      return false;
+    }
+
+    // Case D: Loss to profit or profit to loss - hide badge
+    // prevProfit < 0 and currentProfit > 0
+    // prevProfit > 0 and currentProfit < 0
+    if ((prevMonthProfit < 0 && profit > 0) ||
+        (prevMonthProfit > 0 && profit < 0)) {
+      return false;
+    }
+
+    // Case E: Normal case - both positive or both negative
+    // Show badge when prevProfit > 0 and currentProfit >= 0
+    // Also allow both negative for consistency
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +68,11 @@ class MonthlyProfitCard extends StatelessWidget {
       currencyCode: currencyCode,
     );
 
-    // ✅ Correct up/down color logic: based on percentageChange direction.
+    // Up/down color logic: based on percentageChange direction.
     final bool isUp = percentageChange >= 0;
     final Color trendColor = isUp ? AppColors.success : AppColors.error;
+
+    final showBadge = _shouldShowTrendBadge();
 
     return Container(
       width: double.infinity,
@@ -68,12 +101,12 @@ class MonthlyProfitCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // ✅ Profit + This month hierarchy
+              // Profit + This month hierarchy
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l10n.profit, // was l10n.monthlyProfit
+                    l10n.profit,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
@@ -81,7 +114,7 @@ class MonthlyProfitCard extends StatelessWidget {
                   ),
                   SizedBox(height: 0.3.h),
                   Text(
-                    l10n.thisMonth, // new: explicit timeframe
+                    l10n.thisMonth,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
@@ -89,11 +122,12 @@ class MonthlyProfitCard extends StatelessWidget {
                   ),
                 ],
               ),
-              // ✅ Explicit chip label: Up/Down vs last month
-              _TrendChip(
-                value: percentageChange,
-                color: trendColor,
-              ),
+              // Conditionally show trend chip
+              if (showBadge)
+                _TrendChip(
+                  value: percentageChange,
+                  color: trendColor,
+                ),
             ],
           ),
           SizedBox(height: 1.4.h),
@@ -104,8 +138,6 @@ class MonthlyProfitCard extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
           ),
-
-          // ✅ Removed redundant "Net Profit / Net Loss" line
         ],
       ),
     );
