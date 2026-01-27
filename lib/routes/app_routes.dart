@@ -8,6 +8,7 @@ import '../presentation/recurring_expenses/recurring_expenses.dart';
 import '../presentation/onboarding/onboarding_flow.dart';
 import '../presentation/startup/startup_screen.dart';
 import '../presentation/auth/auth_screen.dart';
+import '../presentation/auth/email_verification_screen.dart';
 
 class AppRoutes {
   static const String initial = '/';
@@ -19,6 +20,7 @@ class AppRoutes {
   static const String recurringExpenses = '/recurring-expenses';
   static const String onboarding = '/onboarding';
   static const String auth = '/auth';
+  static const String emailVerification = '/email-verification';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -31,6 +33,7 @@ class AppRoutes {
       recurringExpenses: (context) => const RecurringExpenses(),
       onboarding: (context) => const OnboardingFlow(),
       auth: (context) => const AuthScreen(),
+      emailVerification: (context) => const EmailVerificationScreen(),
     };
   }
 }
