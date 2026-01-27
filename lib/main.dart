@@ -8,6 +8,7 @@ import '../core/app_export.dart';
 import '../core/navigation/route_observer.dart';
 import '../widgets/custom_error_widget.dart';
 import 'package:incore_finance/services/supabase_service.dart';
+import 'package:incore_finance/services/deep_link_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +18,13 @@ void main() async {
     await SupabaseService.initialize();
   } catch (e) {
     debugPrint('Failed to initialize Supabase: $e');
+  }
+
+  // Initialize deep link handling for auth callbacks
+  try {
+    await DeepLinkService.instance.initialize();
+  } catch (e) {
+    debugPrint('Failed to initialize DeepLinkService: $e');
   }
 
   bool _hasShownError = false;

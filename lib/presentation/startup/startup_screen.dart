@@ -102,6 +102,23 @@ class _StartupScreenState extends State<StartupScreen> {
     if (!mounted) return;
     if (_hasRouted) return;
 
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    // Check email verification status first.
+    // If emailConfirmedAt is null, the user has not verified their email.
+    if (user != null && user.emailConfirmedAt == null) {
+      if (!mounted) return;
+      if (_hasRouted) return;
+
+      _hasRouted = true;
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.emailVerification,
+        (route) => false,
+      );
+      return;
+    }
+
     try {
       final isComplete = await _onboardingService.isOnboardingComplete();
 

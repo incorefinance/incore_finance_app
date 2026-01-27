@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../routes/app_routes.dart';
+import '../../../services/password_validator.dart';
+import 'password_strength_indicator.dart';
 
 /// Minimal email/password auth form for sign in and sign up.
 /// Does not handle navigation; parent widget is responsible for routing.
@@ -28,6 +31,7 @@ class _AuthFormState extends State<AuthForm> {
   }
 
   Future<void> _handleSubmit() async {
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -98,9 +102,17 @@ class _AuthFormState extends State<AuthForm> {
     String email,
     String password,
   ) async {
+    final policy = PasswordValidator.validatePolicy(password);
+    if (!policy.isValid) {
+    setState(() {
+    _errorText = policy.errorMessage;
+    });
+    return;
+    }
+
     final response = await supabase.auth.signUp(
-      email: email,
-      password: password,
+    email: email,
+    password: password,
     );
 
     // Check if signed in immediately (no email confirmation required)
@@ -109,11 +121,14 @@ class _AuthFormState extends State<AuthForm> {
       return;
     }
 
-    // Email confirmation required - show inline message
-    setState(() {
-      _messageText =
-          'Account created. Check your email to confirm before signing in.';
-    });
+    // Email confirmation required - navigate to verification screen
+    // Pass email as argument so resend works without active session
+    if (mounted) {
+      Navigator.of(context).pushReplacementNamed(
+        AppRoutes.emailVerification,
+        arguments: email,
+      );
+    }
   }
 
   void _toggleMode() {
@@ -179,19 +194,28 @@ class _AuthFormState extends State<AuthForm> {
               textInputAction: TextInputAction.done,
               decoration: const InputDecoration(
                 labelText: 'Password',
+                hintText: 'At least 12 characters',
                 border: OutlineInputBorder(),
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your password';
+                if (_isSignUpMode) {
+                  final result = PasswordValidator.validatePolicy(value ?? '');
+                  return result.isValid ? null : result.errorMessage;
+                } else {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  return null;
                 }
-                if (value.length < 6) {
-                  return 'Password must be at least 6 characters';
-                }
-                return null;
               },
               onFieldSubmitted: (_) => _handleSubmit(),
+              onChanged: (value) {
+                setState(() {}); // Trigger rebuild for strength indicator
+              },
             ),
+            // Password strength indicator (only in sign up mode)
+            if (_isSignUpMode && _passwordController.text.isNotEmpty)
+              PasswordStrengthIndicator(password: _passwordController.text, email: _emailController.text.trim()),
             const SizedBox(height: 24),
             // Message text (non-error, e.g., email confirmation)
             if (_messageText != null)
