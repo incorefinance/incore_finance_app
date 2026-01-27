@@ -26,3 +26,4 @@ web/.firebase/
 *.tmp
 *.swp
 .DS_Store
+nul

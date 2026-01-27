@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:incore_finance/core/navigation/route_observer.dart';
 import 'package:incore_finance/widgets/custom_bottom_bar.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
@@ -12,7 +13,9 @@ import './widgets/cash_balance_chart.dart';
 import './widgets/comparison_metrics_card.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
+import 'package:incore_finance/services/user_financial_baseline_repository.dart';
 import 'package:incore_finance/models/transaction_category.dart';
+import 'package:incore_finance/core/state/transactions_change_notifier.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
@@ -29,11 +32,17 @@ class AnalyticsDashboard extends StatefulWidget {
   State<AnalyticsDashboard> createState() => _AnalyticsDashboardState();
 }
 
-class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
+class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware {
   final TransactionsRepository _transactionsRepository = TransactionsRepository();
+  final UserFinancialBaselineRepository _baselineRepository =
+      UserFinancialBaselineRepository();
+
+  /// Tracks version from TransactionsChangeNotifier to detect data changes.
+  int _lastNotifierVersion = 0;
 
   bool _isLoading = true;
   String? _loadError;
+  bool _hasNoTransactions = false;
 
   List<Map<String, dynamic>> _incomeExpensesData = [];
   List<Map<String, dynamic>> _profitTrendsData = [];
@@ -59,6 +68,38 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
     super.initState();
     _loadUserSettings();
     _loadAnalyticsData();
+
+    // Listen for transaction changes to refresh analytics
+    _lastNotifierVersion = TransactionsChangeNotifier.instance.version.value;
+    TransactionsChangeNotifier.instance.version.addListener(_onTransactionsChanged);
+  }
+
+  @override
+  void dispose() {
+    TransactionsChangeNotifier.instance.version.removeListener(_onTransactionsChanged);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    AppRouteObserver.instance.subscribe(this, ModalRoute.of(context) as PageRoute);
+  }
+
+  @override
+  void didPopNext() {
+    print('=== Analytics: didPopNext called, reloading for stale state');
+    _loadAnalyticsData();
+  }
+
+  void _onTransactionsChanged() {
+    final currentVersion = TransactionsChangeNotifier.instance.version.value;
+    if (currentVersion != _lastNotifierVersion) {
+      // ignore: avoid_print
+      print('=== Analytics: TransactionsChangeNotifier triggered refresh (version $currentVersion)');
+      _lastNotifierVersion = currentVersion;
+      _loadAnalyticsData();
+    }
   }
 
   Future<void> _loadUserSettings() async {
@@ -87,6 +128,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
     setState(() {
       _isLoading = true;
       _loadError = null;
+      _hasNoTransactions = false;
     });
 
     try {
@@ -107,6 +149,9 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
       );
 
       if (!mounted) return;
+
+      // Check if user has no transactions at all
+      final hasData = transactions.isNotEmpty;
 
       _incomeExpensesData = _buildIncomeExpensesMonthlyData(
         transactions: transactions,
@@ -136,12 +181,19 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
 
       setState(() {
         _isLoading = false;
+        _hasNoTransactions = !hasData;
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // ignore: avoid_print
+      print('=== ANALYTICS LOAD ERROR ===');
+      // ignore: avoid_print
+      print('Error: $e');
+      // ignore: avoid_print
+      print('StackTrace: $stackTrace');
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _loadError = 'Failed to load analytics';
+        _loadError = 'Failed to load analytics. Please try again.';
       });
     }
   }
@@ -209,6 +261,32 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
       final startDateNormalized =
           DateTime(startDate.year, startDate.month, startDate.day);
 
+      // Fetch starting balance from user_financial_baseline
+      double startingBalance = 0.0;
+      try {
+        final baseline = await _baselineRepository.getBaselineForCurrentUser();
+        if (baseline != null) {
+          startingBalance = baseline.startingBalance;
+        }
+      } catch (_) {
+        // Keep startingBalance as 0 if fetch fails
+      }
+
+      // Fetch all transactions BEFORE the chart period to compute pre-period balance
+      final allTransactionsBeforeStart =
+          await _transactionsRepository.getTransactionsByDateRangeTyped(
+        DateTime(2000, 1, 1), // far in the past
+        startDateNormalized.subtract(const Duration(days: 1)),
+      );
+
+      double prePeriodNet = 0.0;
+      for (final tx in allTransactionsBeforeStart) {
+        prePeriodNet += tx.type == 'income' ? tx.amount : -tx.amount;
+      }
+
+      // The baseline for the chart is: starting balance + all transactions before chart period
+      final chartBaseline = startingBalance + prePeriodNet;
+
       final transactions =
           await _transactionsRepository.getTransactionsByDateRangeTyped(
         startDateNormalized,
@@ -237,7 +315,18 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
       }
 
       final List<Map<String, dynamic>> series = [];
-      double runningBalance = 0;
+      double runningBalance = chartBaseline;
+
+      // ignore: avoid_print
+      print('=== CASH BALANCE CHART DEBUG ===');
+      // ignore: avoid_print
+      print('Starting balance: $startingBalance');
+      // ignore: avoid_print
+      print('Pre-period net: $prePeriodNet');
+      // ignore: avoid_print
+      print('Chart baseline: $chartBaseline');
+      // ignore: avoid_print
+      print('Transactions in period: ${transactions.length}');
 
       for (int i = 0; i < 30; i++) {
         final date = startDateNormalized.add(Duration(days: i));
@@ -245,6 +334,16 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
             '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
         runningBalance += dailyNetChanges[key] ?? 0;
         series.add({'date': date, 'balance': runningBalance});
+      }
+
+      // ignore: avoid_print
+      if (series.isNotEmpty) {
+        // ignore: avoid_print
+        print('First 3 series points:');
+        for (int i = 0; i < 3 && i < series.length; i++) {
+          // ignore: avoid_print
+          print('  [$i] date: ${series[i]['date']}, balance: ${series[i]['balance']}');
+        }
       }
 
       _balanceData = series;
@@ -355,6 +454,78 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
     return result;
   }
 
+  Widget _buildEmptyState(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.bar_chart_outlined,
+              size: 64,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            SizedBox(height: 3.h),
+            Text(
+              'No data yet',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 1.h),
+            Text(
+              'Add a few transactions to see trends and breakdowns',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: colorScheme.error,
+            ),
+            SizedBox(height: 3.h),
+            Text(
+              _loadError ?? 'Something went wrong',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 2.h),
+            ElevatedButton(
+              onPressed: _handleRefresh,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -369,8 +540,10 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _loadError != null
-                  ? Center(child: Text(_loadError!))
-                  : SingleChildScrollView(
+                  ? _buildErrorState(context)
+                  : _hasNoTransactions
+                      ? _buildEmptyState(context)
+                      : SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       child: Padding(
                         padding: EdgeInsets.fromLTRB(

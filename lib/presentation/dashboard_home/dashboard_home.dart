@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/models/transaction_record.dart';
+import 'package:incore_finance/models/recurring_expense.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
+import 'package:incore_finance/services/recurring_expenses_repository.dart';
+import 'package:incore_finance/services/user_financial_baseline_repository.dart';
 
 import '../../core/app_export.dart';
 import '../../l10n/app_localizations.dart';
@@ -12,6 +15,8 @@ import '../../widgets/custom_bottom_bar.dart';
 import './widgets/cash_position_card.dart';
 import './widgets/monthly_profit_card.dart';
 import './widgets/upcoming_bills_placeholder.dart';
+import './widgets/upcoming_bills_card.dart';
+import '../recurring_expenses/widgets/add_edit_recurring_expense_dialog.dart';
 
 /// Dashboard Home Screen
 /// Dashboard Home responsibility:
@@ -28,6 +33,10 @@ class _DashboardHomeState extends State<DashboardHome> {
   final TransactionsRepository _transactionsRepository =
       TransactionsRepository();
   final UserSettingsService _userSettingsService = UserSettingsService();
+  final RecurringExpensesRepository _recurringExpensesRepository =
+      RecurringExpensesRepository();
+  final UserFinancialBaselineRepository _baselineRepository =
+      UserFinancialBaselineRepository();
 
   double _cashBalance = 0.0;
   double _monthlyProfit = 0.0;
@@ -37,6 +46,7 @@ class _DashboardHomeState extends State<DashboardHome> {
   double _profitPercentageChange = 0.0;
 
   bool _isLoadingDashboard = true;
+  List<RecurringExpense> _recurringBills = [];
 
   UserCurrencySettings _currencySettings = const UserCurrencySettings(
     currencyCode: 'EUR',
@@ -86,7 +96,18 @@ class _DashboardHomeState extends State<DashboardHome> {
         }
       }
 
-      final cashBalance = totalIncome - totalExpense;
+      // Load starting balance from baseline
+      double startingBalance = 0.0;
+      try {
+        final baseline = await _baselineRepository.getBaselineForCurrentUser();
+        if (baseline != null) {
+          startingBalance = baseline.startingBalance;
+        }
+      } catch (_) {
+        // Keep default if loading fails
+      }
+
+      final cashBalance = startingBalance + totalIncome - totalExpense;
 
       // Calculate current month profit
       final currentMonthStart = DateTime(now.year, now.month, 1);
@@ -146,6 +167,14 @@ class _DashboardHomeState extends State<DashboardHome> {
             ((currentProfit - prevProfit) / prevProfit) * 100;
       }
 
+      // Load recurring bills
+      List<RecurringExpense> bills = [];
+      try {
+        bills = await _recurringExpensesRepository.getActiveRecurringExpenses();
+      } catch (_) {
+        // Keep empty list if loading fails
+      }
+
       setState(() {
         _cashBalance = cashBalance;
         _monthlyProfit = currentProfit;
@@ -153,6 +182,7 @@ class _DashboardHomeState extends State<DashboardHome> {
         _prevMonthHasData = prevHasData;
         _profitPercentageChange = profitPercentageChange;
         _isProfit = currentProfit >= 0;
+        _recurringBills = bills;
         _isLoadingDashboard = false;
       });
     } catch (_) {
@@ -181,6 +211,23 @@ class _DashboardHomeState extends State<DashboardHome> {
 
   Future<void> _handleAddTransaction() async {
     final result = await Navigator.pushNamed(context, AppRoutes.addTransaction);
+    if (result == true) {
+      await _handleRefresh();
+    }
+  }
+
+  Future<void> _handleAddBill() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) => const AddEditRecurringExpenseDialog(),
+    );
+    if (result == true) {
+      await _handleRefresh();
+    }
+  }
+
+  Future<void> _handleManageBills() async {
+    final result = await Navigator.pushNamed(context, AppRoutes.recurringExpenses);
     if (result == true) {
       await _handleRefresh();
     }
@@ -263,8 +310,17 @@ class _DashboardHomeState extends State<DashboardHome> {
                             currencyCode: _currencySettings.currencyCode,
                           ),
 
-                          // Block 3: Upcoming Bills (placeholder)
-                          const UpcomingBillsPlaceholder(),
+                          // Block 3: Upcoming Bills
+                          _recurringBills.isEmpty
+                              ? const UpcomingBillsPlaceholder()
+                              : UpcomingBillsCard(
+                                  bills: _recurringBills,
+                                  locale: _currencySettings.locale,
+                                  symbol: _currencySettings.symbol,
+                                  currencyCode: _currencySettings.currencyCode,
+                                  onAddBill: _handleAddBill,
+                                  onManageBills: _handleManageBills,
+                                ),
                         ],
                       ),
               ),

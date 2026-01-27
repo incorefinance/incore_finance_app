@@ -3,6 +3,8 @@ import 'dart:collection';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:incore_finance/core/logging/app_logger.dart';
+import 'package:incore_finance/core/navigation/route_observer.dart';
+import 'package:incore_finance/core/state/transactions_change_notifier.dart';
 import 'package:incore_finance/models/payment_method.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/models/transaction_record.dart';
@@ -11,7 +13,6 @@ import 'package:incore_finance/presentation/add_transaction/add_transaction.dart
 
 import '../../core/app_export.dart';
 import '../../widgets/custom_bottom_bar.dart';
-import '../../theme/app_theme.dart';
 import '../../theme/app_colors.dart';
 import './widgets/empty_state_widget.dart';
 import './widgets/filter_bottom_sheet.dart';
@@ -21,12 +22,14 @@ class _PendingDelete {
   final TransactionRecord transaction;
   final String monthKey;
   final int indexInMonth;
+  final int indexInAllTransactions;
   Timer? timer;
 
   _PendingDelete({
     required this.transaction,
     required this.monthKey,
     required this.indexInMonth,
+    required this.indexInAllTransactions,
   });
 }
 
@@ -73,7 +76,7 @@ class TransactionsList extends StatefulWidget {
   State<TransactionsList> createState() => _TransactionsListState();
 }
 
-class _TransactionsListState extends State<TransactionsList> {
+class _TransactionsListState extends State<TransactionsList> with RouteAware {
   final TextEditingController _searchController = TextEditingController();
   final TransactionsRepository _repository = TransactionsRepository();
 
@@ -83,12 +86,17 @@ class _TransactionsListState extends State<TransactionsList> {
   List<TransactionRecord> _allTransactions = [];
   String? _errorMessage;
   final Map<String, _PendingDelete> _pendingDeletesById = {};
+  bool _isRouteObserverSubscribed = false;
 
   @override
   void initState() {
     AppLogger.d('[Transactions] initState → loading transactions');
     super.initState();
     _searchController.addListener(_onSearchChanged);
+    
+    // Listen to transaction changes and reload
+    TransactionsChangeNotifier.instance.version.addListener(_onTransactionsChanged);
+    
     _loadTransactions();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -105,12 +113,50 @@ class _TransactionsListState extends State<TransactionsList> {
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    
+    // Remove listener to change notifier
+    TransactionsChangeNotifier.instance.version.removeListener(_onTransactionsChanged);
+    
+    // Commit any pending deletes before disposing
+    _flushPendingDeletes();
+    
+    // Clean up timers
     for (final pending in _pendingDeletesById.values) {
       pending.timer?.cancel();
     }
     _pendingDeletesById.clear();
+    
+    // Unsubscribe from route observer
+    AppRouteObserver.instance.unsubscribe(this);
+    _isRouteObserverSubscribed = false;
 
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Guard against null route and prevent duplicate subscriptions
+    if (!_isRouteObserverSubscribed) {
+      final route = ModalRoute.of(context);
+      if (route is PageRoute) {
+        AppRouteObserver.instance.subscribe(this, route);
+        _isRouteObserverSubscribed = true;
+      }
+    }
+  }
+
+  @override
+  void didPopNext() {
+    AppLogger.d('[Transactions] didPopNext called, reloading transactions for stale state');
+    _loadTransactions();
+  }
+
+  @override
+  void didPushNext() {
+    AppLogger.d('[Transactions] didPushNext called, flushing pending deletes before leaving screen');
+    _flushPendingDeletes();
   }
 
   Future<void> _loadTransactions() async {
@@ -169,6 +215,11 @@ void _logFiltersChanged() {
     'payment=${_filters.paymentMethod} '
     'query="${_filters.query}"',
   );
+}
+
+void _onTransactionsChanged() {
+  AppLogger.d('[Transactions] Transaction change notifier triggered, reloading transactions');
+  _loadTransactions();
 }
 
   List<TransactionRecord> get _filteredTransactions {
@@ -430,6 +481,42 @@ void _logFiltersChanged() {
   }
 }
 
+  Future<void> _flushPendingDeletes() async {
+    // Return early if no pending deletes
+    if (_pendingDeletesById.isEmpty) {
+      return;
+    }
+
+    AppLogger.d('[Transactions] Flushing ${_pendingDeletesById.length} pending deletes');
+
+    // Copy pending ids to avoid concurrent modification
+    final pendingIds = List<String>.from(_pendingDeletesById.keys);
+
+    for (final id in pendingIds) {
+      final pending = _pendingDeletesById[id];
+      if (pending != null) {
+        // Cancel timer if not null (we'll handle the delete ourselves)
+        pending.timer?.cancel();
+        
+        // Commit the delete without awaiting (fire and forget)
+        // This ensures the delete request is sent to Supabase immediately
+        // even if we don't wait for the response
+        unawaited(_repository.deleteTransaction(transactionId: id).then(
+          (_) {
+            AppLogger.d('[Transactions] Successfully flushed delete for transaction $id on navigation');
+            // Remove from pending after delete succeeds
+            _pendingDeletesById.remove(id);
+          },
+          onError: (e) {
+            AppLogger.e('[Transactions] Error flushing delete for $id on navigation: $e');
+            // Still remove from pending to avoid retry
+            _pendingDeletesById.remove(id);
+          },
+        ));
+      }
+    }
+  }
+
   Future<void> _handleDeleteTransaction(TransactionRecord transaction) async {
     if (!mounted) return;
 
@@ -444,10 +531,15 @@ void _logFiltersChanged() {
     final indexInMonth = monthTransactions.indexWhere((t) => t.id == transaction.id);
     final safeIndex = indexInMonth < 0 ? 0 : indexInMonth;
 
+    // Capture the absolute position in _allTransactions before deletion
+    final indexInAllTransactions = _allTransactions.indexWhere((t) => t.id == transaction.id);
+    final safeIndexInAll = indexInAllTransactions < 0 ? 0 : indexInAllTransactions;
+
     final pending = _PendingDelete(
       transaction: transaction,
       monthKey: monthKey,
       indexInMonth: safeIndex,
+      indexInAllTransactions: safeIndexInAll,
     );
 
     setState(() {
@@ -468,8 +560,9 @@ void _logFiltersChanged() {
 
     if (!mounted) return;
     setState(() {
-      _allTransactions.add(pending.transaction);
-      _allTransactions.sort((a, b) => b.date.compareTo(a.date));
+      // Restore transaction at its exact original position
+      final insertIndex = pending.indexInAllTransactions.clamp(0, _allTransactions.length);
+      _allTransactions.insert(insertIndex, pending.transaction);
     });
   }
 
@@ -477,12 +570,15 @@ void _logFiltersChanged() {
     final pending = _pendingDeletesById.remove(transactionId);
     if (pending == null) return;
 
+    AppLogger.d('[Transactions] Starting commit for pending delete, transaction id=$transactionId');
+
     if (mounted) {
       setState(() {});
     }
 
     try {
       await _repository.deleteTransaction(transactionId: transactionId);
+      AppLogger.d('[Transactions] Successfully committed delete for transaction id=$transactionId');
     } catch (e, st) {
       AppLogger.e(
         '[Transactions] Failed to delete transaction id=$transactionId',

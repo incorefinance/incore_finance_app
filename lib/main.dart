@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sizer/sizer.dart';
 
 import '../core/app_export.dart';
+import '../core/navigation/route_observer.dart';
 import '../widgets/custom_error_widget.dart';
 import 'package:incore_finance/services/supabase_service.dart';
 
@@ -96,6 +97,7 @@ class _MyAppState extends State<MyApp> {
           },
           // 🚨 END CRITICAL SECTION
           debugShowCheckedModeBanner: false,
+          navigatorObservers: [AppRouteObserver.instance],
           routes: AppRoutes.routes,
           initialRoute: AppRoutes.initial,
         );
