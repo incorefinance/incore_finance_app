@@ -4,25 +4,33 @@ import '../presentation/analytics_dashboard/analytics_dashboard.dart';
 import '../presentation/transactions_list/transactions_list.dart';
 import '../presentation/add_transaction/add_transaction.dart';
 import '../presentation/dashboard_home/dashboard_home.dart';
+import '../presentation/recurring_expenses/recurring_expenses.dart';
+import '../presentation/onboarding/onboarding_flow.dart';
+import '../presentation/startup/startup_screen.dart';
+import '../presentation/auth/auth_screen.dart';
 
 class AppRoutes {
-  // TODO: Add your routes here
   static const String initial = '/';
   static const String settings = '/settings';
   static const String analyticsDashboard = '/analytics-dashboard';
   static const String transactionsList = '/transactions-list';
   static const String addTransaction = '/add-transaction';
   static const String dashboardHome = '/dashboard-home';
+  static const String recurringExpenses = '/recurring-expenses';
+  static const String onboarding = '/onboarding';
+  static const String auth = '/auth';
 
   static Map<String, WidgetBuilder> get routes {
     return {
-      initial: (context) => const DashboardHome(),
+      initial: (context) => const StartupScreen(),
       settings: (context) => const Settings(),
       analyticsDashboard: (context) => const AnalyticsDashboard(),
       transactionsList: (context) => const TransactionsList(),
       addTransaction: (context) => const AddTransaction(),
       dashboardHome: (context) => const DashboardHome(),
-      // TODO: Add your other routes here
+      recurringExpenses: (context) => const RecurringExpenses(),
+      onboarding: (context) => const OnboardingFlow(),
+      auth: (context) => const AuthScreen(),
     };
   }
 }

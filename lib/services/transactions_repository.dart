@@ -8,17 +8,13 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:incore_finance/models/transaction_record.dart';
-import 'package:incore_finance/services/supabase_service.dart';
+import 'package:incore_finance/core/state/transactions_change_notifier.dart';
 
 class TransactionsRepository {
   final SupabaseClient _client;
-  final SupabaseService _supabaseService;
 
-  TransactionsRepository({
-    SupabaseClient? client,
-    SupabaseService? supabaseService,
-  })  : _client = client ?? Supabase.instance.client,
-        _supabaseService = supabaseService ?? SupabaseService.instance;
+  TransactionsRepository({SupabaseClient? client})
+      : _client = client ?? Supabase.instance.client;
 
   /// Insert a new transaction.
   Future<void> addTransaction({
@@ -30,7 +26,7 @@ class TransactionsRepository {
     required String paymentMethod,
     String? client,
   }) async {
-    final userId = _supabaseService.currentUserId;
+    final userId = _client.auth.currentUser!.id;
 
     final payload = <String, dynamic>{
       'user_id': userId,
@@ -57,6 +53,9 @@ class TransactionsRepository {
 
       // ignore: avoid_print
       print('addTransaction() -> insert response: $response');
+
+      // Notify listeners that transactions have changed
+      TransactionsChangeNotifier.instance.markChanged();
     } catch (e, stackTrace) {
       // ignore: avoid_print
       print('=== SUPABASE INSERT ERROR ===');
@@ -78,7 +77,7 @@ class TransactionsRepository {
     required String paymentMethod,
     String? client,
   }) async {
-    final userId = _supabaseService.currentUserId;
+    final userId = _client.auth.currentUser!.id;
 
     final payload = <String, dynamic>{
       'amount': amount,
@@ -95,35 +94,81 @@ class TransactionsRepository {
         .update(payload)
         .eq('id', transactionId)
         .eq('user_id', userId);
+
+    // Notify listeners that transactions have changed
+    TransactionsChangeNotifier.instance.markChanged();
   }
 
   Future<void> deleteTransaction({
     required String transactionId,
   }) async {
-    final userId = _supabaseService.currentUserId;
+    final userId = _client.auth.currentUser!.id;
 
-    await _client
-        .from('transactions')
-        .update({'deleted_at': DateTime.now().toIso8601String()})
-        .eq('id', transactionId)
-        .eq('user_id', userId);
+    // ignore: avoid_print
+    print('=== DELETE TRANSACTION START ===');
+    // ignore: avoid_print
+    print('Transaction ID: $transactionId');
+    // ignore: avoid_print
+    print('User ID: $userId');
+
+    try {
+      final response = await _client
+          .from('transactions')
+          .update({'deleted_at': DateTime.now().toIso8601String()})
+          .eq('id', transactionId)
+          .eq('user_id', userId);
+
+      // ignore: avoid_print
+      print('=== DELETE TRANSACTION SUCCESS ===');
+      // ignore: avoid_print
+      print('Response: $response');
+
+      // Notify listeners that transactions have changed
+      TransactionsChangeNotifier.instance.markChanged();
+    } catch (e, stackTrace) {
+      // ignore: avoid_print
+      print('=== DELETE TRANSACTION ERROR ===');
+      // ignore: avoid_print
+      print('Error: $e');
+      // ignore: avoid_print
+      print('StackTrace: $stackTrace');
+      rethrow;
+    }
   }
 
   /// Raw fetch: used by legacy code.
   Future<List<Map<String, dynamic>>> getTransactionsForCurrentUser() async {
-    final userId = _supabaseService.currentUserId;
+    final userId = _client.auth.currentUser!.id;
 
-    final response = await _client
-        .from('transactions')
-        .select()
-        .eq('user_id', userId)
-        .filter('deleted_at', 'is', null)
-        .order('date', ascending: false)
-        .order('created_at', ascending: false);
+    // ignore: avoid_print
+    print('=== TRANSACTIONS FETCH ===');
+    // ignore: avoid_print
+    print('Table: transactions, user_id (UUID): $userId');
 
-    return (response as List)
-        .whereType<Map<String, dynamic>>()
-        .toList(growable: false);
+    try {
+      final response = await _client
+          .from('transactions')
+          .select()
+          .eq('user_id', userId)
+          .filter('deleted_at', 'is', null)
+          .order('date', ascending: false)
+          .order('created_at', ascending: false);
+
+      // ignore: avoid_print
+      print('Fetch success: ${(response as List).length} transactions');
+
+      return response
+          .whereType<Map<String, dynamic>>()
+          .toList(growable: false);
+    } catch (e, stackTrace) {
+      // ignore: avoid_print
+      print('=== TRANSACTIONS FETCH ERROR ===');
+      // ignore: avoid_print
+      print('Error: $e');
+      // ignore: avoid_print
+      print('StackTrace: $stackTrace');
+      rethrow;
+    }
   }
 
   /// Typed fetch for the transactions list.
@@ -138,35 +183,58 @@ class TransactionsRepository {
     DateTime startDate,
     DateTime endDate,
   ) async {
-    final userId = _supabaseService.currentUserId;
+    final userId = _client.auth.currentUser!.id;
 
-    final response = await _client
-        .from('transactions')
-        .select()
-        .eq('user_id', userId)
-        .filter('deleted_at', 'is', null)
-        .gte('date', startDate.toIso8601String())
-        .lte('date', endDate.toIso8601String())
-        // For charts it is easier to work in ascending order
-        .order('date', ascending: true)
-        .order('created_at', ascending: true);
+    // ignore: avoid_print
+    print('=== TRANSACTIONS DATE RANGE FETCH ===');
+    // ignore: avoid_print
+    print('Table: transactions, user_id (UUID): $userId');
+    // ignore: avoid_print
+    print('Date range: $startDate to $endDate');
 
-    return (response as List)
-        .whereType<Map<String, dynamic>>()
-        .map(TransactionRecord.fromMap)
-        .toList(growable: false);
+    try {
+      final response = await _client
+          .from('transactions')
+          .select()
+          .eq('user_id', userId)
+          .filter('deleted_at', 'is', null)
+          .gte('date', startDate.toIso8601String())
+          .lte('date', endDate.toIso8601String())
+          // For charts it is easier to work in ascending order
+          .order('date', ascending: true)
+          .order('created_at', ascending: true);
+
+      // ignore: avoid_print
+      print('Date range fetch success: ${(response as List).length} transactions');
+
+      return response
+          .whereType<Map<String, dynamic>>()
+          .map(TransactionRecord.fromMap)
+          .toList(growable: false);
+    } catch (e, stackTrace) {
+      // ignore: avoid_print
+      print('=== TRANSACTIONS DATE RANGE FETCH ERROR ===');
+      // ignore: avoid_print
+      print('Error: $e');
+      // ignore: avoid_print
+      print('StackTrace: $stackTrace');
+      rethrow;
+    }
   }
 
   /// Restore a soft-deleted transaction.
   Future<void> restoreTransaction({
     required String transactionId,
   }) async {
-    final userId = _supabaseService.currentUserId;
+    final userId = _client.auth.currentUser!.id;
 
     await _client
         .from('transactions')
         .update({'deleted_at': null})
         .eq('id', transactionId)
         .eq('user_id', userId);
+
+    // Notify listeners that transactions have changed
+    TransactionsChangeNotifier.instance.markChanged();
   }
 }

@@ -6,7 +6,7 @@ import '../../../theme/app_colors.dart';
 
 /// Upcoming Bills Placeholder - Setup-required block for recurring expenses.
 /// Displays a calm, neutral message prompting user to set up recurring expenses.
-/// CTA is visual only - no navigation wired yet.
+/// CTA navigates to Recurring Expenses screen.
 class UpcomingBillsPlaceholder extends StatelessWidget {
   const UpcomingBillsPlaceholder({super.key});
 
@@ -56,34 +56,39 @@ class UpcomingBillsPlaceholder extends StatelessWidget {
             ),
           ),
           SizedBox(height: 2.h),
-          // Visual-only CTA button (no navigation wired)
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.2.h),
-            decoration: BoxDecoration(
-              color: AppColors.primaryTint,
-              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.2),
-                width: 1,
+          // CTA button - navigates to Recurring Expenses screen
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/recurring-expenses');
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.2.h),
+              decoration: BoxDecoration(
+                color: AppColors.primaryTint,
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                  width: 1,
+                ),
               ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.add_rounded,
-                  size: 18,
-                  color: AppColors.primary,
-                ),
-                SizedBox(width: 1.5.w),
-                Text(
-                  'Set up recurring expenses',
-                  style: theme.textTheme.labelLarge?.copyWith(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.add_rounded,
+                    size: 18,
                     color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
                   ),
-                ),
-              ],
+                  SizedBox(width: 1.5.w),
+                  Text(
+                    'Set up recurring expenses',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
-import '../../../core/app_export.dart';
+import '../../../theme/app_colors.dart';
 
-/// Empty state widget for when no transactions are found
+/// Empty state widget for when no transactions exist (not an error).
 class EmptyStateWidget extends StatelessWidget {
   final VoidCallback onAddTransaction;
 
@@ -23,42 +23,37 @@ class EmptyStateWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CustomImageWidget(
-              imageUrl:
-                  'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400&h=400&fit=crop',
-              width: 50.w,
-              height: 50.w,
-              fit: BoxFit.contain,
-              semanticLabel:
-                  'Empty wallet illustration with coins and bills floating around a minimalist wallet icon',
+            Icon(
+              Icons.receipt_long_outlined,
+              size: 64,
+              color: colorScheme.onSurfaceVariant,
             ),
             SizedBox(height: 3.h),
             Text(
-              'No Transactions Yet',
+              'No transactions yet',
               style: theme.textTheme.headlineSmall?.copyWith(
                 color: colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 1.h),
             Text(
-              'Start tracking your finances by adding your first transaction',
+              'Add your first transaction to see your cash balance and analytics',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.6),
+                color: colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 4.h),
             ElevatedButton.icon(
               onPressed: onAddTransaction,
-              icon: CustomIconWidget(
-                iconName: 'add',
-                size: 24,
-                color: Colors.white,
-              ),
-              label: const Text('Add Your First Transaction'),
+              icon: const Icon(Icons.add, size: 20, color: Colors.white),
+              label: const Text('Add transaction'),
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 1.5.h),
               ),
             ),
           ],
