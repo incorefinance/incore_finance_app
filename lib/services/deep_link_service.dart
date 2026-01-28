@@ -10,8 +10,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// See EMAIL_VERIFICATION.md for configuration instructions.
 const String kDeepLinkScheme = 'incore-dev';
 
+/// Actions emitted by DeepLinkService when specific link types are handled.
+enum DeepLinkAction {
+  /// A password recovery link was processed; navigate to reset password screen.
+  recovery,
+
+  /// A general auth update occurred (sign up confirmation, etc.).
+  authUpdate,
+}
+
 /// Service for handling deep links, particularly Supabase auth callback links.
-/// Listens for incoming links and processes auth tokens from verification emails.
+/// Listens for incoming links and processes auth tokens from verification emails
+/// and password recovery links.
 class DeepLinkService {
   static DeepLinkService? _instance;
   static DeepLinkService get instance => _instance ??= DeepLinkService._();
@@ -26,9 +36,17 @@ class DeepLinkService {
   final StreamController<void> _authUpdateController =
       StreamController<void>.broadcast();
 
+  /// Stream controller for specific deep link actions (recovery, etc.).
+  final StreamController<DeepLinkAction> _actionController =
+      StreamController<DeepLinkAction>.broadcast();
+
   /// Stream that emits when a deep link has been processed and auth state
   /// may have changed. UI components can listen to this to refresh.
   Stream<void> get onAuthUpdate => _authUpdateController.stream;
+
+  /// Stream that emits specific actions when certain link types are handled.
+  /// Subscribe to this in main.dart to navigate on recovery links.
+  Stream<DeepLinkAction> get onAction => _actionController.stream;
 
   /// Initializes the deep link service. Call this once during app startup.
   /// Handles both cold start (app opened via link) and warm start (app already
@@ -57,91 +75,63 @@ class DeepLinkService {
   void dispose() {
     _linkSubscription?.cancel();
     _authUpdateController.close();
+    _actionController.close();
   }
 
-  /// Processes an incoming deep link URI.
-  /// Extracts auth tokens from Supabase style URLs and sets the session.
+  /// Processes an incoming deep link URI and lets Supabase parse it.
+  /// This supports both implicit flow fragments and PKCE code flows.
   Future<void> _handleDeepLink(Uri uri) async {
     debugPrint('DeepLinkService: Received deep link: $uri');
 
-    // Supabase auth links come in formats like:
-    // - incore://auth-callback#access_token=...&refresh_token=...&type=signup
-    // - incore://auth-callback?code=...
-    // - https://yourapp.com/auth-callback#access_token=...
-    //
-    // The fragment (#...) contains the tokens for implicit flow.
-    // Query parameters (?...) may contain a code for PKCE flow.
+    final hasFragmentTokens = uri.fragment.isNotEmpty;
+    final hasPkceCode = uri.queryParameters['code'] != null;
+
+    if (!hasFragmentTokens && !hasPkceCode) {
+      debugPrint('DeepLinkService: No auth tokens found in link');
+      return;
+    }
 
     try {
-      // Check for fragment-based tokens (implicit flow)
-      if (uri.fragment.isNotEmpty) {
-        await _handleFragmentTokens(uri);
+      final supabase = Supabase.instance.client;
+
+      // Let Supabase handle both:
+      // - fragment tokens: #access_token=...&refresh_token=...
+      // - PKCE codes: ?code=...
+      // This avoids manual token parsing and stays compatible with auth updates.
+      await supabase.auth.getSessionFromUrl(uri);
+
+      if (_isRecoveryLink(uri)) {
+        debugPrint('DeepLinkService: Emitting recovery action');
+        _actionController.add(DeepLinkAction.recovery);
         return;
       }
 
-      // Check for code-based auth (PKCE flow)
-      final code = uri.queryParameters['code'];
-      if (code != null) {
-        await _handleCodeExchange(uri);
-        return;
-      }
-
-      debugPrint('DeepLinkService: No auth tokens found in link');
+      _authUpdateController.add(null);
+      _actionController.add(DeepLinkAction.authUpdate);
     } catch (e, stackTrace) {
       debugPrint('DeepLinkService: Error processing deep link: $e');
       debugPrint('DeepLinkService: StackTrace: $stackTrace');
     }
   }
 
-  /// Handles fragment-based tokens from implicit auth flow.
-  /// Parses the fragment to extract access_token and refresh_token.
-  Future<void> _handleFragmentTokens(Uri uri) async {
-    final fragment = uri.fragment;
-    final params = Uri.splitQueryString(fragment);
+  bool _isRecoveryLink(Uri uri) {
+    // Query parameter type=recovery
+    final queryType = uri.queryParameters['type'];
+    if (queryType == 'recovery') return true;
 
-    final accessToken = params['access_token'];
-    final refreshToken = params['refresh_token'];
-
-    if (accessToken == null) {
-      debugPrint('DeepLinkService: No access_token in fragment');
-      return;
-    }
-
-    debugPrint('DeepLinkService: Processing auth tokens from fragment');
-
-    final supabase = Supabase.instance.client;
-
-    // Set the session using the tokens from the URL
-    await supabase.auth.setSession(accessToken);
-
-    // If we have a refresh token, the session is fully established
-    // The setSession call above should handle this, but we can also
-    // try to recover the session to ensure it is fresh.
-    if (refreshToken != null) {
+    // Fragment parameter type=recovery
+    if (uri.fragment.isNotEmpty) {
       try {
-        await supabase.auth.refreshSession();
-      } catch (e) {
-        // Session refresh failed, but we may still have a valid session
-        debugPrint('DeepLinkService: Session refresh after token set failed: $e');
+        final fragParams = Uri.splitQueryString(uri.fragment);
+        final fragType = fragParams['type'];
+        if (fragType == 'recovery') return true;
+      } catch (_) {
+        // Ignore fragment parsing issues
       }
     }
 
-    // Notify listeners that auth state may have changed
-    _authUpdateController.add(null);
-  }
-
-  /// Handles PKCE flow code exchange.
-  /// Exchanges the authorization code for a session.
-  Future<void> _handleCodeExchange(Uri uri) async {
-    debugPrint('DeepLinkService: Processing PKCE code exchange');
-
-    final supabase = Supabase.instance.client;
-
-    // Exchange the code for a session
-    // The Supabase client handles this via the URI
-    await supabase.auth.getSessionFromUrl(uri);
-
-    // Notify listeners that auth state may have changed
-    _authUpdateController.add(null);
+    // Fallback: some flows may not include explicit type. This is a pragmatic
+    // MVP safeguard to ensure recovery links still trigger the reset screen.
+    return uri.toString().contains('recovery');
   }
 }

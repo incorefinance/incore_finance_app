@@ -9,6 +9,8 @@ import '../presentation/onboarding/onboarding_flow.dart';
 import '../presentation/startup/startup_screen.dart';
 import '../presentation/auth/auth_screen.dart';
 import '../presentation/auth/email_verification_screen.dart';
+import '../presentation/auth/forgot_password_screen.dart';
+import '../presentation/auth/reset_password_screen.dart';
 
 class AppRoutes {
   static const String initial = '/';
@@ -21,6 +23,8 @@ class AppRoutes {
   static const String onboarding = '/onboarding';
   static const String auth = '/auth';
   static const String emailVerification = '/email-verification';
+  static const String forgotPassword = '/forgot-password';
+  static const String resetPassword = '/reset-password';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -34,6 +38,8 @@ class AppRoutes {
       onboarding: (context) => const OnboardingFlow(),
       auth: (context) => const AuthScreen(),
       emailVerification: (context) => const EmailVerificationScreen(),
+      forgotPassword: (context) => const ForgotPasswordScreen(),
+      resetPassword: (context) => const ResetPasswordScreen(),
     };
   }
 }

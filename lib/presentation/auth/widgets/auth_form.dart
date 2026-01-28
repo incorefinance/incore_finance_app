@@ -216,7 +216,18 @@ class _AuthFormState extends State<AuthForm> {
             // Password strength indicator (only in sign up mode)
             if (_isSignUpMode && _passwordController.text.isNotEmpty)
               PasswordStrengthIndicator(password: _passwordController.text, email: _emailController.text.trim()),
-            const SizedBox(height: 24),
+            // Forgot password link (only in sign in mode)
+            if (!_isSignUpMode)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _isLoading
+                      ? null
+                      : () => Navigator.of(context).pushNamed(AppRoutes.forgotPassword),
+                  child: const Text('Forgot password?'),
+                ),
+              ),
+            const SizedBox(height: 16),
             // Message text (non-error, e.g., email confirmation)
             if (_messageText != null)
               Container(
