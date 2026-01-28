@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
@@ -9,6 +11,9 @@ import '../core/navigation/route_observer.dart';
 import '../widgets/custom_error_widget.dart';
 import 'package:incore_finance/services/supabase_service.dart';
 import 'package:incore_finance/services/deep_link_service.dart';
+
+/// Global navigator key for app-level navigation from services.
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -68,6 +73,29 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Locale _locale = const Locale('en');
+  StreamSubscription<DeepLinkAction>? _deepLinkSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenToDeepLinkActions();
+  }
+
+  @override
+  void dispose() {
+    _deepLinkSubscription?.cancel();
+    super.dispose();
+  }
+
+  /// Subscribes to deep link actions for recovery flow navigation.
+  void _listenToDeepLinkActions() {
+    _deepLinkSubscription = DeepLinkService.instance.onAction.listen((action) {
+      if (action == DeepLinkAction.recovery) {
+        // Navigate to reset password screen when recovery link is processed
+        navigatorKey.currentState?.pushNamed(AppRoutes.resetPassword);
+      }
+    });
+  }
 
   void setLocale(Locale locale) {
     setState(() {
@@ -80,6 +108,7 @@ class _MyAppState extends State<MyApp> {
     return Sizer(
       builder: (context, orientation, screenType) {
         return MaterialApp(
+          navigatorKey: navigatorKey,
           title: 'incore_finance',
           locale: _locale,
           localizationsDelegates: const [
