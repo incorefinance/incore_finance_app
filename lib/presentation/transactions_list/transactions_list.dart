@@ -5,14 +5,19 @@ import 'package:intl/intl.dart';
 import 'package:incore_finance/core/logging/app_logger.dart';
 import 'package:incore_finance/core/navigation/route_observer.dart';
 import 'package:incore_finance/core/state/transactions_change_notifier.dart';
+import 'package:incore_finance/core/errors/app_error.dart';
+import 'package:incore_finance/core/errors/app_error_classifier.dart';
 import 'package:incore_finance/models/payment_method.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
+import 'package:incore_finance/services/auth_guard.dart';
 import 'package:incore_finance/presentation/add_transaction/add_transaction.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../core/app_export.dart';
 import '../../widgets/custom_bottom_bar.dart';
+import '../../widgets/app_error_widget.dart';
 import '../../theme/app_colors.dart';
 import './widgets/empty_state_widget.dart';
 import './widgets/filter_bottom_sheet.dart';
@@ -84,7 +89,7 @@ class _TransactionsListState extends State<TransactionsList> with RouteAware {
 
   bool _isLoading = true;
   List<TransactionRecord> _allTransactions = [];
-  String? _errorMessage;
+  AppError? _loadError;
   final Map<String, _PendingDelete> _pendingDeletesById = {};
   bool _isRouteObserverSubscribed = false;
 
@@ -162,7 +167,7 @@ class _TransactionsListState extends State<TransactionsList> with RouteAware {
   Future<void> _loadTransactions() async {
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
+      _loadError = null;
     });
 
     try {
@@ -177,21 +182,31 @@ class _TransactionsListState extends State<TransactionsList> with RouteAware {
       AppLogger.e('Error loading transactions', error: e, stackTrace: st);
       if (!mounted) return;
 
+      final appError = AppErrorClassifier.classify(e, stackTrace: st);
+
+      // Route to auth error screen for auth failures
+      if (appError.category == AppErrorCategory.auth) {
+        AuthGuard.routeToErrorIfInvalid(context, reason: appError.debugReason);
+        return;
+      }
+
+      final l10n = AppLocalizations.of(context)!;
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Failed to load transactions';
+        _loadError = appError;
       });
 
+      // Keep snackbar for quick feedback
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Failed to load transactions. Please try again.',
+            l10n.failedToLoadTransactions,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           action: SnackBarAction(
-            label: 'Retry',
+            label: l10n.retry,
             textColor: Colors.white,
             onPressed: _loadTransactions,
           ),
@@ -307,6 +322,7 @@ void _onTransactionsChanged() {
   }
 
   Widget _buildNoResultsState(ThemeData theme, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context)!;
     final hasNonQueryFilters =
         _filters.categoryId != null || _filters.dateRange != null || _filters.paymentMethod != null;
 
@@ -325,13 +341,13 @@ void _onTransactionsChanged() {
             ),
             SizedBox(height: 1.2.h),
             Text(
-              'No results found',
+              l10n.noResultsFound,
               textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 0.6.h),
             Text(
-              'Try adjusting your search or filters.',
+              l10n.tryAdjustingFilters,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
@@ -346,14 +362,14 @@ void _onTransactionsChanged() {
                 if (hasNonQueryFilters)
                   TextButton(
                     onPressed: _clearOnlyFilters,
-                    child: const Text('Clear filters'),
+                    child: Text(l10n.clearFilters),
                   ),
                 if (hasSearch)
                   TextButton(
                     onPressed: () {
                       _searchController.clear(); // listener will update _filters.query
                     },
-                    child: const Text('Clear search'),
+                    child: Text(l10n.clearSearch),
                   ),
               ],
             ),
@@ -369,6 +385,7 @@ void _onTransactionsChanged() {
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final pendingForMonth = _pendingDeletesById.values
         .where((p) => p.monthKey == monthKey)
@@ -389,8 +406,8 @@ void _onTransactionsChanged() {
             Padding(
               padding: EdgeInsets.symmetric(vertical: 0.5.h),
               child: _DeletedInlineRow(
-                message: 'Transaction deleted',
-                actionLabel: 'Undo',
+                message: l10n.transactionDeleted,
+                actionLabel: l10n.undo,
                 onAction: () => _undoDeleteTransaction(pending.transaction.id),
                 accentColor: colorScheme.primary,
               ),
@@ -448,8 +465,8 @@ void _onTransactionsChanged() {
           Padding(
             padding: EdgeInsets.symmetric(vertical: 0.5.h),
             child: _DeletedInlineRow(
-              message: 'Transaction deleted',
-              actionLabel: 'Undo',
+              message: l10n.transactionDeleted,
+              actionLabel: l10n.undo,
               onAction: () => _undoDeleteTransaction(pending.transaction.id),
               accentColor: colorScheme.primary,
             ),
@@ -595,25 +612,24 @@ void _onTransactionsChanged() {
   }
 
   Future<void> _confirmAndDeleteTransaction(TransactionRecord transaction) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete transaction?'),
-          content: const Text(
-            'This transaction will be removed from your list. You can undo this action.',
-          ),
+          title: Text(l10n.deleteTransaction),
+          content: Text(l10n.deleteTransactionConfirm),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: TextButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.error,
               ),
-              child: const Text('Delete'),
+              child: Text(l10n.delete),
             ),
           ],
         );
@@ -671,6 +687,7 @@ void _onTransactionsChanged() {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final transactionsByMonth = _transactionsByMonth;
 
     final hasActiveFilters = _filters.hasActiveFilters;
@@ -691,7 +708,7 @@ void _onTransactionsChanged() {
                 controller: _searchController,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search),
-                  hintText: 'Search by description or client',
+                  hintText: l10n.searchByDescriptionOrClient,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide(color: colorScheme.outlineVariant),
@@ -743,7 +760,7 @@ void _onTransactionsChanged() {
                                     const Icon(Icons.filter_alt, size: 18),
                                     SizedBox(width: 1.w),
                                     Text(
-                                      hasActiveFilters ? 'Filters applied' : 'Filters',
+                                      hasActiveFilters ? l10n.filtersApplied : l10n.filterByType,
                                       style: theme.textTheme.bodyMedium?.copyWith(
                                         color: hasActiveFilters
                                             ? colorScheme.primary
@@ -764,12 +781,12 @@ void _onTransactionsChanged() {
                                 ),
                                 padding: const EdgeInsets.symmetric(horizontal: 4),
                                 constraints: const BoxConstraints(),
-                                tooltip: 'Clear filters',
+                                tooltip: l10n.clearFilters,
                               ),
                           ],
                         ),
                       ),
-                    ), 
+                    ),
                   ],
                 ),
               ),
@@ -782,18 +799,16 @@ void _onTransactionsChanged() {
                 onRefresh: _loadTransactions,
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : _errorMessage != null
-                        ? Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: AppTheme.screenHorizontalPadding,
-                              ),
-                              child: Text(
-                                _errorMessage!,
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium
-                                    ?.copyWith(color: colorScheme.error),
-                              ),
+                    : _loadError != null
+                        ? Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppTheme.screenHorizontalPadding,
+                              vertical: 4.h,
+                            ),
+                            child: AppErrorWidget(
+                              error: _loadError!,
+                              displayMode: AppErrorDisplayMode.inline,
+                              onRetry: _loadTransactions,
                             ),
                           )
                         : transactionsByMonth.isEmpty

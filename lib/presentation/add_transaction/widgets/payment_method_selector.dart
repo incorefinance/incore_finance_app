@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
 import 'package:incore_finance/models/payment_method.dart';
 import '../../../theme/app_colors.dart';
+import '../../../utils/payment_localizer.dart';
 
 /// Widget for selecting payment method
 class PaymentMethodSelector extends StatelessWidget {
@@ -39,6 +41,7 @@ class PaymentMethodSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final paymentMethods = PaymentMethod.values;
 
@@ -46,7 +49,7 @@ class PaymentMethodSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Payment Method',
+          l10n.paymentMethod,
           style: theme.textTheme.labelMedium?.copyWith(
             color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
@@ -61,7 +64,7 @@ class PaymentMethodSelector extends StatelessWidget {
             itemBuilder: (context, index) {
               final method = paymentMethods[index];
               final dbValue = method.dbValue;
-              final label = method.label;
+              final label = getLocalizedPaymentLabel(context, method);
 
               final isSelected = selectedMethod == dbValue;
 

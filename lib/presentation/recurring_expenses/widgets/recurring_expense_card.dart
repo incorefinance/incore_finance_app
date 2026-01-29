@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
 import '../../../models/recurring_expense.dart';
@@ -31,6 +32,7 @@ class RecurringExpenseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final formatted = IncoreNumberFormatter.formatMoney(
       expense.amount,
@@ -87,7 +89,7 @@ class RecurringExpenseCard extends StatelessWidget {
                         ),
                         SizedBox(height: 0.3.h),
                         Text(
-                          'Due on day ${expense.dueDay}',
+                          l10n.dueOnDayOfMonth(expense.dueDay),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500,
@@ -118,7 +120,7 @@ class RecurringExpenseCard extends StatelessWidget {
                         // Edit button
                         _ActionButton(
                           icon: Icons.edit_outlined,
-                          label: 'Edit',
+                          label: l10n.edit,
                           onPressed: onEdit,
                           color: AppColors.primary,
                         ),
@@ -127,7 +129,7 @@ class RecurringExpenseCard extends StatelessWidget {
                           icon: expense.isActive
                               ? Icons.pause_circle_outline
                               : Icons.play_circle_outline,
-                          label: expense.isActive ? 'Deactivate' : 'Reactivate',
+                          label: expense.isActive ? l10n.deactivate : l10n.reactivate,
                           onPressed: onToggleActive,
                           color: AppColors.warning,
                         ),
@@ -137,7 +139,7 @@ class RecurringExpenseCard extends StatelessWidget {
                   // Delete button (secondary)
                   _ActionButton(
                     icon: Icons.delete_outline,
-                    label: 'Delete',
+                    label: l10n.delete,
                     onPressed: onDelete,
                     color: AppColors.error,
                   ),
@@ -157,7 +159,7 @@ class RecurringExpenseCard extends StatelessWidget {
                           BorderRadius.circular(AppTheme.radiusSmall),
                     ),
                     child: Text(
-                      'Inactive',
+                      l10n.inactive,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w500,

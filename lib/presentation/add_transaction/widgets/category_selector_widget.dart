@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
 import '../../../models/transaction_category.dart';
 import '../../../theme/app_colors.dart';
+import '../../../utils/category_localizer.dart';
 
 /// Widget for selecting transaction category
 class CategorySelectorWidget extends StatelessWidget {
@@ -22,6 +24,7 @@ class CategorySelectorWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     // ✅ single source of truth
     final categories = TransactionCategory.values
@@ -32,7 +35,7 @@ class CategorySelectorWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Category',
+          l10n.category,
           style: theme.textTheme.labelMedium?.copyWith(
             color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
@@ -75,7 +78,7 @@ class CategorySelectorWidget extends StatelessWidget {
                     ),
                     SizedBox(width: 2.w),
                     Text(
-                      cat.label, // ✅ enum label
+                      getLocalizedCategoryLabel(context, cat), // ✅ localized label
                       style: theme.textTheme.labelLarge?.copyWith(
                         color: isSelected
                             ? AppColors.primary

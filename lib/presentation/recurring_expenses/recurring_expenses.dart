@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
+import '../../core/errors/app_error.dart';
+import '../../core/errors/app_error_classifier.dart';
+import '../../core/logging/app_logger.dart';
 import '../../models/recurring_expense.dart';
+import '../../services/auth_guard.dart';
 import '../../services/recurring_expenses_repository.dart';
 import '../../services/user_settings_service.dart';
 import '../../theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/snackbar_helper.dart';
+import '../../widgets/app_error_widget.dart';
 import './widgets/add_edit_recurring_expense_dialog.dart';
 import './widgets/recurring_expense_card.dart';
 
@@ -26,6 +32,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
 
   List<RecurringExpense> _expenses = [];
   bool _isLoading = true;
+  AppError? _loadError;
 
   UserCurrencySettings _currencySettings = const UserCurrencySettings(
     currencyCode: 'EUR',
@@ -55,6 +62,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
   Future<void> _loadRecurringExpenses() async {
     setState(() {
       _isLoading = true;
+      _loadError = null;
     });
 
     try {
@@ -64,9 +72,21 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
         _expenses = expenses;
         _isLoading = false;
       });
-    } catch (_) {
+    } catch (e, st) {
+      AppLogger.e('Recurring expenses load error', error: e, stackTrace: st);
+      final appError = AppErrorClassifier.classify(e, stackTrace: st);
+
+      if (!mounted) return;
+
+      // Route to auth error screen for auth failures
+      if (appError.category == AppErrorCategory.auth) {
+        AuthGuard.routeToErrorIfInvalid(context, reason: appError.debugReason);
+        return;
+      }
+
       setState(() {
         _isLoading = false;
+        _loadError = appError;
       });
     }
   }
@@ -103,8 +123,19 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
         await _repository.reactivateRecurringExpense(id: expense.id);
       }
       _loadRecurringExpenses();
-    } catch (_) {
-      // Handle error silently or show snackbar
+    } catch (e, st) {
+      AppLogger.e('Toggle recurring expense error', error: e, stackTrace: st);
+      final appError = AppErrorClassifier.classify(e, stackTrace: st);
+
+      if (!mounted) return;
+
+      if (appError.category == AppErrorCategory.auth) {
+        AuthGuard.routeToErrorIfInvalid(context, reason: appError.debugReason);
+        return;
+      }
+
+      final l10n = AppLocalizations.of(context)!;
+      SnackbarHelper.showError(context, l10n.somethingWentWrong);
     }
   }
 
@@ -115,9 +146,9 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
         final l10n = AppLocalizations.of(context)!;
 
         return AlertDialog(
-          title: const Text('Delete'),
+          title: Text(l10n.deleteConfirmTitle),
           content: Text(
-            'Are you sure you want to permanently delete "${expense.name}"?',
+            l10n.deleteConfirmMessage(expense.name),
           ),
           actions: [
             TextButton(
@@ -129,7 +160,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.error,
               ),
-              child: const Text('Delete'),
+              child: Text(l10n.delete),
             ),
           ],
         );
@@ -140,8 +171,19 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
       try {
         await _repository.deleteRecurringExpense(id: expense.id);
         _loadRecurringExpenses();
-      } catch (_) {
-        // Handle error silently
+      } catch (e, st) {
+        AppLogger.e('Delete recurring expense error', error: e, stackTrace: st);
+        final appError = AppErrorClassifier.classify(e, stackTrace: st);
+
+        if (!mounted) return;
+
+        if (appError.category == AppErrorCategory.auth) {
+          AuthGuard.routeToErrorIfInvalid(context, reason: appError.debugReason);
+          return;
+        }
+
+        final l10n = AppLocalizations.of(context)!;
+        SnackbarHelper.showError(context, l10n.somethingWentWrong);
       }
     }
   }
@@ -155,7 +197,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: Text('Recurring Expenses'),
+        title: Text(l10n.recurringExpenses),
         centerTitle: true,
         elevation: 0,
         backgroundColor: colorScheme.surface,
@@ -171,9 +213,15 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
                 color: AppColors.primary,
               ),
             )
-          : _expenses.isEmpty
-              ? _buildEmptyState(context, l10n)
-              : _buildExpensesList(context),
+          : _loadError != null
+              ? AppErrorWidget(
+                  error: _loadError!,
+                  displayMode: AppErrorDisplayMode.fullScreen,
+                  onRetry: _loadRecurringExpenses,
+                )
+              : _expenses.isEmpty
+                  ? _buildEmptyState(context, l10n)
+                  : _buildExpensesList(context),
       floatingActionButton: FloatingActionButton(
         onPressed: _handleAddExpense,
         backgroundColor: AppColors.primary,
@@ -199,7 +247,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
             ),
             SizedBox(height: 2.h),
             Text(
-              'No recurring expenses',
+              l10n.noRecurringExpenses,
               style: theme.textTheme.titleLarge?.copyWith(
                 color: colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
@@ -207,7 +255,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
             ),
             SizedBox(height: 1.h),
             Text(
-              'Add recurring expenses to keep track of upcoming bills.',
+              l10n.addRecurringExpensesHint,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
@@ -221,7 +269,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
                 padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.2.h),
               ),
               child: Text(
-                'Add recurring expense',
+                l10n.addRecurringExpense,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,

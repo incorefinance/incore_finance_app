@@ -94,6 +94,7 @@ class _AddEditRecurringExpenseDialogState
   }
 
   Future<void> _handleSave() async {
+    final l10n = AppLocalizations.of(context)!;
     final name = _nameController.text.trim();
     final amountText = _amountController.text;
     final dueDayText = _dueDayController.text.trim();
@@ -106,7 +107,7 @@ class _AddEditRecurringExpenseDialogState
     if (amount == null || amount <= 0) {
       SnackbarHelper.showError(
         context,
-        'Please enter a valid amount greater than zero',
+        l10n.validAmountError,
       );
       return;
     }
@@ -116,7 +117,7 @@ class _AddEditRecurringExpenseDialogState
     if (dueDay == null || dueDay < 1 || dueDay > 31) {
       SnackbarHelper.showError(
         context,
-        'Due day must be between 1 and 31',
+        l10n.dueDayRangeError,
       );
       return;
     }
@@ -145,8 +146,8 @@ class _AddEditRecurringExpenseDialogState
         SnackbarHelper.showSuccess(
           context,
           _isEditing
-              ? 'Recurring expense updated successfully!'
-              : 'Recurring expense added successfully!',
+              ? l10n.recurringExpenseUpdated
+              : l10n.recurringExpenseAdded,
         );
         Navigator.pop(context, true);
       }
@@ -155,7 +156,7 @@ class _AddEditRecurringExpenseDialogState
         setState(() => _isSaving = false);
         final errorMessage = e is StateError
             ? e.message
-            : 'Failed to save recurring expense. Please try again.';
+            : l10n.failedToSaveRecurringExpense;
         SnackbarHelper.showError(context, errorMessage);
       }
     }
@@ -168,7 +169,7 @@ class _AddEditRecurringExpenseDialogState
     final l10n = AppLocalizations.of(context)!;
 
     return AlertDialog(
-      title: Text(_isEditing ? 'Edit recurring expense' : 'Add recurring expense'),
+      title: Text(_isEditing ? l10n.editRecurringExpense : l10n.addRecurringExpense),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -178,8 +179,8 @@ class _AddEditRecurringExpenseDialogState
             // Name field
             _buildTextField(
               controller: _nameController,
-              label: 'Name',
-              hint: 'e.g., Internet bill',
+              label: l10n.name,
+              hint: l10n.namePlaceholder,
               keyboardType: TextInputType.text,
               theme: theme,
             ),
@@ -187,8 +188,8 @@ class _AddEditRecurringExpenseDialogState
             // Amount field
             _buildTextField(
               controller: _amountController,
-              label: 'Amount',
-              hint: 'e.g., 50.00',
+              label: l10n.amount,
+              hint: l10n.amountPlaceholder,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
               theme: theme,
             ),
@@ -196,14 +197,14 @@ class _AddEditRecurringExpenseDialogState
             // Due day field
             _buildTextField(
               controller: _dueDayController,
-              label: 'Due day',
-              hint: '1-31',
+              label: l10n.dueDay,
+              hint: l10n.dueDayHint,
               keyboardType: TextInputType.number,
               theme: theme,
             ),
             SizedBox(height: 0.5.h),
             Text(
-              'Day of the month when bill is due (1-31)',
+              l10n.dueDayHelp,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
@@ -233,7 +234,7 @@ class _AddEditRecurringExpenseDialogState
                   ),
                 )
               : Text(
-                  _isEditing ? 'Update' : 'Add',
+                  _isEditing ? l10n.update : l10n.add,
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: Colors.white,
                   ),

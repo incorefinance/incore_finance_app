@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
 import '../../../theme/app_colors.dart';
@@ -14,6 +15,7 @@ class UpcomingBillsPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: double.infinity,
@@ -40,7 +42,7 @@ class UpcomingBillsPlaceholder extends StatelessWidget {
               ),
               SizedBox(width: 2.w),
               Text(
-                'Upcoming Bills',
+                l10n.upcomingBills,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
@@ -50,7 +52,7 @@ class UpcomingBillsPlaceholder extends StatelessWidget {
           ),
           SizedBox(height: 1.5.h),
           Text(
-            'Add recurring expenses to see upcoming bills and short-term pressure.',
+            l10n.addRecurringExpensesHint,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -81,7 +83,7 @@ class UpcomingBillsPlaceholder extends StatelessWidget {
                   ),
                   SizedBox(width: 1.5.w),
                   Text(
-                    'Set up recurring expenses',
+                    l10n.setUpRecurringExpenses,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,

@@ -11,6 +11,7 @@ import '../presentation/auth/auth_screen.dart';
 import '../presentation/auth/email_verification_screen.dart';
 import '../presentation/auth/forgot_password_screen.dart';
 import '../presentation/auth/reset_password_screen.dart';
+import '../presentation/auth/auth_guard_error_screen.dart';
 
 class AppRoutes {
   static const String initial = '/';
@@ -25,6 +26,7 @@ class AppRoutes {
   static const String emailVerification = '/email-verification';
   static const String forgotPassword = '/forgot-password';
   static const String resetPassword = '/reset-password';
+  static const String authGuardError = '/auth-guard-error';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -40,6 +42,7 @@ class AppRoutes {
       emailVerification: (context) => const EmailVerificationScreen(),
       forgotPassword: (context) => const ForgotPasswordScreen(),
       resetPassword: (context) => const ResetPasswordScreen(),
+      authGuardError: (context) => const AuthGuardErrorScreen(),
     };
   }
 }

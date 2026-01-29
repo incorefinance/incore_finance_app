@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/onboarding_service.dart';
+import '../../services/auth_guard.dart';
 import '../../routes/app_routes.dart';
 import '../auth/widgets/auth_form.dart';
 
@@ -48,8 +49,25 @@ class _StartupScreenState extends State<StartupScreen> {
       _authSubscription = supabase.auth.onAuthStateChange.listen((data) {
         final event = data.event;
         if (event == AuthChangeEvent.signedIn ||
-            event == AuthChangeEvent.tokenRefreshed ||
-            event == AuthChangeEvent.initialSession) {
+            event == AuthChangeEvent.tokenRefreshed) {
+          // These events should always have a valid session
+          if (data.session?.user != null) {
+            if (mounted) {
+              setState(() {
+                _showAuthForm = false;
+              });
+            }
+            _authSubscription?.cancel();
+            _handleAuthenticatedUser();
+          } else {
+            // signedIn or tokenRefreshed without user is an error
+            debugPrint('StartupScreen: Auth event without valid user: $event');
+            if (mounted && !_hasRouted) {
+              _routeToAuthError('Invalid session state');
+            }
+          }
+        } else if (event == AuthChangeEvent.initialSession) {
+          // initialSession fires on app start - null session is normal (not logged in)
           if (data.session?.user != null) {
             if (mounted) {
               setState(() {
@@ -59,6 +77,7 @@ class _StartupScreenState extends State<StartupScreen> {
             _authSubscription?.cancel();
             _handleAuthenticatedUser();
           }
+          // If no session, just let _checkAuthAfterDelay show the auth form
         } else if (event == AuthChangeEvent.signedOut) {
           if (mounted) {
             setState(() {
@@ -66,6 +85,12 @@ class _StartupScreenState extends State<StartupScreen> {
               _hasRouted = false;
             });
           }
+        }
+      }, onError: (error) {
+        // Handle stream errors (e.g., token refresh failure)
+        debugPrint('StartupScreen: Auth stream error: $error');
+        if (mounted && !_hasRouted) {
+          _routeToAuthError('Session refresh failed');
         }
       });
 
@@ -105,9 +130,16 @@ class _StartupScreenState extends State<StartupScreen> {
     final supabase = Supabase.instance.client;
     final user = supabase.auth.currentUser;
 
+    // Guard: Ensure user is still valid
+    if (user == null) {
+      debugPrint('StartupScreen: User became null during routing');
+      _routeToAuthError('User session lost');
+      return;
+    }
+
     // Check email verification status first.
     // If emailConfirmedAt is null, the user has not verified their email.
-    if (user != null && user.emailConfirmedAt == null) {
+    if (user.emailConfirmedAt == null) {
       if (!mounted) return;
       if (_hasRouted) return;
 
@@ -122,6 +154,13 @@ class _StartupScreenState extends State<StartupScreen> {
     try {
       final isComplete = await _onboardingService.isOnboardingComplete();
 
+      // Re-check user after async call in case session expired
+      if (supabase.auth.currentUser == null) {
+        debugPrint('StartupScreen: User became null after onboarding check');
+        _routeToAuthError('Session expired during initialization');
+        return;
+      }
+
       if (!mounted) return;
       if (_hasRouted) return;
 
@@ -132,16 +171,33 @@ class _StartupScreenState extends State<StartupScreen> {
         Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
       }
     } catch (e, stackTrace) {
-      // ignore: avoid_print
-      print('StartupScreen auth routing error: $e');
-      // ignore: avoid_print
-      print('StackTrace: $stackTrace');
-      // On error, default to onboarding to ensure user can complete setup
+      debugPrint('StartupScreen auth routing error: $e');
+      debugPrint('StackTrace: $stackTrace');
+
+      // Check if this is an auth-specific error requiring re-login
+      if (AuthGuard.isAuthError(e)) {
+        _routeToAuthError('Authentication error: ${e.runtimeType}');
+        return;
+      }
+
+      // For non-auth errors, try onboarding as fallback
       if (mounted && !_hasRouted) {
         _hasRouted = true;
         Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
       }
     }
+  }
+
+  /// Routes to auth error screen for unrecoverable auth failures.
+  void _routeToAuthError(String reason) {
+    if (!mounted || _hasRouted) return;
+    _hasRouted = true;
+    debugPrint('StartupScreen: Routing to auth error - $reason');
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.authGuardError,
+      (route) => false,
+      arguments: reason,
+    );
   }
 
   @override

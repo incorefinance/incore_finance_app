@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
 import '../../../theme/app_colors.dart';
 
 /// Month-over-month comparison metrics card
-/// Displays income and expenses comparison against last month
+/// Displays income and expenses comparison against last month in side-by-side tiles
 class ComparisonMetricsCard extends StatelessWidget {
   final double incomeChange;
   final double expenseChange;
@@ -20,19 +21,23 @@ class ComparisonMetricsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.18),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.05),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
+            color: colorScheme.shadow.withValues(alpha: 0.06),
+            offset: const Offset(0, 6),
+            blurRadius: 18,
             spreadRadius: 0,
           ),
         ],
@@ -41,43 +46,50 @@ class ComparisonMetricsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Month-over-Month',
+            l10n.monthOverMonth,
             style: theme.textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
           SizedBox(height: 0.5.h),
           Text(
-            'Compared with last month',
+            l10n.comparedWithLastMonth,
             style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
           SizedBox(height: 2.h),
-          _buildMetricRow(
-            context,
-            label: 'Income',
-            change: incomeChange,
-            iconName: 'attach_money',
-            // For income, an increase is good
-            positiveIsGood: true,
-          ),
-          SizedBox(height: 1.5.h),
-          _buildMetricRow(
-            context,
-            label: 'Expenses',
-            change: expenseChange,
-            iconName: 'shopping_cart',
-            // For expenses, a decrease is good
-            positiveIsGood: false,
+          // Side-by-side metric tiles
+          Row(
+            children: [
+              Expanded(
+                child: _buildMetricTile(
+                  context,
+                  label: l10n.income,
+                  change: incomeChange,
+                  iconName: 'attach_money',
+                  positiveIsGood: true,
+                ),
+              ),
+              SizedBox(width: 3.w),
+              Expanded(
+                child: _buildMetricTile(
+                  context,
+                  label: l10n.expenses,
+                  change: expenseChange,
+                  iconName: 'shopping_cart',
+                  positiveIsGood: false,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMetricRow(
+  Widget _buildMetricTile(
     BuildContext context, {
     required String label,
     required double change,
@@ -102,56 +114,61 @@ class ComparisonMetricsCard extends StatelessWidget {
 
     final Color trendColor = isGood ? AppColors.success : AppColors.error;
 
-    return Row(
-      children: [
-        Container(
-          padding: EdgeInsets.all(2.w),
-          decoration: BoxDecoration(
-            color: AppColors.borderSubtle.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-          ),
-          child: CustomIconWidget(
-            iconName: iconName,
-            color: trendColor,
-            size: 16,
-          ),
+    return Container(
+      padding: EdgeInsets.all(3.w),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.12),
+          width: 1,
         ),
-        SizedBox(width: 3.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            // ✅ Minimal hardening for tight-height parents
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(2.w),
+            decoration: BoxDecoration(
+              color: trendColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+            ),
+            child: CustomIconWidget(
+              iconName: iconName,
+              color: trendColor,
+              size: 18,
+            ),
+          ),
+          SizedBox(height: 1.h),
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          SizedBox(height: 0.5.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                ),
+              Icon(
+                isIncrease ? Icons.arrow_upward : Icons.arrow_downward,
+                size: 16,
+                color: trendColor,
               ),
-              SizedBox(height: 0.3.h),
-              Row(
-                children: [
-                  Icon(
-                    isIncrease ? Icons.arrow_upward : Icons.arrow_downward,
-                    size: 14,
-                    color: trendColor,
-                  ),
-                  SizedBox(width: 1.w),
-                  Text(
-                    '${change.abs().toStringAsFixed(1)}%',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: trendColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+              SizedBox(width: 1.w),
+              Text(
+                '${change.abs().toStringAsFixed(1)}%',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: trendColor,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

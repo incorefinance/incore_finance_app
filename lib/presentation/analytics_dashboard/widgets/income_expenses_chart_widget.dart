@@ -1,11 +1,13 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
 import '../../../theme/app_theme.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/number_formatter.dart';
+import 'chart_constants.dart';
 
 /// Income vs Expenses bar chart widget
 class IncomeExpensesChartWidget extends StatefulWidget {
@@ -33,9 +35,10 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Semantics(
-      label: "Income vs Expenses Bar Chart showing monthly comparison",
+      label: l10n.incomeVsExpensesChart,
       child: BarChart(
         BarChartData(
           alignment: BarChartAlignment.spaceAround,
@@ -44,14 +47,15 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
-              tooltipBgColor: AppColors.primary.withValues(alpha: 0.9),
+              tooltipBgColor: AnalyticsChartConstants.tooltipBackground(),
+              tooltipRoundedRadius: AnalyticsChartConstants.tooltipRadius,
               tooltipPadding: EdgeInsets.all(2.w),
               tooltipMargin: 2.h,
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 final month =
                     widget.chartData[group.x.toInt()]['month'] as String;
                 final value = rod.toY;
-                final type = rodIndex == 0 ? 'Income' : 'Expenses';
+                final type = rodIndex == 0 ? l10n.income : l10n.expenses;
                 final formattedValue = IncoreNumberFormatter.formatMoney(
                   value,
                   locale: widget.locale,
@@ -139,8 +143,8 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
             horizontalInterval: _getNiceYAxisInterval(),
             getDrawingHorizontalLine: (value) {
               return FlLine(
-                // slightly clearer grid without tinting the whole chart
-                color: AppColors.borderSubtle.withValues(alpha: 0.45),
+                color: AppColors.borderSubtle.withValues(
+                    alpha: AnalyticsChartConstants.gridLineAlpha),
                 strokeWidth: 1,
               );
             },

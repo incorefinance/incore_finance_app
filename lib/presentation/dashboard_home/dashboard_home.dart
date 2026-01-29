@@ -7,11 +7,16 @@ import 'package:incore_finance/services/transactions_repository.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
 import 'package:incore_finance/services/recurring_expenses_repository.dart';
 import 'package:incore_finance/services/user_financial_baseline_repository.dart';
+import 'package:incore_finance/services/auth_guard.dart';
 
 import '../../core/app_export.dart';
+import '../../core/errors/app_error.dart';
+import '../../core/errors/app_error_classifier.dart';
+import '../../core/logging/app_logger.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_bottom_bar.dart';
+import '../../widgets/app_error_widget.dart';
 import './widgets/cash_position_card.dart';
 import './widgets/monthly_profit_card.dart';
 import './widgets/upcoming_bills_placeholder.dart';
@@ -46,6 +51,7 @@ class _DashboardHomeState extends State<DashboardHome> {
   double _profitPercentageChange = 0.0;
 
   bool _isLoadingDashboard = true;
+  AppError? _loadError;
   List<RecurringExpense> _recurringBills = [];
 
   UserCurrencySettings _currencySettings = const UserCurrencySettings(
@@ -76,6 +82,7 @@ class _DashboardHomeState extends State<DashboardHome> {
   Future<void> _loadDashboardData() async {
     setState(() {
       _isLoadingDashboard = true;
+      _loadError = null;
     });
 
     try {
@@ -185,9 +192,21 @@ class _DashboardHomeState extends State<DashboardHome> {
         _recurringBills = bills;
         _isLoadingDashboard = false;
       });
-    } catch (_) {
+    } catch (e, st) {
+      AppLogger.e('Dashboard load error', error: e, stackTrace: st);
+      final appError = AppErrorClassifier.classify(e, stackTrace: st);
+
+      if (!mounted) return;
+
+      // Route to auth error screen for auth failures
+      if (appError.category == AppErrorCategory.auth) {
+        AuthGuard.routeToErrorIfInvalid(context, reason: appError.debugReason);
+        return;
+      }
+
       setState(() {
         _isLoadingDashboard = false;
+        _loadError = appError;
       });
     }
   }
@@ -273,7 +292,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                 ),
               ),
 
-              // Content: Loading or Dashboard blocks
+              // Content: Loading, Error, or Dashboard blocks
               SliverToBoxAdapter(
                 child: _isLoadingDashboard
                     ? Padding(
@@ -288,7 +307,17 @@ class _DashboardHomeState extends State<DashboardHome> {
                           ),
                         ),
                       )
-                    : Column(
+                    : _loadError != null
+                        ? Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 4.w, vertical: 4.h),
+                            child: AppErrorWidget(
+                              error: _loadError!,
+                              displayMode: AppErrorDisplayMode.inline,
+                              onRetry: _loadDashboardData,
+                            ),
+                          )
+                        : Column(
                         children: [
                           // Block 1: Cash Position (primary, top)
                           CashPositionCard(

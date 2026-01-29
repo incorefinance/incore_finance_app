@@ -4,10 +4,13 @@ import 'package:incore_finance/models/transaction_category.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
 import 'package:incore_finance/theme/app_colors.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../../utils/number_formatter.dart';
+import '../../../utils/category_localizer.dart';
+import '../../../utils/payment_localizer.dart';
 
 class TransactionCard extends StatefulWidget {
   final TransactionRecord transaction;
@@ -67,23 +70,27 @@ class _TransactionCardState extends State<TransactionCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final t = widget.transaction;
 
     final isExpense = t.type == 'expense';
 
-    // Category shown as title (label)
+    // Category shown as title (label) - use localized label
     final category = TransactionCategory.fromDbValue(t.category);
-    final categoryLabel = category?.label ?? t.category;
+    final categoryLabel = category != null
+        ? getLocalizedCategoryLabel(context, category)
+        : t.category;
     final categoryIcon = category?.iconName ?? 'category';
 
     // Description shown as subtitle (smaller)
-    final description = (t.description.trim().isEmpty) ? 'No description' : t.description.trim();
+    final description = (t.description.trim().isEmpty) ? l10n.noDescription : t.description.trim();
 
-    // Payment method label must be user-friendly
-    final paymentLabel =
-        PaymentMethodParser.fromAny(t.paymentMethod)?.label ??
-        ((t.paymentMethod ?? '').replaceAll('_', ' '));
+    // Payment method label must be user-friendly - use localized label
+    final paymentMethod = PaymentMethodParser.fromAny(t.paymentMethod);
+    final paymentLabel = paymentMethod != null
+        ? getLocalizedPaymentLabel(context, paymentMethod)
+        : ((t.paymentMethod ?? '').replaceAll('_', ' '));
 
     // Amount formatting:
     // - income: green
@@ -209,14 +216,14 @@ class _TransactionCardState extends State<TransactionCard> {
                 },
                 itemBuilder: (context) => [
                     if (widget.onEdit != null)
-                      const PopupMenuItem<String>(
+                      PopupMenuItem<String>(
                         value: 'edit',
-                        child: Text('Edit'),
+                        child: Text(l10n.edit),
                       ),
                     if (widget.onDelete != null)
-                      const PopupMenuItem<String>(
+                      PopupMenuItem<String>(
                         value: 'delete',
-                        child: Text('Delete'),
+                        child: Text(l10n.delete),
                       ),
                   ],
                 icon: Icon(

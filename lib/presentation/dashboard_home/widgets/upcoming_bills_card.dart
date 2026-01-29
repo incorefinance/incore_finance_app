@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
 import '../../../models/recurring_expense.dart';
@@ -33,6 +34,7 @@ class UpcomingBillsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: double.infinity,
@@ -59,7 +61,7 @@ class UpcomingBillsCard extends StatelessWidget {
               ),
               SizedBox(width: 2.w),
               Text(
-                'Upcoming Bills',
+                l10n.upcomingBills,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
@@ -69,9 +71,9 @@ class UpcomingBillsCard extends StatelessWidget {
           ),
           SizedBox(height: 1.5.h),
           if (bills.isEmpty)
-            _buildEmptyState(context, theme, colorScheme)
+            _buildEmptyState(context, theme, colorScheme, l10n)
           else
-            _buildBillsList(context, theme, colorScheme),
+            _buildBillsList(context, theme, colorScheme, l10n),
         ],
       ),
     );
@@ -81,12 +83,13 @@ class UpcomingBillsCard extends StatelessWidget {
     BuildContext context,
     ThemeData theme,
     ColorScheme colorScheme,
+    AppLocalizations l10n,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Add recurring expenses to see upcoming bills and short term pressure.',
+          l10n.addRecurringExpensesHint,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -118,7 +121,7 @@ class UpcomingBillsCard extends StatelessWidget {
                       ),
                       SizedBox(width: 1.5.w),
                       Text(
-                        'Add bill',
+                        l10n.addBill,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -154,7 +157,7 @@ class UpcomingBillsCard extends StatelessWidget {
                       ),
                       SizedBox(width: 1.5.w),
                       Text(
-                        'Manage bills',
+                        l10n.manageBills,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -175,6 +178,7 @@ class UpcomingBillsCard extends StatelessWidget {
     BuildContext context,
     ThemeData theme,
     ColorScheme colorScheme,
+    AppLocalizations l10n,
   ) {
     final now = DateTime.now();
     final billsToShow = bills.take(_maxBillsToShow).toList();
@@ -208,7 +212,7 @@ class UpcomingBillsCard extends StatelessWidget {
                       ),
                       SizedBox(width: 1.5.w),
                       Text(
-                        'Add bill',
+                        l10n.addBill,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -244,7 +248,7 @@ class UpcomingBillsCard extends StatelessWidget {
                       ),
                       SizedBox(width: 1.5.w),
                       Text(
-                        'Manage bills',
+                        l10n.manageBills,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -264,13 +268,14 @@ class UpcomingBillsCard extends StatelessWidget {
               colorScheme,
               bill,
               now,
+              l10n,
             )),
         if (bills.length > _maxBillsToShow) ...[
           SizedBox(height: 1.h),
           GestureDetector(
             onTap: onManageBills,
             child: Text(
-              'View all ${bills.length} recurring expenses',
+              l10n.viewAllRecurringExpenses(bills.length),
               style: theme.textTheme.labelMedium?.copyWith(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
@@ -288,6 +293,7 @@ class UpcomingBillsCard extends StatelessWidget {
     ColorScheme colorScheme,
     RecurringExpense bill,
     DateTime now,
+    AppLocalizations l10n,
   ) {
     final nextDue = _computeNextDueDate(bill.dueDay, now);
     final daysUntil = nextDue.difference(DateTime(now.year, now.month, now.day)).inDays;
@@ -301,13 +307,13 @@ class UpcomingBillsCard extends StatelessWidget {
 
     String dueDateText;
     if (daysUntil == 0) {
-      dueDateText = 'Due today';
+      dueDateText = l10n.dueToday;
     } else if (daysUntil == 1) {
-      dueDateText = 'Due tomorrow';
+      dueDateText = l10n.dueTomorrow;
     } else if (daysUntil <= 7) {
-      dueDateText = 'Due in $daysUntil days';
+      dueDateText = l10n.dueInDays(daysUntil);
     } else {
-      dueDateText = 'Due on ${nextDue.day}/${nextDue.month}';
+      dueDateText = l10n.dueOnDay(nextDue.day, nextDue.month);
     }
 
     return Padding(
