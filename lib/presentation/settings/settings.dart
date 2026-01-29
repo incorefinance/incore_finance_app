@@ -4,11 +4,13 @@ import 'package:sizer/sizer.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
 import 'package:incore_finance/widgets/custom_bottom_bar.dart';
 import '../../core/app_export.dart';
+import '../../core/logging/app_logger.dart';
 import '../../main.dart';
 import '../../widgets/custom_icon_widget.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/app_colors.dart';
+import '../../services/user_settings_service.dart';
 import './widgets/currency_selector_dialog.dart';
 import './widgets/export_options_dialog.dart';
 import './widgets/language_selector_dialog.dart';
@@ -24,9 +26,11 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
+  final UserSettingsService _userSettingsService = UserSettingsService();
+
   String _currentLanguage = 'en';
   bool _isDarkMode = false;
-  String _currentCurrency = 'USD';
+  String? _currentCurrency; // null until loaded from service
   bool _biometricEnabled = false;
   bool _notificationsEnabled = true;
   bool _goalMilestonesEnabled = true;
@@ -42,10 +46,13 @@ class _SettingsState extends State<Settings> {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    final currencySettings = await _userSettingsService.getCurrencySettings();
+
+    if (!mounted) return;
     setState(() {
       _currentLanguage = prefs.getString('language') ?? 'en';
       _isDarkMode = prefs.getBool('darkMode') ?? false;
-      _currentCurrency = prefs.getString('currency') ?? 'USD';
+      _currentCurrency = currencySettings.currencyCode; // Load from service
       _biometricEnabled = prefs.getBool('biometric') ?? false;
       _notificationsEnabled = prefs.getBool('notifications') ?? true;
       _goalMilestonesEnabled = prefs.getBool('goalMilestones') ?? true;
@@ -59,7 +66,7 @@ class _SettingsState extends State<Settings> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language', _currentLanguage);
     await prefs.setBool('darkMode', _isDarkMode);
-    await prefs.setString('currency', _currentCurrency);
+    // Currency is NOT saved here - only saved via _userSettingsService when user changes it
     await prefs.setBool('biometric', _biometricEnabled);
     await prefs.setBool('notifications', _notificationsEnabled);
     await prefs.setBool('goalMilestones', _goalMilestonesEnabled);
@@ -124,14 +131,18 @@ class _SettingsState extends State<Settings> {
   }
 
   void _showCurrencySelector() {
+    if (_currentCurrency == null) return; // Don't open if still loading
+
     showDialog(
       context: context,
       builder: (_) => CurrencySelectorDialog(
-        currentCurrency: _currentCurrency,
-        onCurrencySelected: (currency) {
+        currentCurrency: _currentCurrency!,
+        onCurrencySelected: (currency) async {
           setState(() => _currentCurrency = currency);
-          _saveSettings();
+          // Save currency via service (NOT via _saveSettings)
+          await _userSettingsService.saveCurrencyCode(currency);
 
+          if (!mounted) return;
           SnackbarHelper.showSuccess(
             context,
             AppLocalizations.of(context)!.currencyUpdated(currency),
@@ -186,12 +197,18 @@ class _SettingsState extends State<Settings> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
+      if (!mounted) return;
       SnackbarHelper.showSuccess(
         context,
         AppLocalizations.of(context)!.dataResetSuccess,
       );
-    } catch (e) {
-      SnackbarHelper.showError(context, 'Failed to reset data: $e');
+    } catch (e, st) {
+      AppLogger.e('Settings reset data error', error: e, stackTrace: st);
+      if (!mounted) return;
+      SnackbarHelper.showError(
+        context,
+        AppLocalizations.of(context)!.somethingWentWrong,
+      );
     }
   }
 
@@ -256,8 +273,8 @@ class _SettingsState extends State<Settings> {
               SettingTile(
                 iconName: 'attach_money',
                 title: l10n.currency,
-                subtitle: _currentCurrency,
-                onTap: _showCurrencySelector,
+                subtitle: _currentCurrency ?? '...',
+                onTap: _currentCurrency != null ? _showCurrencySelector : null,
               ),
               SizedBox(height: 3.h),
               SettingSectionHeader(title: l10n.privacySecurity),

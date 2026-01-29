@@ -179,18 +179,6 @@ abstract class AppLocalizations {
   /// **'vs last month'**
   String get vsLastMonth;
 
-  /// No description provided for @up.
-  ///
-  /// In en, this message translates to:
-  /// **'Up'**
-  String get up;
-
-  /// No description provided for @down.
-  ///
-  /// In en, this message translates to:
-  /// **'Down'**
-  String get down;
-
   /// No description provided for @topExpenses.
   ///
   /// In en, this message translates to:
@@ -1366,6 +1354,636 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download your financial data'**
   String get exportDataDescription;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get viewAll;
+
+  /// No description provided for @up.
+  ///
+  /// In en, this message translates to:
+  /// **'Up'**
+  String get up;
+
+  /// No description provided for @down.
+  ///
+  /// In en, this message translates to:
+  /// **'Down'**
+  String get down;
+
+  /// No description provided for @authErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Expired'**
+  String get authErrorTitle;
+
+  /// No description provided for @authErrorDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has ended. Please log in again to continue.'**
+  String get authErrorDescription;
+
+  /// No description provided for @logInAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in again'**
+  String get logInAgain;
+
+  /// No description provided for @upcomingBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming Bills'**
+  String get upcomingBills;
+
+  /// No description provided for @addBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Add bill'**
+  String get addBill;
+
+  /// No description provided for @manageBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage bills'**
+  String get manageBills;
+
+  /// No description provided for @viewAllRecurringExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'View all {count} recurring expenses'**
+  String viewAllRecurringExpenses(int count);
+
+  /// No description provided for @dueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Due today'**
+  String get dueToday;
+
+  /// No description provided for @dueTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Due tomorrow'**
+  String get dueTomorrow;
+
+  /// No description provided for @dueInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Due in {days} days'**
+  String dueInDays(int days);
+
+  /// No description provided for @dueOnDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Due on {day}/{month}'**
+  String dueOnDay(int day, int month);
+
+  /// No description provided for @dueOnDayOfMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Due on day {day}'**
+  String dueOnDayOfMonth(int day);
+
+  /// No description provided for @noRecurringExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'No recurring expenses'**
+  String get noRecurringExpenses;
+
+  /// No description provided for @addRecurringExpensesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add recurring expenses to see upcoming bills and short term pressure.'**
+  String get addRecurringExpensesHint;
+
+  /// No description provided for @setUpRecurringExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up recurring expenses'**
+  String get setUpRecurringExpenses;
+
+  /// No description provided for @recurringExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring Expenses'**
+  String get recurringExpenses;
+
+  /// No description provided for @addRecurringExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Add recurring expense'**
+  String get addRecurringExpense;
+
+  /// No description provided for @editRecurringExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit recurring expense'**
+  String get editRecurringExpense;
+
+  /// No description provided for @recurringExpenseAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring expense added successfully!'**
+  String get recurringExpenseAdded;
+
+  /// No description provided for @recurringExpenseUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring expense updated successfully!'**
+  String get recurringExpenseUpdated;
+
+  /// No description provided for @failedToSaveRecurringExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save recurring expense. Please try again.'**
+  String get failedToSaveRecurringExpense;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
+
+  /// No description provided for @namePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Internet bill'**
+  String get namePlaceholder;
+
+  /// No description provided for @amountPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., 50.00'**
+  String get amountPlaceholder;
+
+  /// No description provided for @dueDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Due day'**
+  String get dueDay;
+
+  /// No description provided for @dueDayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'1-31'**
+  String get dueDayHint;
+
+  /// No description provided for @dueDayHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Day of the month when bill is due (1-31)'**
+  String get dueDayHelp;
+
+  /// No description provided for @update.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get update;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @deactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get deactivate;
+
+  /// No description provided for @reactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate'**
+  String get reactivate;
+
+  /// No description provided for @inactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get inactive;
+
+  /// No description provided for @deleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteConfirmTitle;
+
+  /// No description provided for @deleteConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to permanently delete \"{name}\"?'**
+  String deleteConfirmMessage(String name);
+
+  /// No description provided for @validAmountError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid amount greater than zero'**
+  String get validAmountError;
+
+  /// No description provided for @dueDayRangeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Due day must be between 1 and 31'**
+  String get dueDayRangeError;
+
+  /// No description provided for @failedToLoadTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load transactions'**
+  String get failedToLoadTransactions;
+
+  /// No description provided for @noResultsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get noResultsFound;
+
+  /// No description provided for @tryAdjustingFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting your search or filters.'**
+  String get tryAdjustingFilters;
+
+  /// No description provided for @clearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearch;
+
+  /// No description provided for @searchByDescriptionOrClient.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by description or client'**
+  String get searchByDescriptionOrClient;
+
+  /// No description provided for @filtersApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters applied'**
+  String get filtersApplied;
+
+  /// No description provided for @noDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No description'**
+  String get noDescription;
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
+  /// No description provided for @deleteTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete transaction?'**
+  String get deleteTransaction;
+
+  /// No description provided for @deleteTransactionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This transaction will be removed from your list. You can undo this action.'**
+  String get deleteTransactionConfirm;
+
+  /// No description provided for @filterTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter Transactions'**
+  String get filterTransactions;
+
+  /// No description provided for @clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All'**
+  String get clearAll;
+
+  /// No description provided for @dateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get dateRange;
+
+  /// No description provided for @allTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get allTime;
+
+  /// No description provided for @lastSevenDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get lastSevenDays;
+
+  /// No description provided for @thisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This year'**
+  String get thisYear;
+
+  /// No description provided for @overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overview;
+
+  /// No description provided for @breakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakdown'**
+  String get breakdown;
+
+  /// No description provided for @trends.
+  ///
+  /// In en, this message translates to:
+  /// **'Trends'**
+  String get trends;
+
+  /// No description provided for @monthOverMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month over Month'**
+  String get monthOverMonth;
+
+  /// No description provided for @comparedWithLastMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Compared with last month'**
+  String get comparedWithLastMonth;
+
+  /// No description provided for @percentOfExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of expenses'**
+  String percentOfExpenses(String percent);
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get somethingWentWrong;
+
+  /// No description provided for @addTransactionsToSeeTrends.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a few transactions to see trends and breakdowns'**
+  String get addTransactionsToSeeTrends;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @pleaseEnterAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an amount'**
+  String get pleaseEnterAmount;
+
+  /// No description provided for @pleaseEnterDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a description'**
+  String get pleaseEnterDescription;
+
+  /// No description provided for @pleaseSelectCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a category'**
+  String get pleaseSelectCategory;
+
+  /// No description provided for @pleaseSelectPaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a payment method'**
+  String get pleaseSelectPaymentMethod;
+
+  /// No description provided for @transactionAddedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction added successfully!'**
+  String get transactionAddedSuccess;
+
+  /// No description provided for @transactionUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction updated successfully!'**
+  String get transactionUpdatedSuccess;
+
+  /// No description provided for @failedToAddTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add transaction. Please try again.'**
+  String get failedToAddTransaction;
+
+  /// No description provided for @enterClientHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter client name'**
+  String get enterClientHint;
+
+  /// No description provided for @editTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Transaction'**
+  String get editTransaction;
+
+  /// No description provided for @catSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get catSales;
+
+  /// No description provided for @catFreelance.
+  ///
+  /// In en, this message translates to:
+  /// **'Freelance'**
+  String get catFreelance;
+
+  /// No description provided for @catConsulting.
+  ///
+  /// In en, this message translates to:
+  /// **'Consulting'**
+  String get catConsulting;
+
+  /// No description provided for @catRetainers.
+  ///
+  /// In en, this message translates to:
+  /// **'Retainers'**
+  String get catRetainers;
+
+  /// No description provided for @catSubscriptionsIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions'**
+  String get catSubscriptionsIncome;
+
+  /// No description provided for @catCommissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Commissions'**
+  String get catCommissions;
+
+  /// No description provided for @catInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest'**
+  String get catInterest;
+
+  /// No description provided for @catRefundsIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunds'**
+  String get catRefundsIncome;
+
+  /// No description provided for @catOtherIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Income'**
+  String get catOtherIncome;
+
+  /// No description provided for @catAdvertising.
+  ///
+  /// In en, this message translates to:
+  /// **'Advertising'**
+  String get catAdvertising;
+
+  /// No description provided for @catSoftware.
+  ///
+  /// In en, this message translates to:
+  /// **'Software'**
+  String get catSoftware;
+
+  /// No description provided for @catSubscriptionsExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions'**
+  String get catSubscriptionsExpense;
+
+  /// No description provided for @catEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get catEquipment;
+
+  /// No description provided for @catSupplies.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplies'**
+  String get catSupplies;
+
+  /// No description provided for @catAccounting.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounting'**
+  String get catAccounting;
+
+  /// No description provided for @catContractors.
+  ///
+  /// In en, this message translates to:
+  /// **'Contractors'**
+  String get catContractors;
+
+  /// No description provided for @catTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get catTravel;
+
+  /// No description provided for @catMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals'**
+  String get catMeals;
+
+  /// No description provided for @catRent.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent'**
+  String get catRent;
+
+  /// No description provided for @catInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get catInsurance;
+
+  /// No description provided for @catTaxes.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxes'**
+  String get catTaxes;
+
+  /// No description provided for @catFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Fees'**
+  String get catFees;
+
+  /// No description provided for @catSalaries.
+  ///
+  /// In en, this message translates to:
+  /// **'Salaries'**
+  String get catSalaries;
+
+  /// No description provided for @catTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Training'**
+  String get catTraining;
+
+  /// No description provided for @catOtherExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Expense'**
+  String get catOtherExpense;
+
+  /// No description provided for @payMbWay.
+  ///
+  /// In en, this message translates to:
+  /// **'MB Way'**
+  String get payMbWay;
+
+  /// No description provided for @payPaypal.
+  ///
+  /// In en, this message translates to:
+  /// **'PayPal'**
+  String get payPaypal;
+
+  /// No description provided for @payDirectDebit.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct Debit'**
+  String get payDirectDebit;
+
+  /// No description provided for @networkErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection Problem'**
+  String get networkErrorTitle;
+
+  /// No description provided for @networkErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please check your internet connection and try again.'**
+  String get networkErrorMessage;
+
+  /// No description provided for @unknownErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Something Went Wrong'**
+  String get unknownErrorTitle;
+
+  /// No description provided for @unknownErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected error occurred. Please try again.'**
+  String get unknownErrorMessage;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

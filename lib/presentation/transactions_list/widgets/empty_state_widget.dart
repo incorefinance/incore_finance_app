@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../theme/app_colors.dart';
 
@@ -16,6 +17,7 @@ class EmptyStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Center(
       child: Padding(
@@ -30,7 +32,7 @@ class EmptyStateWidget extends StatelessWidget {
             ),
             SizedBox(height: 3.h),
             Text(
-              'No transactions yet',
+              l10n.noTransactions,
               style: theme.textTheme.headlineSmall?.copyWith(
                 color: colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
@@ -39,7 +41,7 @@ class EmptyStateWidget extends StatelessWidget {
             ),
             SizedBox(height: 1.h),
             Text(
-              'Add your first transaction to see your cash balance and analytics',
+              l10n.noTransactionsDesc,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -49,7 +51,7 @@ class EmptyStateWidget extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onAddTransaction,
               icon: const Icon(Icons.add, size: 20, color: Colors.white),
-              label: const Text('Add transaction'),
+              label: Text(l10n.addTransaction),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,

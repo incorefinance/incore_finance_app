@@ -18,7 +18,6 @@ class DateRangeSelectorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     final ranges = ['Last 30 days', '3 months', '6 months', 'Year'];
 

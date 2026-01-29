@@ -1,10 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 
-import '../../../core/app_export.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/number_formatter.dart';
+import 'chart_constants.dart';
 
 /// Profit trends line chart widget
 class ProfitTrendsChartWidget extends StatefulWidget {
@@ -31,6 +32,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     // ✅ Use your main accent instead of gold
     final accent = AppColors.primarySoft;
@@ -39,13 +41,14 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
     const double xPadding = 0.25;
 
     return Semantics(
-      label: "Profit Trends Line Chart showing profit history",
+      label: l10n.profitTrends,
       child: LineChart(
         LineChartData(
           lineTouchData: LineTouchData(
             enabled: true,
             touchTooltipData: LineTouchTooltipData(
-              tooltipBgColor: AppColors.primary.withValues(alpha: 0.9),
+              tooltipBgColor: AnalyticsChartConstants.tooltipBackground(),
+              tooltipRoundedRadius: AnalyticsChartConstants.tooltipRadius,
               tooltipPadding: EdgeInsets.all(2.w),
               tooltipMargin: 2.h,
               getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
@@ -60,7 +63,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
                     currencyCode: widget.currencyCode,
                   );
                   return LineTooltipItem(
-                    '$month\nProfit: $formattedProfit',
+                    '$month\n${l10n.profit}: $formattedProfit',
                     theme.textTheme.bodySmall!.copyWith(
                       color: AppColors.surface,
                       fontWeight: FontWeight.w600,
@@ -100,7 +103,8 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
             horizontalInterval: _getNiceYAxisInterval(),
             getDrawingHorizontalLine: (value) {
               return FlLine(
-                color: AppColors.borderSubtle.withValues(alpha: 0.3),
+                color: AppColors.borderSubtle.withValues(
+                    alpha: AnalyticsChartConstants.gridLineAlpha),
                 strokeWidth: 1,
               );
             },

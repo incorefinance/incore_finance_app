@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
-import '../../../core/app_export.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/number_formatter.dart';
-import '../../../l10n/app_localizations.dart';
+import 'chart_constants.dart';
 
 class CashBalanceChart extends StatelessWidget {
   final List<Map<String, dynamic>> balanceData;
   final String locale;
   final String symbol;
   final String currencyCode;
+  final Set<int> transactionIndices;
 
   const CashBalanceChart({
     super.key,
@@ -20,70 +20,28 @@ class CashBalanceChart extends StatelessWidget {
     required this.locale,
     required this.symbol,
     required this.currencyCode,
+    required this.transactionIndices,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final l10n = AppLocalizations.of(context)!;
     final uiLocale = Localizations.localeOf(context).toString();
 
     final maxY = _getNiceMaxY();
     final interval = _getNiceYAxisInterval();
 
-    return Container(
-      width: double.infinity,
-      constraints: BoxConstraints(minHeight: 28.h, maxHeight: 35.h),
-      margin: EdgeInsets.fromLTRB(4.w, 0, 4.w, 2.h),
-      padding: EdgeInsets.all(4.w),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.18),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.06),
-            offset: const Offset(0, 6),
-            blurRadius: 18,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.cashBalanceTrend,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Text(
-                l10n.thirtyDays,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 2.h),
-          Expanded(
-            child: LineChart(
+    // Chart content only - container/header provided by _buildChartCard wrapper
+    return LineChart(
               LineChartData(
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
                   horizontalInterval: interval,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: colorScheme.outline.withValues(alpha: 0.10),
+                    color: colorScheme.outline.withValues(
+                        alpha: AnalyticsChartConstants.gridLineAlpha),
                     strokeWidth: 1,
                   ),
                 ),
@@ -105,17 +63,20 @@ class CashBalanceChart extends StatelessWidget {
                         if (i < 0 || i >= balanceData.length) {
                           return const SizedBox.shrink();
                         }
-                        // Show labels at indices 0, 7, 14, 21, and last (29)
-                        // Skip 28 to avoid overlap with 29
-                        final isKeyIndex = i == 0 || i == 7 || i == 14 || i == 21 || i == balanceData.length - 1;
+                        // Dynamic labeling based on data length
+                        final bool isKeyIndex = _isKeyXAxisIndex(i, balanceData.length);
                         if (!isKeyIndex) {
                           return const SizedBox.shrink();
                         }
                         final date = balanceData[i]['date'] as DateTime;
+                        // Use month abbreviation for longer ranges
+                        final String label = balanceData.length > 90
+                            ? DateFormat('MMM', uiLocale).format(date)
+                            : '${date.day}/${date.month}';
                         return Padding(
                           padding: EdgeInsets.only(top: 1.h),
                           child: Text(
-                            '${date.day}/${date.month}',
+                            label,
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -148,8 +109,8 @@ class CashBalanceChart extends StatelessWidget {
                 lineTouchData: LineTouchData(
                   enabled: true,
                   touchTooltipData: LineTouchTooltipData(
-                    tooltipBgColor: AppColors.textPrimary.withValues(alpha: 0.92),
-                    tooltipRoundedRadius: 10,
+                    tooltipBgColor: AnalyticsChartConstants.tooltipBackground(),
+                    tooltipRoundedRadius: AnalyticsChartConstants.tooltipRadius,
                     tooltipPadding: EdgeInsets.all(2.w),
                     getTooltipItems: (spots) {
                       return spots.map((barSpot) {
@@ -166,9 +127,9 @@ class CashBalanceChart extends StatelessWidget {
 
                         return LineTooltipItem(
                           '${DateFormat('MMM d', uiLocale).format(date)}\n$formattedAmount',
-                          const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
+                          theme.textTheme.bodySmall!.copyWith(
+                            color: AppColors.surface,
+                            fontWeight: FontWeight.w600,
                           ),
                         );
                       }).toList();
@@ -190,6 +151,10 @@ class CashBalanceChart extends StatelessWidget {
                     isStrokeCapRound: true,
                     dotData: FlDotData(
                       show: true,
+                      checkToShowDot: (spot, barData) {
+                        // Only show dots on days with transactions
+                        return transactionIndices.contains(spot.x.toInt());
+                      },
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
                           radius: 3,
@@ -213,10 +178,6 @@ class CashBalanceChart extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -262,6 +223,37 @@ class CashBalanceChart extends StatelessWidget {
 
     final interval = _getNiceYAxisInterval();
     return (max / interval).ceil() * interval;
+  }
+
+  /// Determines if the given index should display an x-axis label
+  /// based on the total data length.
+  /// - <= 30 days: Weekly (0, 7, 14, 21, last)
+  /// - <= 90 days: Bi-weekly intervals
+  /// - <= 180 days: Monthly intervals (~30 days)
+  /// - > 180 days: Bi-monthly intervals (~60 days)
+  bool _isKeyXAxisIndex(int index, int length) {
+    if (length <= 0) return false;
+    final lastIndex = length - 1;
+
+    // Always show first and last
+    if (index == 0 || index == lastIndex) return true;
+
+    // Avoid overlap: skip index right before last
+    if (index == lastIndex - 1) return false;
+
+    if (length <= 30) {
+      // Weekly: 0, 7, 14, 21, last
+      return index == 7 || index == 14 || index == 21;
+    } else if (length <= 90) {
+      // Bi-weekly (~14 day intervals)
+      return index % 14 == 0;
+    } else if (length <= 180) {
+      // Monthly (~30 day intervals)
+      return index % 30 == 0;
+    } else {
+      // Bi-monthly (~60 day intervals)
+      return index % 60 == 0;
+    }
   }
 
   String _formatYAxisValue(double value) {

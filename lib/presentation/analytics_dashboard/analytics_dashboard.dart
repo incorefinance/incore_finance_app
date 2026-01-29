@@ -5,12 +5,20 @@ import 'package:sizer/sizer.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/app_export.dart';
+import '../../core/errors/app_error.dart';
+import '../../core/errors/app_error_classifier.dart';
+import '../../core/logging/app_logger.dart';
+import '../../services/auth_guard.dart';
+import '../../widgets/app_error_widget.dart';
+import '../../utils/number_formatter.dart';
+import '../../utils/category_localizer.dart';
 import '../../l10n/app_localizations.dart';
 import './widgets/income_expenses_chart_widget.dart';
-import './widgets/horizontal_category_breakdown_widget.dart';
 import './widgets/profit_trends_chart_widget.dart';
 import './widgets/cash_balance_chart.dart';
 import './widgets/comparison_metrics_card.dart';
+import './widgets/category_tile_card.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
 import 'package:incore_finance/services/user_financial_baseline_repository.dart';
@@ -18,7 +26,6 @@ import 'package:incore_finance/models/transaction_category.dart';
 import 'package:incore_finance/core/state/transactions_change_notifier.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_colors.dart';
-import '../../theme/app_theme.dart';
 
 String _dateLocale = 'en_US';
 
@@ -41,14 +48,17 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
   int _lastNotifierVersion = 0;
 
   bool _isLoading = true;
-  String? _loadError;
+  AppError? _loadError;
   bool _hasNoTransactions = false;
 
   List<Map<String, dynamic>> _incomeExpensesData = [];
   List<Map<String, dynamic>> _profitTrendsData = [];
   List<Map<String, dynamic>> _incomeCategoryData = [];
   List<Map<String, dynamic>> _expenseCategoryData = [];
+  List<Map<String, dynamic>> _fullIncomeCategoryData = [];
+  List<Map<String, dynamic>> _fullExpenseCategoryData = [];
   List<Map<String, dynamic>> _balanceData = [];
+  Set<int> _transactionDayIndices = {};
 
   // Month-over-month change data
   double _incomeChange = 0.0;
@@ -167,8 +177,16 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
         transactions: transactions,
         type: 'income',
       );
+      _fullIncomeCategoryData = _buildFullCategoryList(
+        transactions: transactions,
+        type: 'income',
+      );
 
       _expenseCategoryData = _buildCategoryBreakdownData(
+        transactions: transactions,
+        type: 'expense',
+      );
+      _fullExpenseCategoryData = _buildFullCategoryList(
         transactions: transactions,
         type: 'expense',
       );
@@ -183,17 +201,21 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
         _isLoading = false;
         _hasNoTransactions = !hasData;
       });
-    } catch (e, stackTrace) {
-      // ignore: avoid_print
-      print('=== ANALYTICS LOAD ERROR ===');
-      // ignore: avoid_print
-      print('Error: $e');
-      // ignore: avoid_print
-      print('StackTrace: $stackTrace');
+    } catch (e, st) {
+      AppLogger.e('Analytics load error', error: e, stackTrace: st);
+      final appError = AppErrorClassifier.classify(e, stackTrace: st);
+
       if (!mounted) return;
+
+      // Route to auth error screen for auth failures
+      if (appError.category == AppErrorCategory.auth) {
+        AuthGuard.routeToErrorIfInvalid(context, reason: appError.debugReason);
+        return;
+      }
+
       setState(() {
         _isLoading = false;
-        _loadError = 'Failed to load analytics. Please try again.';
+        _loadError = appError;
       });
     }
   }
@@ -256,8 +278,15 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
     try {
       final now = DateTime.now();
 
+      // Use global range selection: m3=90 days, m6=180 days, m12=365 days
+      final int days = _range == _AnalyticsRange.m3
+          ? 90
+          : _range == _AnalyticsRange.m6
+              ? 180
+              : 365;
+
       final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
-      final startDate = endDate.subtract(const Duration(days: 29));
+      final startDate = endDate.subtract(Duration(days: days - 1));
       final startDateNormalized =
           DateTime(startDate.year, startDate.month, startDate.day);
 
@@ -295,12 +324,15 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
       final Map<String, double> dailyNetChanges = {};
 
-      for (int i = 0; i < 30; i++) {
+      for (int i = 0; i < days; i++) {
         final date = startDateNormalized.add(Duration(days: i));
         final key =
             '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
         dailyNetChanges[key] = 0.0;
       }
+
+      // Track which day indices have transactions
+      final Set<int> txDayIndices = {};
 
       for (final tx in transactions) {
         final d = DateTime(tx.date.year, tx.date.month, tx.date.day);
@@ -308,6 +340,12 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
             '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
         if (!dailyNetChanges.containsKey(key)) continue;
+
+        // Calculate day index for this transaction
+        final dayIndex = d.difference(startDateNormalized).inDays;
+        if (dayIndex >= 0 && dayIndex < days) {
+          txDayIndices.add(dayIndex);
+        }
 
         dailyNetChanges[key] =
             (dailyNetChanges[key] ?? 0) +
@@ -317,18 +355,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
       final List<Map<String, dynamic>> series = [];
       double runningBalance = chartBaseline;
 
-      // ignore: avoid_print
-      print('=== CASH BALANCE CHART DEBUG ===');
-      // ignore: avoid_print
-      print('Starting balance: $startingBalance');
-      // ignore: avoid_print
-      print('Pre-period net: $prePeriodNet');
-      // ignore: avoid_print
-      print('Chart baseline: $chartBaseline');
-      // ignore: avoid_print
-      print('Transactions in period: ${transactions.length}');
-
-      for (int i = 0; i < 30; i++) {
+      for (int i = 0; i < days; i++) {
         final date = startDateNormalized.add(Duration(days: i));
         final key =
             '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -336,19 +363,11 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
         series.add({'date': date, 'balance': runningBalance});
       }
 
-      // ignore: avoid_print
-      if (series.isNotEmpty) {
-        // ignore: avoid_print
-        print('First 3 series points:');
-        for (int i = 0; i < 3 && i < series.length; i++) {
-          // ignore: avoid_print
-          print('  [$i] date: ${series[i]['date']}, balance: ${series[i]['balance']}');
-        }
-      }
-
       _balanceData = series;
+      _transactionDayIndices = txDayIndices;
     } catch (_) {
       _balanceData = [];
+      _transactionDayIndices = {};
     }
   }
 
@@ -425,38 +444,82 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
     final entries = totalsByCategory.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    // Top 5 + Other
-    final top = entries.take(5).toList(growable: false);
-    final rest = entries.skip(5);
+    // Calculate total for percentage
+    final total = entries.fold<double>(0, (sum, e) => sum + e.value);
 
-    double otherTotal = 0;
-    for (final e in rest) {
-      otherTotal += e.value;
+    // Top 3 categories + Others (if remaining)
+    final top3 = entries.take(3).toList(growable: false);
+    final remaining = entries.skip(3);
+
+    double othersTotal = 0;
+    for (final e in remaining) {
+      othersTotal += e.value;
     }
 
     final result = <Map<String, dynamic>>[];
 
-    for (final e in top) {
+    for (final e in top3) {
       final category = TransactionCategory.fromDbValue(e.key);
       result.add({
-        'label': category?.label ?? e.key,
+        'category': category, // Store category for localization at display time
+        'iconName': category?.iconName ?? 'category',
         'amount': e.value,
+        'percentage': total > 0 ? (e.value / total) * 100 : 0.0,
+        'isOthers': false,
       });
     }
 
-    if (otherTotal > 0) {
+    // Add "Others" card only if there are more categories beyond top 3
+    if (othersTotal > 0) {
       result.add({
-        'label': 'Other',
-        'amount': otherTotal,
+        'category': null, // null indicates "Others" - will be localized at display time
+        'iconName': 'more_horiz',
+        'amount': othersTotal,
+        'percentage': total > 0 ? (othersTotal / total) * 100 : 0.0,
+        'isOthers': true,
       });
     }
 
     return result;
   }
 
+  /// Builds the FULL category list without truncation (for "View all" bottom sheet).
+  List<Map<String, dynamic>> _buildFullCategoryList({
+    required List<TransactionRecord> transactions,
+    required String type,
+  }) {
+    final totalsByCategory = <String, double>{};
+
+    for (final t in transactions) {
+      if (t.type != type) continue;
+
+      totalsByCategory.update(
+        t.category,
+        (value) => value + t.amount,
+        ifAbsent: () => t.amount,
+      );
+    }
+
+    final entries = totalsByCategory.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final total = entries.fold<double>(0, (sum, e) => sum + e.value);
+
+    return entries.map((e) {
+      final category = TransactionCategory.fromDbValue(e.key);
+      return {
+        'category': category, // Store category for localization at display time
+        'iconName': category?.iconName ?? 'category',
+        'amount': e.value,
+        'percentage': total > 0 ? (e.value / total) * 100 : 0.0,
+      };
+    }).toList();
+  }
+
   Widget _buildEmptyState(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Center(
       child: Padding(
@@ -471,7 +534,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
             ),
             SizedBox(height: 3.h),
             Text(
-              'No data yet',
+              l10n.noDataYet,
               style: theme.textTheme.headlineSmall?.copyWith(
                 color: colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
@@ -480,7 +543,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
             ),
             SizedBox(height: 1.h),
             Text(
-              'Add a few transactions to see trends and breakdowns',
+              l10n.addTransactionsToSeeTrends,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -492,36 +555,300 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
     );
   }
 
-  Widget _buildErrorState(BuildContext context) {
+  /// Builds a consistent card container matching the CashBalanceChart style.
+  Widget _buildChartCard({
+    required BuildContext context,
+    required String title,
+    required Widget child,
+    double? height,
+  }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8.w),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: colorScheme.error,
+    return Container(
+      width: double.infinity,
+      height: height,
+      constraints: height == null
+          ? BoxConstraints(minHeight: 28.h, maxHeight: 38.h)
+          : null,
+      padding: EdgeInsets.all(4.w),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.18),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.06),
+            offset: const Offset(0, 6),
+            blurRadius: 18,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w700,
             ),
-            SizedBox(height: 3.h),
-            Text(
-              _loadError ?? 'Something went wrong',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+          ),
+          SizedBox(height: 2.h),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+
+  /// Shows a bottom sheet with the full category breakdown list.
+  void _showCategoryBreakdownSheet({
+    required BuildContext context,
+    required String title,
+    required List<Map<String, dynamic>> fullData,
+    required Color accentColor,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+          ),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.outline.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-              textAlign: TextAlign.center,
+              // Title
+              Padding(
+                padding: EdgeInsets.fromLTRB(4.w, 2.h, 4.w, 1.h),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              // Category list
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+                  itemCount: fullData.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (_, index) {
+                    final item = fullData[index];
+                    final category = item['category'] as TransactionCategory?;
+                    // Localize the category name at display time
+                    final label = category != null
+                        ? getLocalizedCategoryLabel(ctx, category)
+                        : '';
+                    final amount = (item['amount'] as num).toDouble();
+                    final percentage = (item['percentage'] as num).toDouble();
+                    final iconName = item['iconName'] as String;
+
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 1.5.h),
+                      child: Row(
+                        children: [
+                          // Icon
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: accentColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: CustomIconWidget(
+                              iconName: iconName,
+                              color: accentColor,
+                              size: 20,
+                            ),
+                          ),
+                          SizedBox(width: 3.w),
+                          // Category name and percentage
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  label,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  '${percentage.toStringAsFixed(1)}%',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Amount
+                          Text(
+                            IncoreNumberFormatter.formatMoney(
+                              amount,
+                              locale: _currencyLocale,
+                              symbol: _currencySymbol,
+                              currencyCode: _currencyCode,
+                            ),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: accentColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: 2.h),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Builds a card container with category tile cards inside.
+  Widget _buildCategoryTilesCard({
+    required BuildContext context,
+    required String title,
+    required List<Map<String, dynamic>> data,
+    required Color accentColor,
+    required List<Map<String, dynamic>> fullData,
+    required VoidCallback onViewAll,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(4.w),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.18),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.06),
+            offset: const Offset(0, 6),
+            blurRadius: 18,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w700,
             ),
-            SizedBox(height: 2.h),
-            ElevatedButton(
-              onPressed: _handleRefresh,
-              child: const Text('Retry'),
+          ),
+          SizedBox(height: 2.h),
+          if (data.isEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 2.h),
+              child: Text(
+                l10n.noDataYet,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            )
+          else
+            Row(
+              children: data.map((item) {
+                final category = item['category'] as TransactionCategory?;
+                final isOthers = item['isOthers'] as bool? ?? false;
+                // Localize the category name at display time
+                final categoryName = isOthers
+                    ? l10n.other
+                    : (category != null
+                        ? getLocalizedCategoryLabel(context, category)
+                        : '');
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 1.w),
+                    child: CategoryTileCard(
+                      categoryName: categoryName,
+                      categoryIcon: item['iconName'] as String,
+                      amount: (item['amount'] as num).toDouble(),
+                      percentage: (item['percentage'] as num).toDouble(),
+                      locale: _currencyLocale,
+                      symbol: _currencySymbol,
+                      currencyCode: _currencyCode,
+                      accentColor: accentColor,
+                      isOthersCard: isOthers,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          // Only show "View all" when there are more categories than displayed
+          if (fullData.length > 3) ...[
+            SizedBox(height: 1.5.h),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: onViewAll,
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 2.w),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  l10n.viewAll,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -540,7 +867,11 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _loadError != null
-                  ? _buildErrorState(context)
+                  ? AppErrorWidget(
+                      error: _loadError!,
+                      displayMode: AppErrorDisplayMode.fullScreen,
+                      onRetry: _handleRefresh,
+                    )
                   : _hasNoTransactions
                       ? _buildEmptyState(context)
                       : SingleChildScrollView(
@@ -589,7 +920,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                             // Section 1: Overview
                             // ========================================
                             Text(
-                              'Overview',
+                              l10n.overview,
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
@@ -603,8 +934,9 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                             if (_incomeExpensesData.isEmpty)
                               Text(l10n.notEnoughData),
                             if (_incomeExpensesData.isNotEmpty)
-                              SizedBox(
-                                height: 30.h,
+                              _buildChartCard(
+                                context: context,
+                                title: l10n.incomeVsExpenses,
                                 child: IncomeExpensesChartWidget(
                                   chartData: _incomeExpensesData,
                                   locale: _currencyLocale,
@@ -625,7 +957,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                             // Section 2: Breakdown
                             // ========================================
                             Text(
-                              'Breakdown',
+                              l10n.breakdown,
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
@@ -635,43 +967,35 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                             ),
                             const SizedBox(height: 12),
 
-                            // Income sources
-                            Text(
-                              l10n.incomeSources,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            HorizontalCategoryBreakdownWidget(
+                            // Income sources card with tiles
+                            _buildCategoryTilesCard(
+                              context: context,
+                              title: l10n.incomeSources,
                               data: _incomeCategoryData,
-                              locale: _currencyLocale,
-                              symbol: _currencySymbol,
-                              currencyCode: _currencyCode,
                               accentColor: AppColors.income,
+                              fullData: _fullIncomeCategoryData,
+                              onViewAll: () => _showCategoryBreakdownSheet(
+                                context: context,
+                                title: l10n.incomeSources,
+                                fullData: _fullIncomeCategoryData,
+                                accentColor: AppColors.income,
+                              ),
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 16),
 
-                            // Expense breakdown
-                            Text(
-                              l10n.expenseBreakdown,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            HorizontalCategoryBreakdownWidget(
+                            // Expense breakdown card with tiles
+                            _buildCategoryTilesCard(
+                              context: context,
+                              title: l10n.expenseBreakdown,
                               data: _expenseCategoryData,
-                              locale: _currencyLocale,
-                              symbol: _currencySymbol,
-                              currencyCode: _currencyCode,
                               accentColor: AppColors.expense,
+                              fullData: _fullExpenseCategoryData,
+                              onViewAll: () => _showCategoryBreakdownSheet(
+                                context: context,
+                                title: l10n.expenseBreakdown,
+                                fullData: _fullExpenseCategoryData,
+                                accentColor: AppColors.expense,
+                              ),
                             ),
                             const SizedBox(height: 24),
 
@@ -679,7 +1003,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                             // Section 3: Trends
                             // ========================================
                             Text(
-                              'Trends',
+                              l10n.trends,
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
@@ -691,11 +1015,16 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
                             // Cash Balance chart
                             if (_balanceData.isNotEmpty)
-                              CashBalanceChart(
-                                balanceData: _balanceData,
-                                locale: _currencyLocale,
-                                symbol: _currencySymbol,
-                                currencyCode: _currencyCode,
+                              _buildChartCard(
+                                context: context,
+                                title: l10n.cashBalanceTrend,
+                                child: CashBalanceChart(
+                                  balanceData: _balanceData,
+                                  locale: _currencyLocale,
+                                  symbol: _currencySymbol,
+                                  currencyCode: _currencyCode,
+                                  transactionIndices: _transactionDayIndices,
+                                ),
                               ),
                             const SizedBox(height: 16),
 
@@ -703,8 +1032,9 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                             if (_profitTrendsData.isEmpty)
                               Text(l10n.notEnoughData),
                             if (_profitTrendsData.isNotEmpty)
-                              SizedBox(
-                                height: 30.h,
+                              _buildChartCard(
+                                context: context,
+                                title: l10n.profitTrends,
                                 child: ProfitTrendsChartWidget(
                                   trendData: _profitTrendsData,
                                   locale: _currencyLocale,

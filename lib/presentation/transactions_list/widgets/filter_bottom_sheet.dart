@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
 import '../../../models/payment_method.dart';
@@ -95,6 +96,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final selectedCategoryDbValue = _filters['categoryId'] as String?;
     final selectedPaymentDbValue = _filters['paymentMethod'] as String?;
@@ -246,13 +248,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Filter Transactions',
+                        l10n.filterTransactions,
                         style: theme.textTheme.titleLarge,
                       ),
                       TextButton(
                         onPressed: _clearFilters,
                         child: Text(
-                          'Clear All',
+                          l10n.clearAll,
                           style: theme.textTheme.labelLarge?.copyWith(
                             color: AppColors.error,
                           ),
@@ -276,7 +278,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       children: [
                         const SizedBox(height: 16),
                         Text(
-                          'Date range',
+                          l10n.dateRange,
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -286,29 +288,29 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            _buildDateChip(null, 'All time'),
-                            _buildDateChip('today', 'Today'),
-                            _buildDateChip('week', 'Last 7 days'),
-                            _buildDateChip('month', 'This month'),
-                            _buildDateChip('year', 'This year'),
+                            _buildDateChip(null, l10n.allTime),
+                            _buildDateChip('today', l10n.today),
+                            _buildDateChip('week', l10n.lastSevenDays),
+                            _buildDateChip('month', l10n.thisMonth),
+                            _buildDateChip('year', l10n.thisYear),
                           ],
                         ),
                         SizedBox(height: 3.h),
                         Text(
-                          'Category',
+                          l10n.category,
                           style: theme.textTheme.titleMedium,
                         ),
                         SizedBox(height: 1.8.h),
 
                         // Income first, then Expenses
-                        buildCategorySection('Income', incomeCategories),
+                        buildCategorySection(l10n.income, incomeCategories),
                         SizedBox(height: 3.h),
-                        buildCategorySection('Expenses', expenseCategories),
+                        buildCategorySection(l10n.expenses, expenseCategories),
 
                         SizedBox(height: 3.h),
 
                         Text(
-                          'Payment Method',
+                          l10n.paymentMethod,
                           style: theme.textTheme.titleMedium,
                         ),
                         SizedBox(height: 1.8.h),
@@ -333,7 +335,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 6.h),
                     ),
-                    child: const Text('Apply Filters'),
+                    child: Text(l10n.applyFilters),
                   ),
                 ),
               ],

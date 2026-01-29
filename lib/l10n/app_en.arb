@@ -237,5 +237,163 @@
     "googleSheetsSyncEnabled": "Google Sheets sync enabled",
     "googleSheetsSyncDisabled": "Google Sheets sync disabled",
     "currency": "Currency",
-    "exportDataDescription": "Download your financial data"
+    "exportDataDescription": "Download your financial data",
+    "viewAll": "View all",
+    "up": "Up",
+    "down": "Down",
+    "authErrorTitle": "Session Expired",
+    "authErrorDescription": "Your session has ended. Please log in again to continue.",
+    "logInAgain": "Log in again",
+
+    "upcomingBills": "Upcoming Bills",
+    "addBill": "Add bill",
+    "manageBills": "Manage bills",
+    "viewAllRecurringExpenses": "View all {count} recurring expenses",
+    "@viewAllRecurringExpenses": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "dueToday": "Due today",
+    "dueTomorrow": "Due tomorrow",
+    "dueInDays": "Due in {days} days",
+    "@dueInDays": {
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
+    },
+    "dueOnDay": "Due on {day}/{month}",
+    "@dueOnDay": {
+        "placeholders": {
+            "day": {
+                "type": "int"
+            },
+            "month": {
+                "type": "int"
+            }
+        }
+    },
+    "dueOnDayOfMonth": "Due on day {day}",
+    "@dueOnDayOfMonth": {
+        "placeholders": {
+            "day": {
+                "type": "int"
+            }
+        }
+    },
+    "noRecurringExpenses": "No recurring expenses",
+    "addRecurringExpensesHint": "Add recurring expenses to see upcoming bills and short term pressure.",
+    "setUpRecurringExpenses": "Set up recurring expenses",
+    "recurringExpenses": "Recurring Expenses",
+    "addRecurringExpense": "Add recurring expense",
+    "editRecurringExpense": "Edit recurring expense",
+    "recurringExpenseAdded": "Recurring expense added successfully!",
+    "recurringExpenseUpdated": "Recurring expense updated successfully!",
+    "failedToSaveRecurringExpense": "Failed to save recurring expense. Please try again.",
+    "name": "Name",
+    "namePlaceholder": "e.g., Internet bill",
+    "amountPlaceholder": "e.g., 50.00",
+    "dueDay": "Due day",
+    "dueDayHint": "1-31",
+    "dueDayHelp": "Day of the month when bill is due (1-31)",
+    "update": "Update",
+    "add": "Add",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "inactive": "Inactive",
+    "deleteConfirmTitle": "Delete",
+    "deleteConfirmMessage": "Are you sure you want to permanently delete \"{name}\"?",
+    "@deleteConfirmMessage": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "validAmountError": "Please enter a valid amount greater than zero",
+    "dueDayRangeError": "Due day must be between 1 and 31",
+
+    "failedToLoadTransactions": "Failed to load transactions",
+    "noResultsFound": "No results found",
+    "tryAdjustingFilters": "Try adjusting your search or filters.",
+    "clearSearch": "Clear search",
+    "searchByDescriptionOrClient": "Search by description or client",
+    "filtersApplied": "Filters applied",
+    "noDescription": "No description",
+    "undo": "Undo",
+    "deleteTransaction": "Delete transaction?",
+    "deleteTransactionConfirm": "This transaction will be removed from your list. You can undo this action.",
+
+    "filterTransactions": "Filter Transactions",
+    "clearAll": "Clear All",
+    "dateRange": "Date range",
+    "allTime": "All time",
+    "lastSevenDays": "Last 7 days",
+    "thisYear": "This year",
+
+    "overview": "Overview",
+    "breakdown": "Breakdown",
+    "trends": "Trends",
+    "monthOverMonth": "Month over Month",
+    "comparedWithLastMonth": "Compared with last month",
+    "percentOfExpenses": "{percent}% of expenses",
+    "@percentOfExpenses": {
+        "placeholders": {
+            "percent": {
+                "type": "String"
+            }
+        }
+    },
+    "somethingWentWrong": "Something went wrong",
+    "addTransactionsToSeeTrends": "Add a few transactions to see trends and breakdowns",
+    "ok": "OK",
+
+    "pleaseEnterAmount": "Please enter an amount",
+    "pleaseEnterDescription": "Please enter a description",
+    "pleaseSelectCategory": "Please select a category",
+    "pleaseSelectPaymentMethod": "Please select a payment method",
+    "transactionAddedSuccess": "Transaction added successfully!",
+    "transactionUpdatedSuccess": "Transaction updated successfully!",
+    "failedToAddTransaction": "Failed to add transaction. Please try again.",
+    "enterClientHint": "Enter client name",
+    "editTransaction": "Edit Transaction",
+
+    "catSales": "Sales",
+    "catFreelance": "Freelance",
+    "catConsulting": "Consulting",
+    "catRetainers": "Retainers",
+    "catSubscriptionsIncome": "Subscriptions",
+    "catCommissions": "Commissions",
+    "catInterest": "Interest",
+    "catRefundsIncome": "Refunds",
+    "catOtherIncome": "Other Income",
+    "catAdvertising": "Advertising",
+    "catSoftware": "Software",
+    "catSubscriptionsExpense": "Subscriptions",
+    "catEquipment": "Equipment",
+    "catSupplies": "Supplies",
+    "catAccounting": "Accounting",
+    "catContractors": "Contractors",
+    "catTravel": "Travel",
+    "catMeals": "Meals",
+    "catRent": "Rent",
+    "catInsurance": "Insurance",
+    "catTaxes": "Taxes",
+    "catFees": "Fees",
+    "catSalaries": "Salaries",
+    "catTraining": "Training",
+    "catOtherExpense": "Other Expense",
+
+    "payMbWay": "MB Way",
+    "payPaypal": "PayPal",
+    "payDirectDebit": "Direct Debit",
+
+    "networkErrorTitle": "Connection Problem",
+    "networkErrorMessage": "Please check your internet connection and try again.",
+    "unknownErrorTitle": "Something Went Wrong",
+    "unknownErrorMessage": "An unexpected error occurred. Please try again."
 }

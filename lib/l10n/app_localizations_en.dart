@@ -51,12 +51,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vsLastMonth => 'vs last month';
 
   @override
-  String get up => 'Up';
-
-  @override
-  String get down => 'Down';
-
-  @override
   String get topExpenses => 'Top Expenses';
 
   @override
@@ -651,4 +645,331 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportDataDescription => 'Download your financial data';
+
+  @override
+  String get viewAll => 'View all';
+
+  @override
+  String get up => 'Up';
+
+  @override
+  String get down => 'Down';
+
+  @override
+  String get authErrorTitle => 'Session Expired';
+
+  @override
+  String get authErrorDescription => 'Your session has ended. Please log in again to continue.';
+
+  @override
+  String get logInAgain => 'Log in again';
+
+  @override
+  String get upcomingBills => 'Upcoming Bills';
+
+  @override
+  String get addBill => 'Add bill';
+
+  @override
+  String get manageBills => 'Manage bills';
+
+  @override
+  String viewAllRecurringExpenses(int count) {
+    return 'View all $count recurring expenses';
+  }
+
+  @override
+  String get dueToday => 'Due today';
+
+  @override
+  String get dueTomorrow => 'Due tomorrow';
+
+  @override
+  String dueInDays(int days) {
+    return 'Due in $days days';
+  }
+
+  @override
+  String dueOnDay(int day, int month) {
+    return 'Due on $day/$month';
+  }
+
+  @override
+  String dueOnDayOfMonth(int day) {
+    return 'Due on day $day';
+  }
+
+  @override
+  String get noRecurringExpenses => 'No recurring expenses';
+
+  @override
+  String get addRecurringExpensesHint => 'Add recurring expenses to see upcoming bills and short term pressure.';
+
+  @override
+  String get setUpRecurringExpenses => 'Set up recurring expenses';
+
+  @override
+  String get recurringExpenses => 'Recurring Expenses';
+
+  @override
+  String get addRecurringExpense => 'Add recurring expense';
+
+  @override
+  String get editRecurringExpense => 'Edit recurring expense';
+
+  @override
+  String get recurringExpenseAdded => 'Recurring expense added successfully!';
+
+  @override
+  String get recurringExpenseUpdated => 'Recurring expense updated successfully!';
+
+  @override
+  String get failedToSaveRecurringExpense => 'Failed to save recurring expense. Please try again.';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get namePlaceholder => 'e.g., Internet bill';
+
+  @override
+  String get amountPlaceholder => 'e.g., 50.00';
+
+  @override
+  String get dueDay => 'Due day';
+
+  @override
+  String get dueDayHint => '1-31';
+
+  @override
+  String get dueDayHelp => 'Day of the month when bill is due (1-31)';
+
+  @override
+  String get update => 'Update';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get deactivate => 'Deactivate';
+
+  @override
+  String get reactivate => 'Reactivate';
+
+  @override
+  String get inactive => 'Inactive';
+
+  @override
+  String get deleteConfirmTitle => 'Delete';
+
+  @override
+  String deleteConfirmMessage(String name) {
+    return 'Are you sure you want to permanently delete \"$name\"?';
+  }
+
+  @override
+  String get validAmountError => 'Please enter a valid amount greater than zero';
+
+  @override
+  String get dueDayRangeError => 'Due day must be between 1 and 31';
+
+  @override
+  String get failedToLoadTransactions => 'Failed to load transactions';
+
+  @override
+  String get noResultsFound => 'No results found';
+
+  @override
+  String get tryAdjustingFilters => 'Try adjusting your search or filters.';
+
+  @override
+  String get clearSearch => 'Clear search';
+
+  @override
+  String get searchByDescriptionOrClient => 'Search by description or client';
+
+  @override
+  String get filtersApplied => 'Filters applied';
+
+  @override
+  String get noDescription => 'No description';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get deleteTransaction => 'Delete transaction?';
+
+  @override
+  String get deleteTransactionConfirm => 'This transaction will be removed from your list. You can undo this action.';
+
+  @override
+  String get filterTransactions => 'Filter Transactions';
+
+  @override
+  String get clearAll => 'Clear All';
+
+  @override
+  String get dateRange => 'Date range';
+
+  @override
+  String get allTime => 'All time';
+
+  @override
+  String get lastSevenDays => 'Last 7 days';
+
+  @override
+  String get thisYear => 'This year';
+
+  @override
+  String get overview => 'Overview';
+
+  @override
+  String get breakdown => 'Breakdown';
+
+  @override
+  String get trends => 'Trends';
+
+  @override
+  String get monthOverMonth => 'Month over Month';
+
+  @override
+  String get comparedWithLastMonth => 'Compared with last month';
+
+  @override
+  String percentOfExpenses(String percent) {
+    return '$percent% of expenses';
+  }
+
+  @override
+  String get somethingWentWrong => 'Something went wrong';
+
+  @override
+  String get addTransactionsToSeeTrends => 'Add a few transactions to see trends and breakdowns';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get pleaseEnterAmount => 'Please enter an amount';
+
+  @override
+  String get pleaseEnterDescription => 'Please enter a description';
+
+  @override
+  String get pleaseSelectCategory => 'Please select a category';
+
+  @override
+  String get pleaseSelectPaymentMethod => 'Please select a payment method';
+
+  @override
+  String get transactionAddedSuccess => 'Transaction added successfully!';
+
+  @override
+  String get transactionUpdatedSuccess => 'Transaction updated successfully!';
+
+  @override
+  String get failedToAddTransaction => 'Failed to add transaction. Please try again.';
+
+  @override
+  String get enterClientHint => 'Enter client name';
+
+  @override
+  String get editTransaction => 'Edit Transaction';
+
+  @override
+  String get catSales => 'Sales';
+
+  @override
+  String get catFreelance => 'Freelance';
+
+  @override
+  String get catConsulting => 'Consulting';
+
+  @override
+  String get catRetainers => 'Retainers';
+
+  @override
+  String get catSubscriptionsIncome => 'Subscriptions';
+
+  @override
+  String get catCommissions => 'Commissions';
+
+  @override
+  String get catInterest => 'Interest';
+
+  @override
+  String get catRefundsIncome => 'Refunds';
+
+  @override
+  String get catOtherIncome => 'Other Income';
+
+  @override
+  String get catAdvertising => 'Advertising';
+
+  @override
+  String get catSoftware => 'Software';
+
+  @override
+  String get catSubscriptionsExpense => 'Subscriptions';
+
+  @override
+  String get catEquipment => 'Equipment';
+
+  @override
+  String get catSupplies => 'Supplies';
+
+  @override
+  String get catAccounting => 'Accounting';
+
+  @override
+  String get catContractors => 'Contractors';
+
+  @override
+  String get catTravel => 'Travel';
+
+  @override
+  String get catMeals => 'Meals';
+
+  @override
+  String get catRent => 'Rent';
+
+  @override
+  String get catInsurance => 'Insurance';
+
+  @override
+  String get catTaxes => 'Taxes';
+
+  @override
+  String get catFees => 'Fees';
+
+  @override
+  String get catSalaries => 'Salaries';
+
+  @override
+  String get catTraining => 'Training';
+
+  @override
+  String get catOtherExpense => 'Other Expense';
+
+  @override
+  String get payMbWay => 'MB Way';
+
+  @override
+  String get payPaypal => 'PayPal';
+
+  @override
+  String get payDirectDebit => 'Direct Debit';
+
+  @override
+  String get networkErrorTitle => 'Connection Problem';
+
+  @override
+  String get networkErrorMessage => 'Please check your internet connection and try again.';
+
+  @override
+  String get unknownErrorTitle => 'Something Went Wrong';
+
+  @override
+  String get unknownErrorMessage => 'An unexpected error occurred. Please try again.';
 }

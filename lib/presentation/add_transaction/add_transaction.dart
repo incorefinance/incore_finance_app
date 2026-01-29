@@ -5,8 +5,13 @@ import 'package:sizer/sizer.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
 import 'package:incore_finance/models/transaction_record.dart';
+import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../core/app_export.dart';
+import '../../core/errors/app_error.dart';
+import '../../core/errors/app_error_classifier.dart';
+import '../../core/logging/app_logger.dart';
+import '../../services/auth_guard.dart';
 import '../../utils/number_formatter.dart';
 import '../../utils/snackbar_helper.dart';
 import './widgets/amount_input_widget.dart';
@@ -120,24 +125,26 @@ class _AddTransactionState extends State<AddTransaction> {
   }
 
   Future<void> _handleSave() async {
+    final l10n = AppLocalizations.of(context)!;
+
     // Validate all required fields before proceeding
     if (_amountController.text.isEmpty) {
-      SnackbarHelper.showError(context, 'Please enter an amount');
+      SnackbarHelper.showError(context, l10n.pleaseEnterAmount);
       return;
     }
 
     if (_descriptionController.text.isEmpty) {
-      SnackbarHelper.showError(context, 'Please enter a description');
+      SnackbarHelper.showError(context, l10n.pleaseEnterDescription);
       return;
     }
 
     if (_selectedCategory == null) {
-      SnackbarHelper.showError(context, 'Please select a category');
+      SnackbarHelper.showError(context, l10n.pleaseSelectCategory);
       return;
     }
 
     if (_selectedPaymentMethod == null) {
-      SnackbarHelper.showError(context, 'Please select a payment method');
+      SnackbarHelper.showError(context, l10n.pleaseSelectPaymentMethod);
       return;
     }
 
@@ -155,7 +162,7 @@ class _AddTransactionState extends State<AddTransaction> {
         setState(() => _isSaving = false);
         SnackbarHelper.showError(
           context,
-          'Please enter a valid amount greater than zero',
+          l10n.validAmountError,
         );
         return;
       }
@@ -196,33 +203,45 @@ class _AddTransactionState extends State<AddTransaction> {
         // Show success message
        SnackbarHelper.showSuccess(
           context,
-          _isEditing ? 'Transaction updated successfully!' : 'Transaction added successfully!',
+          _isEditing ? l10n.transactionUpdatedSuccess : l10n.transactionAddedSuccess,
         );
 
         // Navigate back and return true to indicate success
         Navigator.of(context).pop(true);
       }
-       } catch (e, stackTrace) {
-      // TEMPORARY DEBUG LOGGING – to understand why Supabase is failing
-      // This will print to your terminal / VS Code debug console.
-      // Do NOT leave prints like this in production, but it is perfect for Sprint 01 debugging.
-      // -----------------------------------------------------------
-      // ignore: avoid_print
-      print('=== ERROR ADDING TRANSACTION ===');
-      // ignore: avoid_print
-      print('Error: $e');
-      // ignore: avoid_print
-      print('StackTrace: $stackTrace');
-      // -----------------------------------------------------------
+    } catch (e, st) {
+      AppLogger.e('Error saving transaction', error: e, stackTrace: st);
+      final appError = AppErrorClassifier.classify(e, stackTrace: st);
 
-      if (mounted) {
-        setState(() => _isSaving = false);
+      if (!mounted) return;
 
-        SnackbarHelper.showError(
-          context,
-          'Failed to add transaction. Please try again.',
-        );
+      setState(() => _isSaving = false);
+
+      // Route to auth error screen for auth failures
+      if (appError.category == AppErrorCategory.auth) {
+        AuthGuard.routeToErrorIfInvalid(context, reason: appError.debugReason);
+        return;
       }
+
+      // For network errors, show snackbar with retry action
+      if (appError.category == AppErrorCategory.network) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.networkErrorMessage),
+            action: SnackBarAction(
+              label: l10n.retry,
+              onPressed: _handleSave,
+            ),
+          ),
+        );
+        return;
+      }
+
+      // For unknown errors, show generic failure message
+      SnackbarHelper.showError(
+        context,
+        l10n.failedToAddTransaction,
+      );
     }
   }
 
@@ -270,6 +289,7 @@ class _AddTransactionState extends State<AddTransaction> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -296,7 +316,7 @@ class _AddTransactionState extends State<AddTransaction> {
                   TextButton(
                     onPressed: _isSaving ? null : () => Navigator.pop(context),
                     child: Text(
-                      'Cancel',
+                      l10n.cancel,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color:
                             _isSaving
@@ -306,7 +326,7 @@ class _AddTransactionState extends State<AddTransaction> {
                     ),
                   ),
                   Text(
-                    'Add Transaction',
+                    _isEditing ? l10n.editTransaction : l10n.addTransaction,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -326,7 +346,7 @@ class _AddTransactionState extends State<AddTransaction> {
                         onPressed:
                             _isSaveEnabled && !_isSaving ? _handleSave : null,
                         child: Text(
-                          'Save',
+                          l10n.save,
                           style: theme.textTheme.titleMedium?.copyWith(
                             color:
                                 _isSaveEnabled && !_isSaving
@@ -383,8 +403,8 @@ class _AddTransactionState extends State<AddTransaction> {
                     TextField(
                       controller: _descriptionController,
                       decoration: InputDecoration(
-                        labelText: 'Description',
-                        hintText: 'Enter transaction description',
+                        labelText: l10n.description,
+                        hintText: l10n.enterDescription,
                         prefixIcon: Padding(
                           padding: EdgeInsets.all(3.w),
                           child: CustomIconWidget(
@@ -435,8 +455,8 @@ class _AddTransactionState extends State<AddTransaction> {
                     TextField(
                       controller: _clientController,
                       decoration: InputDecoration(
-                        labelText: 'Client (Optional)',
-                        hintText: 'Enter client name',
+                        labelText: l10n.optionalClient,
+                        hintText: l10n.enterClientHint,
                         prefixIcon: Padding(
                           padding: EdgeInsets.all(3.w),
                           child: CustomIconWidget(
@@ -492,7 +512,7 @@ class _AddTransactionState extends State<AddTransaction> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Date',
+                                    l10n.date,
                                     style: theme.textTheme.labelSmall?.copyWith(
                                       color: colorScheme.onSurface.withValues(
                                         alpha: 0.6,
