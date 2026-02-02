@@ -1110,4 +1110,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get upgradeForExport => 'Upgrade to Premium to export data';
+
+  @override
+  String get incomeSetupTitle => 'Income setup';
+
+  @override
+  String get incomeSetupSubtitle => 'Choose what best matches your income';
+
+  @override
+  String get incomeTypeFixed => 'Fixed income';
+
+  @override
+  String get incomeTypeFixedDesc => 'Consistent monthly amount like salary';
+
+  @override
+  String get incomeTypeVariable => 'Variable income';
+
+  @override
+  String get incomeTypeVariableDesc => 'Changes month to month like freelance';
+
+  @override
+  String get incomeTypeMixed => 'Mixed income';
+
+  @override
+  String get incomeTypeMixedDesc => 'Combination of fixed and variable';
+
+  @override
+  String get monthlyEstimateLabel => 'Monthly estimate (optional)';
+
+  @override
+  String get monthlyEstimateHint => 'Enter your typical monthly income';
 }

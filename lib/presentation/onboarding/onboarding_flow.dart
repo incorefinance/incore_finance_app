@@ -5,6 +5,7 @@ import '../../services/subscription/subscription_service.dart';
 import '../../routes/app_routes.dart';
 import 'onboarding_welcome_screen.dart';
 import 'onboarding_currency_screen.dart';
+import 'income_setup_screen.dart';
 import 'onboarding_starting_balance_screen.dart';
 import 'onboarding_recurring_expenses_screen.dart';
 import 'onboarding_done_screen.dart';
@@ -13,6 +14,7 @@ import 'onboarding_done_screen.dart';
 enum OnboardingStep {
   welcome,
   currency,
+  income,
   startingBalance,
   recurringExpenses,
   done,
@@ -43,6 +45,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         _goToStep(OnboardingStep.currency);
         break;
       case OnboardingStep.currency:
+        _goToStep(OnboardingStep.income);
+        break;
+      case OnboardingStep.income:
         _goToStep(OnboardingStep.startingBalance);
         break;
       case OnboardingStep.startingBalance:
@@ -78,6 +83,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           onContinue: _nextStep,
         ),
       OnboardingStep.currency => OnboardingCurrencyScreen(
+          onContinue: _nextStep,
+        ),
+      OnboardingStep.income => IncomeSetupScreen(
           onContinue: _nextStep,
         ),
       OnboardingStep.startingBalance => OnboardingStartingBalanceScreen(

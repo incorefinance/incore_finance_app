@@ -444,5 +444,16 @@
     "privacyPolicyDesc": "Ver a nossa política de privacidade",
     "termsOfService": "Termos de Serviço",
     "termsOfServiceDesc": "Ver termos e condições",
-    "upgradeForExport": "Atualizar para Premium para exportar dados"
+    "upgradeForExport": "Atualizar para Premium para exportar dados",
+
+    "incomeSetupTitle": "Configuração de rendimento",
+    "incomeSetupSubtitle": "Escolha o que melhor descreve o seu rendimento",
+    "incomeTypeFixed": "Rendimento fixo",
+    "incomeTypeFixedDesc": "Valor mensal consistente como salário",
+    "incomeTypeVariable": "Rendimento variável",
+    "incomeTypeVariableDesc": "Muda de mês para mês como freelance",
+    "incomeTypeMixed": "Rendimento misto",
+    "incomeTypeMixedDesc": "Combinação de fixo e variável",
+    "monthlyEstimateLabel": "Estimativa mensal (opcional)",
+    "monthlyEstimateHint": "Introduza o seu rendimento mensal típico"
 }
