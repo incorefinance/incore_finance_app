@@ -39,17 +39,29 @@ class OnboardingStatusRepository {
 
   /// Mark onboarding as completed for the current user.
   /// Upserts the user row with onboarding_completed = true and completed_at = now().
+  /// Throws if income_type is not set (safety guard).
   Future<void> markOnboardingCompleted() async {
     final user = _client.auth.currentUser;
     if (user == null) {
       throw Exception('No authenticated user');
     }
 
+    // Guard: verify income_type is set before allowing completion
+    final existing = await _client
+        .from('user_onboarding_status')
+        .select('income_type')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+    if (existing == null || existing['income_type'] == null) {
+      throw Exception('Cannot complete onboarding: income_type not set');
+    }
+
     await _client.from('user_onboarding_status').upsert({
       'user_id': user.id,
       'onboarding_completed': true,
       'completed_at': DateTime.now().toUtc().toIso8601String(),
-    });
+    }, onConflict: 'user_id');
   }
 
   /// Reset onboarding status for the current user.

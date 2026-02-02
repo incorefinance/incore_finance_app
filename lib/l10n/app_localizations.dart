@@ -2260,6 +2260,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Upgrade to Premium to export data'**
   String get upgradeForExport;
+
+  /// No description provided for @incomeSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Income setup'**
+  String get incomeSetupTitle;
+
+  /// No description provided for @incomeSetupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what best matches your income'**
+  String get incomeSetupSubtitle;
+
+  /// No description provided for @incomeTypeFixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed income'**
+  String get incomeTypeFixed;
+
+  /// No description provided for @incomeTypeFixedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Consistent monthly amount like salary'**
+  String get incomeTypeFixedDesc;
+
+  /// No description provided for @incomeTypeVariable.
+  ///
+  /// In en, this message translates to:
+  /// **'Variable income'**
+  String get incomeTypeVariable;
+
+  /// No description provided for @incomeTypeVariableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes month to month like freelance'**
+  String get incomeTypeVariableDesc;
+
+  /// No description provided for @incomeTypeMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed income'**
+  String get incomeTypeMixed;
+
+  /// No description provided for @incomeTypeMixedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Combination of fixed and variable'**
+  String get incomeTypeMixedDesc;
+
+  /// No description provided for @monthlyEstimateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly estimate (optional)'**
+  String get monthlyEstimateLabel;
+
+  /// No description provided for @monthlyEstimateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your typical monthly income'**
+  String get monthlyEstimateHint;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

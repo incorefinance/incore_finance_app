@@ -444,5 +444,16 @@
     "privacyPolicyDesc": "View our privacy policy",
     "termsOfService": "Terms of Service",
     "termsOfServiceDesc": "View terms and conditions",
-    "upgradeForExport": "Upgrade to Premium to export data"
+    "upgradeForExport": "Upgrade to Premium to export data",
+
+    "incomeSetupTitle": "Income setup",
+    "incomeSetupSubtitle": "Choose what best matches your income",
+    "incomeTypeFixed": "Fixed income",
+    "incomeTypeFixedDesc": "Consistent monthly amount like salary",
+    "incomeTypeVariable": "Variable income",
+    "incomeTypeVariableDesc": "Changes month to month like freelance",
+    "incomeTypeMixed": "Mixed income",
+    "incomeTypeMixedDesc": "Combination of fixed and variable",
+    "monthlyEstimateLabel": "Monthly estimate (optional)",
+    "monthlyEstimateHint": "Enter your typical monthly income"
 }

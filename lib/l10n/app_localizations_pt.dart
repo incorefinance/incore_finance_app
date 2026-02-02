@@ -1110,4 +1110,34 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get upgradeForExport => 'Atualizar para Premium para exportar dados';
+
+  @override
+  String get incomeSetupTitle => 'Configuração de rendimento';
+
+  @override
+  String get incomeSetupSubtitle => 'Escolha o que melhor descreve o seu rendimento';
+
+  @override
+  String get incomeTypeFixed => 'Rendimento fixo';
+
+  @override
+  String get incomeTypeFixedDesc => 'Valor mensal consistente como salário';
+
+  @override
+  String get incomeTypeVariable => 'Rendimento variável';
+
+  @override
+  String get incomeTypeVariableDesc => 'Muda de mês para mês como freelance';
+
+  @override
+  String get incomeTypeMixed => 'Rendimento misto';
+
+  @override
+  String get incomeTypeMixedDesc => 'Combinação de fixo e variável';
+
+  @override
+  String get monthlyEstimateLabel => 'Estimativa mensal (opcional)';
+
+  @override
+  String get monthlyEstimateHint => 'Introduza o seu rendimento mensal típico';
 }
