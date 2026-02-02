@@ -13,6 +13,7 @@ class SettingTile extends StatelessWidget {
   final VoidCallback? onTap;
   final Color? iconColor;
   final bool showDivider;
+  final bool enabled;
 
   const SettingTile({
     super.key,
@@ -23,6 +24,7 @@ class SettingTile extends StatelessWidget {
     this.onTap,
     this.iconColor,
     this.showDivider = true,
+    this.enabled = true,
   });
 
   @override
@@ -30,12 +32,23 @@ class SettingTile extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // Determine colors based on enabled state
+    final effectiveIconColor = enabled
+        ? (iconColor ?? colorScheme.onSurfaceVariant)
+        : colorScheme.onSurface.withValues(alpha: 0.38);
+    final effectiveTitleColor = enabled
+        ? colorScheme.onSurface
+        : colorScheme.onSurface.withValues(alpha: 0.38);
+    final effectiveSubtitleColor = enabled
+        ? colorScheme.onSurface.withValues(alpha: 0.6)
+        : colorScheme.onSurface.withValues(alpha: 0.38);
+
     return Column(
       children: [
         Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: onTap,
+            onTap: enabled ? onTap : null,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
@@ -46,15 +59,14 @@ class SettingTile extends StatelessWidget {
                     width: 10.w,
                     height: 10.w,
                     decoration: BoxDecoration(
-                      color: (iconColor ?? colorScheme.primary)
-                          .withValues(alpha: 0.1),
+                      color: effectiveIconColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(
                       child: CustomIconWidget(
                         iconName: iconName,
                         size: 5.w,
-                        color: iconColor ?? colorScheme.primary,
+                        color: effectiveIconColor,
                       ),
                     ),
                   ),
@@ -69,6 +81,7 @@ class SettingTile extends StatelessWidget {
                           title,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w500,
+                            color: effectiveTitleColor,
                           ),
                         ),
                         if (subtitle != null) ...[
@@ -76,8 +89,7 @@ class SettingTile extends StatelessWidget {
                           Text(
                             subtitle!,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color:
-                                  colorScheme.onSurface.withValues(alpha: 0.6),
+                              color: effectiveSubtitleColor,
                             ),
                           ),
                         ],

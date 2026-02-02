@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.incore_finance.app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 34  // Superwall requires compileSdk 34
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -30,7 +30,7 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled true
-        minSdkVersion 23
+        minSdkVersion 26  // Superwall requires minSdk 26
     }
 
     buildTypes {

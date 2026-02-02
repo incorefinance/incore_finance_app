@@ -42,7 +42,7 @@ class CustomBottomBar extends StatelessWidget {
           label: 'Analytics',
           icon: Icons.analytics_outlined,
           selectedIcon: Icons.analytics,
-          route: '/analytics-dashboard',
+          route: '/analytics-gate',
         );
       case BottomBarItem.settings:
         return const _NavConfig(
@@ -60,7 +60,7 @@ class CustomBottomBar extends StatelessWidget {
     onItemSelected(item);
 
     final route = _config(item).route;
-    Navigator.pushReplacementNamed(context, route);
+    Navigator.of(context, rootNavigator: true).pushReplacementNamed(route);
   }
 
   @override

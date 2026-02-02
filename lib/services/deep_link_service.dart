@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:superwallkit_flutter/superwallkit_flutter.dart';
 
 /// Placeholder for the deep link scheme. Configure this in:
 /// - Android: android/app/src/main/AndroidManifest.xml
@@ -82,6 +83,13 @@ class DeepLinkService {
   /// This supports both implicit flow fragments and PKCE code flows.
   Future<void> _handleDeepLink(Uri uri) async {
     debugPrint('DeepLinkService: Received deep link: $uri');
+
+    // Let Superwall handle its own deep links (for paywall previews)
+    final handled = await Superwall.shared.handleDeepLink(uri);
+    if (handled) {
+      debugPrint('DeepLinkService: Link handled by Superwall');
+      return;
+    }
 
     final hasFragmentTokens = uri.fragment.isNotEmpty;
     final hasPkceCode = uri.queryParameters['code'] != null;

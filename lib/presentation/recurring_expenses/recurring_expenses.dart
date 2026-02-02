@@ -4,6 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/errors/app_error_classifier.dart';
 import '../../core/logging/app_logger.dart';
+import '../../domain/usage/limit_reached_exception.dart';
 import '../../models/recurring_expense.dart';
 import '../../services/auth_guard.dart';
 import '../../services/recurring_expenses_repository.dart';
@@ -123,6 +124,11 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
         await _repository.reactivateRecurringExpense(id: expense.id);
       }
       _loadRecurringExpenses();
+    } on LimitReachedException {
+      // Paywall was shown, user did not upgrade
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      SnackbarHelper.showInfo(context, l10n.limitReachedRecurring);
     } catch (e, st) {
       AppLogger.e('Toggle recurring expense error', error: e, stackTrace: st);
       final appError = AppErrorClassifier.classify(e, stackTrace: st);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../domain/usage/limit_reached_exception.dart';
 import '../../../models/recurring_expense.dart';
 import '../../../services/recurring_expenses_repository.dart';
 import '../../../services/user_settings_service.dart';
@@ -150,6 +151,13 @@ class _AddEditRecurringExpenseDialogState
               : l10n.recurringExpenseAdded,
         );
         Navigator.pop(context, true);
+      }
+    } on LimitReachedException {
+      // Paywall was shown, user did not upgrade
+      // Stay on dialog so user can try again or cancel
+      if (mounted) {
+        setState(() => _isSaving = false);
+        SnackbarHelper.showInfo(context, l10n.limitReachedRecurring);
       }
     } catch (e) {
       if (mounted) {

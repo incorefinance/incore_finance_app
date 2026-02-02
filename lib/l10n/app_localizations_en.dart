@@ -972,4 +972,142 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unknownErrorMessage => 'An unexpected error occurred. Please try again.';
+
+  @override
+  String get subscription => 'Subscription';
+
+  @override
+  String get freePlan => 'Free Plan';
+
+  @override
+  String get premiumPlan => 'Premium';
+
+  @override
+  String get freeDescription => 'Basic features with usage limits';
+
+  @override
+  String get premiumDescription => 'Full access to all features';
+
+  @override
+  String get manageSubscription => 'Manage Subscription';
+
+  @override
+  String get manageSubscriptionHint => 'Open your device settings to manage your subscription';
+
+  @override
+  String get restorePurchases => 'Restore Purchases';
+
+  @override
+  String get purchasesRestored => 'Purchases restored successfully';
+
+  @override
+  String get restoreFailed => 'Failed to restore purchases';
+
+  @override
+  String get upgradeToPremium => 'Upgrade to Premium';
+
+  @override
+  String get premiumFeatures => 'Premium Features';
+
+  @override
+  String get featureAnalytics => 'Advanced analytics and insights';
+
+  @override
+  String get featureHistoricalData => 'Access to historical data';
+
+  @override
+  String get featureExportData => 'Export data to PDF and CSV';
+
+  @override
+  String get featureUnlimitedEntries => 'Unlimited transactions and entries';
+
+  @override
+  String get limitReachedMonthly => 'You have reached your free plan limit for this month';
+
+  @override
+  String get limitReachedRecurring => 'You have reached your free plan limit for active recurring expenses';
+
+  @override
+  String get account => 'Account';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get deleteAccount => 'Delete Account';
+
+  @override
+  String get deleteAccountDesc => 'Permanently delete your account';
+
+  @override
+  String get deleteAccountConfirm => 'Type DELETE to confirm:';
+
+  @override
+  String get currentPlan => 'Current Plan';
+
+  @override
+  String get availableOnMobileOnly => 'Available on mobile only';
+
+  @override
+  String get restorePurchasesDesc => 'Restore previous purchases';
+
+  @override
+  String get firstDayOfWeek => 'First Day of Week';
+
+  @override
+  String get sunday => 'Sunday';
+
+  @override
+  String get monday => 'Monday';
+
+  @override
+  String get resetOnboarding => 'Reset Onboarding';
+
+  @override
+  String get resetOnboardingDesc => 'Go through setup again';
+
+  @override
+  String get clearCache => 'Clear Cache';
+
+  @override
+  String get clearCacheDesc => 'Free up storage space';
+
+  @override
+  String get diagnostics => 'Diagnostics';
+
+  @override
+  String get diagnosticsDesc => 'View app information';
+
+  @override
+  String get buildVersion => 'Build Version';
+
+  @override
+  String get lastSync => 'Last Sync';
+
+  @override
+  String get lastError => 'Last Error';
+
+  @override
+  String get notAvailable => 'Not available';
+
+  @override
+  String get none => 'None';
+
+  @override
+  String get contactSupport => 'Contact Support';
+
+  @override
+  String get contactSupportDesc => 'Get help with the app';
+
+  @override
+  String get privacyPolicyDesc => 'View our privacy policy';
+
+  @override
+  String get termsOfService => 'Terms of Service';
+
+  @override
+  String get termsOfServiceDesc => 'View terms and conditions';
+
+  @override
+  String get upgradeForExport => 'Upgrade to Premium to export data';
 }

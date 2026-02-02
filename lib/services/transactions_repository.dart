@@ -9,14 +9,36 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/core/state/transactions_change_notifier.dart';
+import 'package:incore_finance/core/logging/app_logger.dart';
+import 'package:incore_finance/data/usage/usage_metrics_repository.dart';
+import 'package:incore_finance/data/usage/supabase_windowed_usage_counter.dart';
+import 'package:incore_finance/domain/entitlements/entitlement_service.dart';
+import 'package:incore_finance/domain/entitlements/plan_type.dart';
+import 'package:incore_finance/domain/usage/limit_reached_exception.dart';
+import 'package:incore_finance/domain/usage/windowed_usage_counter.dart';
+import 'package:incore_finance/services/subscription/subscription_service.dart';
 
 class TransactionsRepository {
   final SupabaseClient _client;
+  final WindowedUsageCounter _usageCounter;
+  final SubscriptionService _subscriptionService;
+  final EntitlementService _entitlementService;
 
-  TransactionsRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+  TransactionsRepository({
+    SupabaseClient? client,
+    WindowedUsageCounter? usageCounter,
+    SubscriptionService? subscriptionService,
+    EntitlementService? entitlementService,
+  })  : _client = client ?? Supabase.instance.client,
+        _usageCounter = usageCounter ?? SupabaseWindowedUsageCounter(),
+        _subscriptionService = subscriptionService ?? SubscriptionService(),
+        _entitlementService = entitlementService ?? EntitlementService();
 
   /// Insert a new transaction.
+  ///
+  /// Throws [LimitReachedException] if free user has reached their monthly limit.
+  /// The paywall is presented before throwing, so UI callers should catch
+  /// this exception and show an appropriate message.
   Future<void> addTransaction({
     required double amount,
     required String description,
@@ -26,6 +48,30 @@ class TransactionsRepository {
     required String paymentMethod,
     String? client,
   }) async {
+    // 1. Check plan and enforce limit BEFORE insert
+    final plan = await _subscriptionService.getCurrentPlan();
+
+    if (plan == PlanType.free) {
+      final currentCount = await _usageCounter.transactionsThisMonth();
+      final limit = _entitlementService.getLimitForMetric(
+        UsageMetricsRepository.spendEntriesCount,
+      );
+
+      if (currentCount >= limit) {
+        // Present paywall (no cooldown for limit gates)
+        await _subscriptionService.presentPaywall(
+          'limit_crossed_spend_entries_count',
+        );
+        // DO NOT save - throw exception so UI knows to stay on screen
+        throw LimitReachedException(
+          metricType: 'spend_entries_count',
+          limit: limit,
+          currentCount: currentCount,
+        );
+      }
+    }
+
+    // 2. Proceed with insert
     final userId = _client.auth.currentUser!.id;
 
     final payload = <String, dynamic>{
@@ -56,6 +102,16 @@ class TransactionsRepository {
 
       // Notify listeners that transactions have changed
       TransactionsChangeNotifier.instance.markChanged();
+
+      // 3. Telemetry only - increment usage_metrics for analytics
+      try {
+        await UsageMetricsRepository().increment(
+          UsageMetricsRepository.spendEntriesCount,
+        );
+      } catch (e) {
+        // Log but don't fail the transaction
+        AppLogger.w('Failed to increment spend_entries_count', error: e);
+      }
     } catch (e, stackTrace) {
       // ignore: avoid_print
       print('=== SUPABASE INSERT ERROR ===');
@@ -125,6 +181,16 @@ class TransactionsRepository {
 
       // Notify listeners that transactions have changed
       TransactionsChangeNotifier.instance.markChanged();
+
+      // Track usage metric for monetization
+      try {
+        await UsageMetricsRepository().decrement(
+          UsageMetricsRepository.spendEntriesCount,
+        );
+      } catch (e) {
+        // Log but don't fail the deletion
+        AppLogger.w('Failed to decrement spend_entries_count', error: e);
+      }
     } catch (e, stackTrace) {
       // ignore: avoid_print
       print('=== DELETE TRANSACTION ERROR ===');
@@ -236,5 +302,19 @@ class TransactionsRepository {
 
     // Notify listeners that transactions have changed
     TransactionsChangeNotifier.instance.markChanged();
+
+    // Track usage metric for monetization (restoring adds back to count)
+    try {
+      await UsageMetricsRepository().increment(
+        UsageMetricsRepository.spendEntriesCount,
+      );
+    } catch (e) {
+      // Log but don't fail the restore
+      AppLogger.w('Failed to increment spend_entries_count on restore', error: e);
+    }
   }
 }
+
+// TODO: When income events feature is implemented, wire:
+// - increment(UsageMetricsRepository.incomeEventsCount) on create
+// - decrement(UsageMetricsRepository.incomeEventsCount) on delete

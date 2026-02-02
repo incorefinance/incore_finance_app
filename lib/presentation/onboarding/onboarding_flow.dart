@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/onboarding_service.dart';
+import '../../services/subscription/subscription_service.dart';
 import '../../routes/app_routes.dart';
 import 'onboarding_welcome_screen.dart';
 import 'onboarding_currency_screen.dart';
@@ -58,6 +59,10 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   Future<void> _completeOnboarding() async {
     await _onboardingService.setOnboardingComplete();
+
+    // Trigger post-onboarding paywall (respects cooldown)
+    await SubscriptionService().presentPaywall('post_onboarding');
+
     if (mounted) {
       Navigator.of(context).pushNamedAndRemoveUntil(
         AppRoutes.dashboardHome,
