@@ -455,5 +455,12 @@
     "incomeTypeMixed": "Rendimento misto",
     "incomeTypeMixedDesc": "Combinação de fixo e variável",
     "monthlyEstimateLabel": "Estimativa mensal (opcional)",
-    "monthlyEstimateHint": "Introduza o seu rendimento mensal típico"
+    "monthlyEstimateHint": "Introduza o seu rendimento mensal típico",
+
+    "analyticsHealthy": "Saudável",
+    "analyticsWatch": "Atenção",
+    "analyticsRisk": "Risco",
+    "analyticsIncomeVsExpensesHealthyExplanation": "As despesas estão bem abaixo do rendimento.",
+    "analyticsIncomeVsExpensesWatchExplanation": "As despesas estão perto do rendimento. Convém acompanhar.",
+    "analyticsIncomeVsExpensesRiskExplanation": "As despesas estão acima do rendimento. Isto pode reduzir a sua margem."
 }

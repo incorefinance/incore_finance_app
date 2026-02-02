@@ -1140,4 +1140,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get monthlyEstimateHint => 'Enter your typical monthly income';
+
+  @override
+  String get analyticsHealthy => 'Healthy';
+
+  @override
+  String get analyticsWatch => 'Watch';
+
+  @override
+  String get analyticsRisk => 'Risk';
+
+  @override
+  String get analyticsIncomeVsExpensesHealthyExplanation => 'Expenses are well below income.';
+
+  @override
+  String get analyticsIncomeVsExpensesWatchExplanation => 'Expenses are close to income. Keep an eye on this.';
+
+  @override
+  String get analyticsIncomeVsExpensesRiskExplanation => 'Expenses are higher than income. This may reduce your runway.';
 }
