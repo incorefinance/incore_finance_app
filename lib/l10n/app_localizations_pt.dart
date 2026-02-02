@@ -1140,4 +1140,22 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get monthlyEstimateHint => 'Introduza o seu rendimento mensal típico';
+
+  @override
+  String get analyticsHealthy => 'Saudável';
+
+  @override
+  String get analyticsWatch => 'Atenção';
+
+  @override
+  String get analyticsRisk => 'Risco';
+
+  @override
+  String get analyticsIncomeVsExpensesHealthyExplanation => 'As despesas estão bem abaixo do rendimento.';
+
+  @override
+  String get analyticsIncomeVsExpensesWatchExplanation => 'As despesas estão perto do rendimento. Convém acompanhar.';
+
+  @override
+  String get analyticsIncomeVsExpensesRiskExplanation => 'As despesas estão acima do rendimento. Isto pode reduzir a sua margem.';
 }

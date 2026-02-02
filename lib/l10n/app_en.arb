@@ -455,5 +455,12 @@
     "incomeTypeMixed": "Mixed income",
     "incomeTypeMixedDesc": "Combination of fixed and variable",
     "monthlyEstimateLabel": "Monthly estimate (optional)",
-    "monthlyEstimateHint": "Enter your typical monthly income"
+    "monthlyEstimateHint": "Enter your typical monthly income",
+
+    "analyticsHealthy": "Healthy",
+    "analyticsWatch": "Watch",
+    "analyticsRisk": "Risk",
+    "analyticsIncomeVsExpensesHealthyExplanation": "Expenses are well below income.",
+    "analyticsIncomeVsExpensesWatchExplanation": "Expenses are close to income. Keep an eye on this.",
+    "analyticsIncomeVsExpensesRiskExplanation": "Expenses are higher than income. This may reduce your runway."
 }

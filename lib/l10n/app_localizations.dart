@@ -2320,6 +2320,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter your typical monthly income'**
   String get monthlyEstimateHint;
+
+  /// No description provided for @analyticsHealthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Healthy'**
+  String get analyticsHealthy;
+
+  /// No description provided for @analyticsWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch'**
+  String get analyticsWatch;
+
+  /// No description provided for @analyticsRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Risk'**
+  String get analyticsRisk;
+
+  /// No description provided for @analyticsIncomeVsExpensesHealthyExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses are well below income.'**
+  String get analyticsIncomeVsExpensesHealthyExplanation;
+
+  /// No description provided for @analyticsIncomeVsExpensesWatchExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses are close to income. Keep an eye on this.'**
+  String get analyticsIncomeVsExpensesWatchExplanation;
+
+  /// No description provided for @analyticsIncomeVsExpensesRiskExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses are higher than income. This may reduce your runway.'**
+  String get analyticsIncomeVsExpensesRiskExplanation;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -26,10 +26,25 @@ import 'package:incore_finance/models/transaction_category.dart';
 import 'package:incore_finance/core/state/transactions_change_notifier.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_colors.dart';
+import '../../domain/analytics/interpreters/income_vs_expenses_interpreter.dart';
+import '../../domain/analytics/interpretation/interpretation_status.dart';
 
 String _dateLocale = 'en_US';
 
 enum _AnalyticsRange { m3, m6, m12 }
+
+/// Holds localized interpretation data for Income vs Expenses chart.
+class _IncomeVsExpensesInterpretationData {
+  final InterpretationStatus status;
+  final String label;
+  final String explanation;
+
+  const _IncomeVsExpensesInterpretationData({
+    required this.status,
+    required this.label,
+    required this.explanation,
+  });
+}
 
 /// Analytics Dashboard screen for comprehensive financial insights
 class AnalyticsDashboard extends StatefulWidget {
@@ -196,6 +211,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
       // Load cash balance data (30 days)
       await _loadCashBalanceData();
+
+      if (!mounted) return;
 
       setState(() {
         _isLoading = false;
@@ -561,6 +578,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
     required String title,
     required Widget child,
     double? height,
+    Widget? badge,
+    String? subtitle,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -591,16 +610,141 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w700,
-            ),
+          Row(
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (badge != null) ...[
+                SizedBox(width: 2.w),
+                badge,
+              ],
+            ],
           ),
+          if (subtitle != null) ...[
+            SizedBox(height: 0.75.h),
+            Text(
+              subtitle,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
           SizedBox(height: 2.h),
           Expanded(child: child),
         ],
+      ),
+    );
+  }
+
+  /// Returns localized interpretation for Income vs Expenses chart.
+  /// Uses latest month with meaningful data (income or expenses > 0).
+  _IncomeVsExpensesInterpretationData? _getIncomeVsExpensesInterpretation(
+      BuildContext context) {
+    if (_incomeExpensesData.isEmpty) return null;
+
+    // Find latest month with meaningful data (iterate from end)
+    double income = 0.0;
+    double expenses = 0.0;
+    bool foundMeaningful = false;
+
+    for (int i = _incomeExpensesData.length - 1; i >= 0; i--) {
+      final monthData = _incomeExpensesData[i];
+      final monthIncome = (monthData['income'] as num?)?.toDouble() ?? 0.0;
+      final monthExpenses = (monthData['expenses'] as num?)?.toDouble() ?? 0.0;
+
+      if (monthIncome != 0 || monthExpenses != 0) {
+        income = monthIncome;
+        expenses = monthExpenses;
+        foundMeaningful = true;
+        break;
+      }
+    }
+
+    if (!foundMeaningful) return null;
+
+    final l10n = AppLocalizations.of(context)!;
+
+    const interpreter = IncomeVsExpensesInterpreter();
+    final interpretation = interpreter.interpret(
+      income: income,
+      expenses: expenses,
+    );
+
+    // Map status to localized label and explanation
+    switch (interpretation.status) {
+      case InterpretationStatus.healthy:
+        return _IncomeVsExpensesInterpretationData(
+          status: InterpretationStatus.healthy,
+          label: l10n.analyticsHealthy,
+          explanation: l10n.analyticsIncomeVsExpensesHealthyExplanation,
+        );
+      case InterpretationStatus.watch:
+        return _IncomeVsExpensesInterpretationData(
+          status: InterpretationStatus.watch,
+          label: l10n.analyticsWatch,
+          explanation: l10n.analyticsIncomeVsExpensesWatchExplanation,
+        );
+      case InterpretationStatus.risk:
+        return _IncomeVsExpensesInterpretationData(
+          status: InterpretationStatus.risk,
+          label: l10n.analyticsRisk,
+          explanation: l10n.analyticsIncomeVsExpensesRiskExplanation,
+        );
+    }
+  }
+
+  /// Returns semantic background color for interpretation badge.
+  Color _badgeBackground(InterpretationStatus status, ColorScheme cs) {
+    switch (status) {
+      case InterpretationStatus.healthy:
+        return cs.primaryContainer.withValues(alpha: 0.7);
+      case InterpretationStatus.watch:
+        return cs.tertiaryContainer.withValues(alpha: 0.7);
+      case InterpretationStatus.risk:
+        return cs.errorContainer.withValues(alpha: 0.7);
+    }
+  }
+
+  /// Returns semantic text color for interpretation badge.
+  Color _badgeText(InterpretationStatus status, ColorScheme cs) {
+    switch (status) {
+      case InterpretationStatus.healthy:
+        return cs.onPrimaryContainer;
+      case InterpretationStatus.watch:
+        return cs.onTertiaryContainer;
+      case InterpretationStatus.risk:
+        return cs.onErrorContainer;
+    }
+  }
+
+  /// Builds a status badge for the Income vs Expenses chart.
+  Widget? _buildIncomeVsExpensesBadge(
+      BuildContext context, _IncomeVsExpensesInterpretationData? interp) {
+    if (interp == null) return null;
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
+      decoration: BoxDecoration(
+        color: _badgeBackground(interp.status, colorScheme),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+      ),
+      child: Text(
+        interp.label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: _badgeText(interp.status, colorScheme),
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -933,17 +1077,25 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                             // Income vs Expenses chart
                             if (_incomeExpensesData.isEmpty)
                               Text(l10n.notEnoughData),
-                            if (_incomeExpensesData.isNotEmpty)
-                              _buildChartCard(
-                                context: context,
-                                title: l10n.incomeVsExpenses,
-                                child: IncomeExpensesChartWidget(
-                                  chartData: _incomeExpensesData,
-                                  locale: _currencyLocale,
-                                  symbol: _currencySymbol,
-                                  currencyCode: _currencyCode,
-                                ),
-                              ),
+                            if (_incomeExpensesData.isNotEmpty) ...[
+                              () {
+                                final interp =
+                                    _getIncomeVsExpensesInterpretation(context);
+                                return _buildChartCard(
+                                  context: context,
+                                  title: l10n.incomeVsExpenses,
+                                  badge:
+                                      _buildIncomeVsExpensesBadge(context, interp),
+                                  subtitle: interp?.explanation,
+                                  child: IncomeExpensesChartWidget(
+                                    chartData: _incomeExpensesData,
+                                    locale: _currencyLocale,
+                                    symbol: _currencySymbol,
+                                    currencyCode: _currencyCode,
+                                  ),
+                                );
+                              }(),
+                            ],
                             const SizedBox(height: 16),
 
                             // Month-over-month comparison card
