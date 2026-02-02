@@ -12,11 +12,30 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:incore_finance/models/recurring_expense.dart';
 
+import '../core/logging/app_logger.dart';
+import '../data/usage/usage_metrics_repository.dart';
+import '../data/usage/supabase_windowed_usage_counter.dart';
+import '../domain/entitlements/entitlement_service.dart';
+import '../domain/entitlements/plan_type.dart';
+import '../domain/usage/limit_reached_exception.dart';
+import '../domain/usage/windowed_usage_counter.dart';
+import '../services/subscription/subscription_service.dart';
+
 class RecurringExpensesRepository {
   final SupabaseClient _client;
+  final WindowedUsageCounter _usageCounter;
+  final SubscriptionService _subscriptionService;
+  final EntitlementService _entitlementService;
 
-  RecurringExpensesRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+  RecurringExpensesRepository({
+    SupabaseClient? client,
+    WindowedUsageCounter? usageCounter,
+    SubscriptionService? subscriptionService,
+    EntitlementService? entitlementService,
+  })  : _client = client ?? Supabase.instance.client,
+        _usageCounter = usageCounter ?? SupabaseWindowedUsageCounter(),
+        _subscriptionService = subscriptionService ?? SubscriptionService(),
+        _entitlementService = entitlementService ?? EntitlementService();
 
   // =========================================================================
   // READ
@@ -81,7 +100,11 @@ class RecurringExpensesRepository {
 
   /// Adds a new recurring expense for the current user.
   /// Returns the created RecurringExpense with its generated ID.
-  /// Throws StateError if no user is authenticated.
+  ///
+  /// Throws [LimitReachedException] if free user has reached their limit
+  /// for active recurring expenses. The paywall is presented before throwing.
+  ///
+  /// Throws [StateError] if no user is authenticated.
   Future<RecurringExpense> addRecurringExpense({
     required String name,
     required double amount,
@@ -105,6 +128,32 @@ class RecurringExpensesRepository {
       throw ArgumentError('Due day must be between 1 and 31');
     }
 
+    // 1. Check plan and enforce limit BEFORE insert (only for active expenses)
+    if (isActive) {
+      final plan = await _subscriptionService.getCurrentPlan();
+
+      if (plan == PlanType.free) {
+        final currentCount = await _usageCounter.activeRecurringExpenses();
+        final limit = _entitlementService.getLimitForMetric(
+          UsageMetricsRepository.recurringExpensesCount,
+        );
+
+        if (currentCount >= limit) {
+          // Present paywall (no cooldown for limit gates)
+          await _subscriptionService.presentPaywall(
+            'limit_crossed_recurring_expenses_count',
+          );
+          // DO NOT save - throw exception so UI knows to stay on screen
+          throw LimitReachedException(
+            metricType: 'recurring_expenses_count',
+            limit: limit,
+            currentCount: currentCount,
+          );
+        }
+      }
+    }
+
+    // 2. Proceed with insert
     final payload = <String, dynamic>{
       'user_id': userId,
       'name': name,
@@ -118,6 +167,16 @@ class RecurringExpensesRepository {
         .insert(payload)
         .select()
         .single();
+
+    // 3. Telemetry only - track usage metric for analytics
+    try {
+      await UsageMetricsRepository().increment(
+        UsageMetricsRepository.recurringExpensesCount,
+      );
+    } catch (e) {
+      // Log but don't fail the operation
+      AppLogger.w('Failed to increment recurring_expenses_count', error: e);
+    }
 
     return RecurringExpense.fromMap(response);
   }
@@ -178,10 +237,36 @@ class RecurringExpensesRepository {
   }
 
   /// Reactivates a previously deactivated recurring expense.
+  ///
+  /// Throws [LimitReachedException] if free user has reached their limit
+  /// for active recurring expenses. The paywall is presented before throwing.
   Future<void> reactivateRecurringExpense({
     required String id,
   }) async {
     final userId = _client.auth.currentUser!.id;
+
+    // Check plan and enforce limit BEFORE reactivating
+    final plan = await _subscriptionService.getCurrentPlan();
+
+    if (plan == PlanType.free) {
+      final currentCount = await _usageCounter.activeRecurringExpenses();
+      final limit = _entitlementService.getLimitForMetric(
+        UsageMetricsRepository.recurringExpensesCount,
+      );
+
+      if (currentCount >= limit) {
+        // Present paywall (no cooldown for limit gates)
+        await _subscriptionService.presentPaywall(
+          'limit_crossed_recurring_expenses_count',
+        );
+        // DO NOT reactivate - throw exception so UI knows to stay on screen
+        throw LimitReachedException(
+          metricType: 'recurring_expenses_count',
+          limit: limit,
+          currentCount: currentCount,
+        );
+      }
+    }
 
     await _client
         .from('recurring_expenses')
@@ -202,5 +287,19 @@ class RecurringExpensesRepository {
         .delete()
         .eq('id', id)
         .eq('user_id', userId);
+
+    // Track usage metric for monetization
+    try {
+      await UsageMetricsRepository().decrement(
+        UsageMetricsRepository.recurringExpensesCount,
+      );
+    } catch (e) {
+      // Log but don't fail the deletion
+      AppLogger.w('Failed to decrement recurring_expenses_count', error: e);
+    }
   }
 }
+
+// TODO: When income events feature is implemented, wire:
+// - increment(UsageMetricsRepository.incomeEventsCount) on create
+// - decrement(UsageMetricsRepository.incomeEventsCount) on delete

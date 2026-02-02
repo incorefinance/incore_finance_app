@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../presentation/settings/settings.dart';
+import '../presentation/settings/subscription_screen.dart';
 import '../presentation/analytics_dashboard/analytics_dashboard.dart';
+import '../presentation/analytics_dashboard/analytics_gate_screen.dart';
 import '../presentation/transactions_list/transactions_list.dart';
 import '../presentation/add_transaction/add_transaction.dart';
 import '../presentation/dashboard_home/dashboard_home.dart';
@@ -16,7 +18,9 @@ import '../presentation/auth/auth_guard_error_screen.dart';
 class AppRoutes {
   static const String initial = '/';
   static const String settings = '/settings';
+  static const String subscriptionScreen = '/subscription';
   static const String analyticsDashboard = '/analytics-dashboard';
+  static const String analyticsGate = '/analytics-gate';
   static const String transactionsList = '/transactions-list';
   static const String addTransaction = '/add-transaction';
   static const String dashboardHome = '/dashboard-home';
@@ -32,7 +36,9 @@ class AppRoutes {
     return {
       initial: (context) => const StartupScreen(),
       settings: (context) => const Settings(),
+      subscriptionScreen: (context) => const SubscriptionScreen(),
       analyticsDashboard: (context) => const AnalyticsDashboard(),
+      analyticsGate: (context) => const AnalyticsGateScreen(),
       transactionsList: (context) => const TransactionsList(),
       addTransaction: (context) => const AddTransaction(),
       dashboardHome: (context) => const DashboardHome(),

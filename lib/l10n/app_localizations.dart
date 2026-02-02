@@ -1984,6 +1984,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An unexpected error occurred. Please try again.'**
   String get unknownErrorMessage;
+
+  /// No description provided for @subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get subscription;
+
+  /// No description provided for @freePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Plan'**
+  String get freePlan;
+
+  /// No description provided for @premiumPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get premiumPlan;
+
+  /// No description provided for @freeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic features with usage limits'**
+  String get freeDescription;
+
+  /// No description provided for @premiumDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Full access to all features'**
+  String get premiumDescription;
+
+  /// No description provided for @manageSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Subscription'**
+  String get manageSubscription;
+
+  /// No description provided for @manageSubscriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open your device settings to manage your subscription'**
+  String get manageSubscriptionHint;
+
+  /// No description provided for @restorePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Purchases'**
+  String get restorePurchases;
+
+  /// No description provided for @purchasesRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases restored successfully'**
+  String get purchasesRestored;
+
+  /// No description provided for @restoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to restore purchases'**
+  String get restoreFailed;
+
+  /// No description provided for @upgradeToPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Premium'**
+  String get upgradeToPremium;
+
+  /// No description provided for @premiumFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Features'**
+  String get premiumFeatures;
+
+  /// No description provided for @featureAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced analytics and insights'**
+  String get featureAnalytics;
+
+  /// No description provided for @featureHistoricalData.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to historical data'**
+  String get featureHistoricalData;
+
+  /// No description provided for @featureExportData.
+  ///
+  /// In en, this message translates to:
+  /// **'Export data to PDF and CSV'**
+  String get featureExportData;
+
+  /// No description provided for @featureUnlimitedEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited transactions and entries'**
+  String get featureUnlimitedEntries;
+
+  /// No description provided for @limitReachedMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached your free plan limit for this month'**
+  String get limitReachedMonthly;
+
+  /// No description provided for @limitReachedRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached your free plan limit for active recurring expenses'**
+  String get limitReachedRecurring;
+
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your account'**
+  String get deleteAccountDesc;
+
+  /// No description provided for @deleteAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE to confirm:'**
+  String get deleteAccountConfirm;
+
+  /// No description provided for @currentPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Plan'**
+  String get currentPlan;
+
+  /// No description provided for @availableOnMobileOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Available on mobile only'**
+  String get availableOnMobileOnly;
+
+  /// No description provided for @restorePurchasesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore previous purchases'**
+  String get restorePurchasesDesc;
+
+  /// No description provided for @firstDayOfWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'First Day of Week'**
+  String get firstDayOfWeek;
+
+  /// No description provided for @sunday.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunday'**
+  String get sunday;
+
+  /// No description provided for @monday.
+  ///
+  /// In en, this message translates to:
+  /// **'Monday'**
+  String get monday;
+
+  /// No description provided for @resetOnboarding.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Onboarding'**
+  String get resetOnboarding;
+
+  /// No description provided for @resetOnboardingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Go through setup again'**
+  String get resetOnboardingDesc;
+
+  /// No description provided for @clearCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Cache'**
+  String get clearCache;
+
+  /// No description provided for @clearCacheDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Free up storage space'**
+  String get clearCacheDesc;
+
+  /// No description provided for @diagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get diagnostics;
+
+  /// No description provided for @diagnosticsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'View app information'**
+  String get diagnosticsDesc;
+
+  /// No description provided for @buildVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Build Version'**
+  String get buildVersion;
+
+  /// No description provided for @lastSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Sync'**
+  String get lastSync;
+
+  /// No description provided for @lastError.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Error'**
+  String get lastError;
+
+  /// No description provided for @notAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get notAvailable;
+
+  /// No description provided for @none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get none;
+
+  /// No description provided for @contactSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Support'**
+  String get contactSupport;
+
+  /// No description provided for @contactSupportDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get help with the app'**
+  String get contactSupportDesc;
+
+  /// No description provided for @privacyPolicyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'View our privacy policy'**
+  String get privacyPolicyDesc;
+
+  /// No description provided for @termsOfService.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get termsOfService;
+
+  /// No description provided for @termsOfServiceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'View terms and conditions'**
+  String get termsOfServiceDesc;
+
+  /// No description provided for @upgradeForExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Premium to export data'**
+  String get upgradeForExport;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

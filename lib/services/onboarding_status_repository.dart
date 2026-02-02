@@ -51,4 +51,17 @@ class OnboardingStatusRepository {
       'completed_at': DateTime.now().toUtc().toIso8601String(),
     });
   }
+
+  /// Reset onboarding status for the current user.
+  /// Sets onboarding_completed to false so user goes through setup again.
+  /// Used by Settings > Reset Onboarding (debug only).
+  Future<void> resetOnboardingStatus() async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+
+    await _client
+        .from('user_onboarding_status')
+        .update({'onboarding_completed': false})
+        .eq('user_id', user.id);
+  }
 }

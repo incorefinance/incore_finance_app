@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sizer/sizer.dart';
+import 'package:superwallkit_flutter/superwallkit_flutter.dart';
 
 import '../core/app_export.dart';
 import '../core/navigation/route_observer.dart';
@@ -30,6 +31,14 @@ void main() async {
     await DeepLinkService.instance.initialize();
   } catch (e) {
     debugPrint('Failed to initialize DeepLinkService: $e');
+  }
+
+  // Initialize Superwall for paywall presentation
+  try {
+    const apiKey = 'pk_pTFQbyNsffC3d-FPC4-o7';
+    Superwall.configure(apiKey);
+  } catch (e) {
+    debugPrint('Failed to initialize Superwall: $e');
   }
 
   bool _hasShownError = false;

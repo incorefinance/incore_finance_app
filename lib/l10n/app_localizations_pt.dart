@@ -972,4 +972,142 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get unknownErrorMessage => 'Ocorreu um erro inesperado. Por favor, tente novamente.';
+
+  @override
+  String get subscription => 'Subscrição';
+
+  @override
+  String get freePlan => 'Plano Gratuito';
+
+  @override
+  String get premiumPlan => 'Premium';
+
+  @override
+  String get freeDescription => 'Funcionalidades básicas com limites de utilização';
+
+  @override
+  String get premiumDescription => 'Acesso completo a todas as funcionalidades';
+
+  @override
+  String get manageSubscription => 'Gerir Subscrição';
+
+  @override
+  String get manageSubscriptionHint => 'Abra as definições do dispositivo para gerir a sua subscrição';
+
+  @override
+  String get restorePurchases => 'Restaurar Compras';
+
+  @override
+  String get purchasesRestored => 'Compras restauradas com sucesso';
+
+  @override
+  String get restoreFailed => 'Falha ao restaurar compras';
+
+  @override
+  String get upgradeToPremium => 'Atualizar para Premium';
+
+  @override
+  String get premiumFeatures => 'Funcionalidades Premium';
+
+  @override
+  String get featureAnalytics => 'Análises e insights avançados';
+
+  @override
+  String get featureHistoricalData => 'Acesso a dados históricos';
+
+  @override
+  String get featureExportData => 'Exportar dados para PDF e CSV';
+
+  @override
+  String get featureUnlimitedEntries => 'Transações e entradas ilimitadas';
+
+  @override
+  String get limitReachedMonthly => 'Atingiu o limite do seu plano gratuito para este mês';
+
+  @override
+  String get limitReachedRecurring => 'Atingiu o limite do seu plano gratuito para despesas recorrentes ativas';
+
+  @override
+  String get account => 'Conta';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get deleteAccount => 'Eliminar Conta';
+
+  @override
+  String get deleteAccountDesc => 'Eliminar permanentemente a sua conta';
+
+  @override
+  String get deleteAccountConfirm => 'Escreva DELETE para confirmar:';
+
+  @override
+  String get currentPlan => 'Plano Actual';
+
+  @override
+  String get availableOnMobileOnly => 'Disponível apenas no telemóvel';
+
+  @override
+  String get restorePurchasesDesc => 'Restaurar compras anteriores';
+
+  @override
+  String get firstDayOfWeek => 'Primeiro Dia da Semana';
+
+  @override
+  String get sunday => 'Domingo';
+
+  @override
+  String get monday => 'Segunda-feira';
+
+  @override
+  String get resetOnboarding => 'Reiniciar Configuração';
+
+  @override
+  String get resetOnboardingDesc => 'Passar pela configuração novamente';
+
+  @override
+  String get clearCache => 'Limpar Cache';
+
+  @override
+  String get clearCacheDesc => 'Libertar espaço de armazenamento';
+
+  @override
+  String get diagnostics => 'Diagnósticos';
+
+  @override
+  String get diagnosticsDesc => 'Ver informação da aplicação';
+
+  @override
+  String get buildVersion => 'Versão';
+
+  @override
+  String get lastSync => 'Última Sincronização';
+
+  @override
+  String get lastError => 'Último Erro';
+
+  @override
+  String get notAvailable => 'Não disponível';
+
+  @override
+  String get none => 'Nenhum';
+
+  @override
+  String get contactSupport => 'Contactar Suporte';
+
+  @override
+  String get contactSupportDesc => 'Obter ajuda com a aplicação';
+
+  @override
+  String get privacyPolicyDesc => 'Ver a nossa política de privacidade';
+
+  @override
+  String get termsOfService => 'Termos de Serviço';
+
+  @override
+  String get termsOfServiceDesc => 'Ver termos e condições';
+
+  @override
+  String get upgradeForExport => 'Atualizar para Premium para exportar dados';
 }

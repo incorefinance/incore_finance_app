@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:superwallkit_flutter/superwallkit_flutter.dart';
 
 import '../../services/onboarding_service.dart';
 import '../../services/auth_guard.dart';
@@ -79,6 +80,8 @@ class _StartupScreenState extends State<StartupScreen> {
           }
           // If no session, just let _checkAuthAfterDelay show the auth form
         } else if (event == AuthChangeEvent.signedOut) {
+          // Reset Superwall user identity on sign out
+          Superwall.shared.reset();
           if (mounted) {
             setState(() {
               _showAuthForm = true;
@@ -136,6 +139,9 @@ class _StartupScreenState extends State<StartupScreen> {
       _routeToAuthError('User session lost');
       return;
     }
+
+    // Identify user to Superwall for paywall experiments and analytics
+    Superwall.shared.identify(user.id);
 
     // Check email verification status first.
     // If emailConfirmedAt is null, the user has not verified their email.

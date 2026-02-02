@@ -11,6 +11,7 @@ import '../../core/app_export.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/errors/app_error_classifier.dart';
 import '../../core/logging/app_logger.dart';
+import '../../domain/usage/limit_reached_exception.dart';
 import '../../services/auth_guard.dart';
 import '../../utils/number_formatter.dart';
 import '../../utils/snackbar_helper.dart';
@@ -209,6 +210,12 @@ class _AddTransactionState extends State<AddTransaction> {
         // Navigate back and return true to indicate success
         Navigator.of(context).pop(true);
       }
+    } on LimitReachedException {
+      // Paywall was shown, user did not upgrade
+      // Stay on screen so user can try again or go back
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      SnackbarHelper.showInfo(context, l10n.limitReachedMonthly);
     } catch (e, st) {
       AppLogger.e('Error saving transaction', error: e, stackTrace: st);
       final appError = AppErrorClassifier.classify(e, stackTrace: st);

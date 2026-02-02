@@ -98,10 +98,10 @@ class _TransactionsListState extends State<TransactionsList> with RouteAware {
     AppLogger.d('[Transactions] initState → loading transactions');
     super.initState();
     _searchController.addListener(_onSearchChanged);
-    
+
     // Listen to transaction changes and reload
     TransactionsChangeNotifier.instance.version.addListener(_onTransactionsChanged);
-    
+
     _loadTransactions();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
