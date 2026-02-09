@@ -1104,7 +1104,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
     );
   }
 
-  /// Builds a consistent card container matching the CashBalanceChart style.
+  /// Builds a consistent card container with frosted glass styling.
   Widget _buildChartCard({
     required BuildContext context,
     required String title,
@@ -1113,43 +1113,42 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
     Widget? badge,
     String? subtitle,
   }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Container(
       width: double.infinity,
-      height: height,
-      constraints: height == null
-          ? BoxConstraints(minHeight: 28.h, maxHeight: 38.h)
-          : null,
-      padding: EdgeInsets.all(4.w),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.18),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.06),
-            offset: const Offset(0, 6),
-            blurRadius: 18,
-            spreadRadius: 0,
-          ),
-        ],
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        boxShadow: AppShadows.cardLight,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ChartCardHeader(
-            title: title,
-            badge: badge,
-            subtitle: subtitle,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        child: Container(
+          height: height,
+          constraints: height == null
+              ? BoxConstraints(minHeight: 28.h, maxHeight: 38.h)
+              : null,
+          padding: EdgeInsets.all(4.w),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceGlass80Light,
+            borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+            border: Border.all(
+              color: AppColors.borderGlass60Light,
+              width: 1,
+            ),
           ),
-          SizedBox(height: 2.h),
-          Expanded(child: child),
-        ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ChartCardHeader(
+                title: title,
+                badge: badge,
+                subtitle: subtitle,
+              ),
+              SizedBox(height: 2.h),
+              Expanded(child: child),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1698,93 +1697,95 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(4.w),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.18),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.06),
-            offset: const Offset(0, 6),
-            blurRadius: 18,
-            spreadRadius: 0,
-          ),
-        ],
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        boxShadow: AppShadows.cardLight,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ChartCardHeader(
-            title: title,
-            badge: badge,
-            subtitle: subtitle,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        child: Container(
+          padding: EdgeInsets.all(4.w),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceGlass80Light,
+            borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+            border: Border.all(
+              color: AppColors.borderGlass60Light,
+              width: 1,
+            ),
           ),
-          SizedBox(height: 2.h),
-          if (data.isEmpty)
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 2.h),
-              child: Text(
-                l10n.noDataYet,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ChartCardHeader(
+                title: title,
+                badge: badge,
+                subtitle: subtitle,
               ),
-            )
-          else
-            Row(
-              children: data.map((item) {
-                final category = item['category'] as TransactionCategory?;
-                final isOthers = item['isOthers'] as bool? ?? false;
-                // Localize the category name at display time
-                final categoryName = isOthers
-                    ? l10n.other
-                    : (category != null
-                        ? getLocalizedCategoryLabel(context, category)
-                        : '');
-                return Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 1.w),
-                    child: CategoryTileCard(
-                      categoryName: categoryName,
-                      categoryIcon: item['iconName'] as String,
-                      amount: (item['amount'] as num).toDouble(),
-                      percentage: (item['percentage'] as num).toDouble(),
-                      locale: _currencyLocale,
-                      symbol: _currencySymbol,
-                      currencyCode: _currencyCode,
-                      accentColor: accentColor,
-                      isOthersCard: isOthers,
+              SizedBox(height: 2.h),
+              if (data.isEmpty)
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 2.h),
+                  child: Text(
+                    l10n.noDataYet,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                );
-              }).toList(),
-            ),
-          // Only show "View all" when there are more categories than displayed
-          if (fullData.length > 3) ...[
-            SizedBox(height: 1.5.h),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: onViewAll,
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 2.w),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                )
+              else
+                Row(
+                  children: data.map((item) {
+                    final category = item['category'] as TransactionCategory?;
+                    final isOthers = item['isOthers'] as bool? ?? false;
+                    // Localize the category name at display time
+                    final categoryName = isOthers
+                        ? l10n.other
+                        : (category != null
+                            ? getLocalizedCategoryLabel(context, category)
+                            : '');
+                    return Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 1.w),
+                        child: CategoryTileCard(
+                          categoryName: categoryName,
+                          categoryIcon: item['iconName'] as String,
+                          amount: (item['amount'] as num).toDouble(),
+                          percentage: (item['percentage'] as num).toDouble(),
+                          locale: _currencyLocale,
+                          symbol: _currencySymbol,
+                          currencyCode: _currencyCode,
+                          accentColor: accentColor,
+                          isOthersCard: isOthers,
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
-                child: Text(
-                  l10n.viewAll,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.primary,
+              // Only show "View all" when there are more categories than displayed
+              if (fullData.length > 3) ...[
+                SizedBox(height: 1.5.h),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: onViewAll,
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: 2.w),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      l10n.viewAll,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: colorScheme.primary,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ],
-        ],
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1794,9 +1795,11 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      extendBody: true,
+      backgroundColor: AppColors.canvasFrostedLight,
       appBar: null,
       body: SafeArea(
+        bottom: false,
         child: RefreshIndicator(
           onRefresh: _handleRefresh,
           color: Theme.of(context).colorScheme.primary,
@@ -1814,18 +1817,20 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                       physics: const AlwaysScrollableScrollPhysics(),
                       child: Padding(
                         padding: EdgeInsets.fromLTRB(
-                          AppTheme.screenHorizontalPadding,
+                          0, // Cards own their horizontal margins
                           AppTheme.screenTopPadding,
-                          AppTheme.screenHorizontalPadding,
+                          0, // Cards own their horizontal margins
                           0,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Range selector
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: SegmentedButton<_AnalyticsRange>(
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: SegmentedButton<_AnalyticsRange>(
                                 segments: [
                                   ButtonSegment(
                                     value: _AnalyticsRange.m3,
@@ -1850,128 +1855,142 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                                 },
                               ),
                             ),
+                          ),
                             const SizedBox(height: 24),
 
                             // Insight card (shown when insight is active and not dismissed)
                             if (_currentInsight != null &&
                                 _currentInsightDismissedUntil == null)
-                              InsightCard(
-                                severity: _currentInsight!.severity,
-                                title: _getInsightTitle(l10n, _currentInsight!),
-                                body: _getInsightBody(l10n, _currentInsight!),
-                                secondaryText: _getLowCashBufferExplainability(context)
-                                    ?? _getExpenseSpikeExplainability(context)
-                                    ?? _getMissingIncomeExplainability(context)
-                                    ?? _getLowCashRunwayExplainability(context),
-                                details: _getInsightDetails(context),
-                                actionLabel: l10n.insightActionReviewExpenses,
-                                onAction: () {
-                                  Navigator.pushReplacementNamed(
-                                    context,
-                                    '/transactions-list',
-                                  );
-                                },
-                                onDismiss: () async {
-                                  final days = _getDismissDurationDays(
-                                    _currentInsight!.id,
-                                  );
-                                  await _insightStore.dismissForDays(
-                                    _currentInsight!.id,
-                                    days,
-                                  );
-                                  setState(() {
-                                    _currentInsightDismissedUntil =
-                                        DateTime.now().add(
-                                      Duration(days: days),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                child: InsightCard(
+                                  severity: _currentInsight!.severity,
+                                  title: _getInsightTitle(l10n, _currentInsight!),
+                                  body: _getInsightBody(l10n, _currentInsight!),
+                                  secondaryText: _getLowCashBufferExplainability(context)
+                                      ?? _getExpenseSpikeExplainability(context)
+                                      ?? _getMissingIncomeExplainability(context)
+                                      ?? _getLowCashRunwayExplainability(context),
+                                  details: _getInsightDetails(context),
+                                  actionLabel: l10n.insightActionReviewExpenses,
+                                  onAction: () {
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      '/transactions-list',
                                     );
-                                  });
-                                },
-                                dismissTooltip: l10n.insightDismiss,
+                                  },
+                                  onDismiss: () async {
+                                    final days = _getDismissDurationDays(
+                                      _currentInsight!.id,
+                                    );
+                                    await _insightStore.dismissForDays(
+                                      _currentInsight!.id,
+                                      days,
+                                    );
+                                    setState(() {
+                                      _currentInsightDismissedUntil =
+                                          DateTime.now().add(
+                                        Duration(days: days),
+                                      );
+                                    });
+                                  },
+                                  dismissTooltip: l10n.insightDismiss,
+                                ),
                               ),
 
                             // Calm relief banner (after successful pause)
                             if (_showPressureRelief &&
                                 !(_currentInsight != null &&
                                     _currentInsightDismissedUntil == null))
-                              PressureReliefBanner(
-                                title: l10n.pressureReliefTitle,
-                                subtitle: l10n.pressureReliefSubtitlePaused(
-                                    _pausedBillsCount),
-                                onDismiss: () => setState(
-                                    () => _showPressureRelief = false),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                child: PressureReliefBanner(
+                                  title: l10n.pressureReliefTitle,
+                                  subtitle: l10n.pressureReliefSubtitlePaused(
+                                      _pausedBillsCount),
+                                  onDismiss: () => setState(
+                                      () => _showPressureRelief = false),
+                                ),
                               ),
 
                             // Safety buffer row + pressure point line
-                            SafetyBufferSection(
-                              snapshot: _safetyBufferSnapshot,
-                              taxShield: _taxShieldSnapshot,
-                              activeRecurringExpenses: _activeRecurringExpenses,
-                              currencyLocale: _currencyLocale,
-                              currencySymbol: _currencySymbol,
-                              isInsightCardVisible: _currentInsight != null &&
-                                  _currentInsightDismissedUntil == null,
-                              onReviewBillsTap: () {
-                                Navigator.pushNamed(
-                                    context, AppRoutes.recurringExpenses);
-                              },
-                              onTaxShieldTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  builder: (_) => TaxShieldBottomSheet(
-                                    currentPercent: _taxShieldPercent,
-                                    onSave: (newPercent) async {
-                                      await _taxShieldSettingsStore
-                                          .setTaxShieldPercent(newPercent);
-                                      if (!mounted) return;
-                                      await _loadAnalyticsData();
-                                    },
-                                  ),
-                                );
-                              },
-                              onPressurePointActionsOpened: () {
-                                _localEventStore.log('pressure_point_opened');
-                              },
-                              onPressurePointVisibilityChanged: (visible) {
-                                if (_isPressurePointVisible != visible) {
-                                  _isPressurePointVisible = visible;
-                                  if (!visible && _checkResolvedAfterPause) {
-                                    _checkResolvedAfterPause = false;
-                                    _localEventStore
-                                        .log('pressure_point_resolved');
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: SafetyBufferSection(
+                                snapshot: _safetyBufferSnapshot,
+                                taxShield: _taxShieldSnapshot,
+                                activeRecurringExpenses: _activeRecurringExpenses,
+                                currencyLocale: _currencyLocale,
+                                currencySymbol: _currencySymbol,
+                                isInsightCardVisible: _currentInsight != null &&
+                                    _currentInsightDismissedUntil == null,
+                                onReviewBillsTap: () {
+                                  Navigator.pushNamed(
+                                      context, AppRoutes.recurringExpenses);
+                                },
+                                onTaxShieldTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (_) => TaxShieldBottomSheet(
+                                      currentPercent: _taxShieldPercent,
+                                      onSave: (newPercent) async {
+                                        await _taxShieldSettingsStore
+                                            .setTaxShieldPercent(newPercent);
+                                        if (!mounted) return;
+                                        await _loadAnalyticsData();
+                                      },
+                                    ),
+                                  );
+                                },
+                                onPressurePointActionsOpened: () {
+                                  _localEventStore.log('pressure_point_opened');
+                                },
+                                onPressurePointVisibilityChanged: (visible) {
+                                  if (_isPressurePointVisible != visible) {
+                                    _isPressurePointVisible = visible;
+                                    if (!visible && _checkResolvedAfterPause) {
+                                      _checkResolvedAfterPause = false;
+                                      _localEventStore
+                                          .log('pressure_point_resolved');
+                                    }
                                   }
-                                }
-                              },
-                              onPauseExpenses: (expenseIds) async {
-                                final count = expenseIds.length;
-                                for (final id in expenseIds) {
-                                  await _recurringExpensesRepository
-                                      .deactivateRecurringExpense(id: id);
-                                }
-                                if (!mounted) return;
-                                _checkResolvedAfterPause = true;
-                                await _loadAnalyticsData();
-                                if (!mounted) return;
-                                await _localEventStore.log(
-                                  'pressure_point_paused_bills',
-                                  props: {'count': count},
-                                );
-                                _showRelief(pausedCount: count);
-                              },
+                                },
+                                onPauseExpenses: (expenseIds) async {
+                                  final count = expenseIds.length;
+                                  for (final id in expenseIds) {
+                                    await _recurringExpensesRepository
+                                        .deactivateRecurringExpense(id: id);
+                                  }
+                                  if (!mounted) return;
+                                  _checkResolvedAfterPause = true;
+                                  await _loadAnalyticsData();
+                                  if (!mounted) return;
+                                  await _localEventStore.log(
+                                    'pressure_point_paused_bills',
+                                    props: {'count': count},
+                                  );
+                                  _showRelief(pausedCount: count);
+                                },
+                              ),
                             ),
 
                             // ========================================
                             // Section 1: Overview
                             // ========================================
-                            Text(
-                              l10n.overview,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Text(
+                                l10n.overview,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.slate500,
+                                    ),
+                              ),
                             ),
                             const SizedBox(height: 12),
 
@@ -2000,23 +2019,30 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                             const SizedBox(height: 16),
 
                             // Month-over-month comparison card
-                            ComparisonMetricsCard(
-                              incomeChange: _incomeChange,
-                              expenseChange: _expenseChange,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: ComparisonMetricsCard(
+                                incomeChange: _incomeChange,
+                                expenseChange: _expenseChange,
+                              ),
                             ),
                             const SizedBox(height: 24),
 
                             // ========================================
                             // Section 2: Breakdown
                             // ========================================
-                            Text(
-                              l10n.breakdown,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Text(
+                                l10n.breakdown,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.slate500,
+                                    ),
+                              ),
                             ),
                             const SizedBox(height: 12),
 
@@ -2069,14 +2095,18 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                             // ========================================
                             // Section 3: Trends
                             // ========================================
-                            Text(
-                              l10n.trends,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Text(
+                                l10n.trends,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.slate500,
+                                    ),
+                              ),
                             ),
                             const SizedBox(height: 12),
 
@@ -2123,7 +2153,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                                 );
                               }(),
 
-                            SizedBox(height: 10.h),
+                            SizedBox(height: kBottomNavClearance),
                           ],
                         ),
                       ),

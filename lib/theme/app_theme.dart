@@ -27,9 +27,9 @@ class AppTheme {
       onTertiaryContainer: AppColors.textPrimary,
       error: AppColors.error,
       onError: AppColors.surface,
-      surface: AppColors.surface,
-      onSurface: AppColors.textPrimary,
-      onSurfaceVariant: AppColors.textSecondary,
+      surface: AppColors.surfaceGlass80Light,
+      onSurface: AppColors.slate900,
+      onSurfaceVariant: AppColors.slate500,
       outline: AppColors.borderSubtle,
       outlineVariant: AppColors.borderSubtle,
       shadow: AppColors.shadowLight,
@@ -38,9 +38,13 @@ class AppTheme {
       onInverseSurface: AppColors.textPrimaryDark,
       inversePrimary: AppColors.primarySoft,
     ),
-    scaffoldBackgroundColor: AppColors.canvas,
+    scaffoldBackgroundColor: AppColors.canvasFrostedLight,
     cardColor: AppColors.surface,
     dividerColor: AppColors.divider,
+    dividerTheme: const DividerThemeData(
+      color: AppColors.dividerGlass60Light,
+      thickness: 1,
+    ),
 
     // AppBar theme - Clean and professional
     appBarTheme: AppBarTheme(
@@ -62,7 +66,7 @@ class AppTheme {
 
     // Card theme - Subtle elevation without visual heaviness
     cardTheme: CardThemeData(
-      color: AppColors.surface,
+      color: AppColors.surfaceGlass80Light,
       elevation: 2.0,
       shadowColor: AppColors.shadowLight,
       shape: RoundedRectangleBorder(
@@ -824,6 +828,15 @@ class AppTheme {
   static const double radiusLarge = 16.0;
   static const double radiusXLarge = 20.0;
 
+  /// Card XL radius for frosted glass cards
+  static const double radiusCardXL = 28.0;
+
+  /// Pill shape radius
+  static const double radiusPill = 20.0;
+
+  /// Icon container radius
+  static const double radiusIconBox = 18.0;
+
   /// Spacing values for consistent layout
   static const double spacing4 = 4.0;
   static const double spacing8 = 8.0;
@@ -831,4 +844,39 @@ class AppTheme {
   static const double spacing16 = 16.0;
   static const double spacing24 = 24.0;
   static const double spacing32 = 32.0;
+}
+
+/// Shadow recipes for consistent elevation across frosted glass design system
+class AppShadows {
+  AppShadows._();
+
+  /// Card shadow - offset (0, 8), blur 30
+  static List<BoxShadow> get cardLight => [
+        BoxShadow(
+          color: AppColors.shadowCardLight,
+          offset: const Offset(0, 8),
+          blurRadius: 30,
+          spreadRadius: 0,
+        ),
+      ];
+
+  /// Navigation bar shadow - offset (0, 8), blur 40
+  static List<BoxShadow> get navLight => [
+        BoxShadow(
+          color: AppColors.shadowNavLight,
+          offset: const Offset(0, 8),
+          blurRadius: 40,
+          spreadRadius: 0,
+        ),
+      ];
+
+  /// FAB shadow - offset (0, 8), blur 30
+  static List<BoxShadow> get fabLight => [
+        BoxShadow(
+          color: AppColors.shadowFabLight,
+          offset: const Offset(0, 8),
+          blurRadius: 30,
+          spreadRadius: 0,
+        ),
+      ];
 }

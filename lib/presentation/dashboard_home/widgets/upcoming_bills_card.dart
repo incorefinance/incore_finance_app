@@ -1,10 +1,12 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
 import '../../../models/recurring_expense.dart';
 import '../../../theme/app_colors.dart';
+import '../../../theme/app_theme.dart';
 import '../../../utils/number_formatter.dart';
 
 /// Upcoming Bills Card - Shows upcoming recurring expenses.
@@ -33,48 +35,59 @@ class UpcomingBillsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-      padding: EdgeInsets.all(4.w),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(
-          color: AppColors.borderSubtle,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        boxShadow: AppShadows.cardLight,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.calendar_today_outlined,
-                size: 20,
-                color: colorScheme.onSurfaceVariant,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceGlass80Light,
+              borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+              border: Border.all(
+                color: AppColors.borderGlass60Light,
+                width: 1,
               ),
-              SizedBox(width: 2.w),
-              Text(
-                l10n.upcomingBills,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: 20,
+                      color: AppColors.slate400,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      l10n.upcomingBills,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: AppColors.slate500,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                if (bills.isEmpty)
+                  _buildEmptyState(context, theme, l10n)
+                else
+                  _buildBillsList(context, theme, l10n),
+              ],
+            ),
           ),
-          SizedBox(height: 1.5.h),
-          if (bills.isEmpty)
-            _buildEmptyState(context, theme, colorScheme, l10n)
-          else
-            _buildBillsList(context, theme, colorScheme, l10n),
-        ],
+        ),
       ),
     );
   }
@@ -82,7 +95,6 @@ class UpcomingBillsCard extends StatelessWidget {
   Widget _buildEmptyState(
     BuildContext context,
     ThemeData theme,
-    ColorScheme colorScheme,
     AppLocalizations l10n,
   ) {
     return Column(
@@ -91,22 +103,23 @@ class UpcomingBillsCard extends StatelessWidget {
         Text(
           l10n.addRecurringExpensesHint,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
+            color: AppColors.slate500,
           ),
         ),
-        SizedBox(height: 2.h),
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
               child: GestureDetector(
                 onTap: onAddBill,
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.2.h),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryTint,
+                    color: AppColors.blueBg50,
                     borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.2),
+                      color: AppColors.blue600.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),
@@ -117,13 +130,13 @@ class UpcomingBillsCard extends StatelessWidget {
                       Icon(
                         Icons.add_rounded,
                         size: 18,
-                        color: AppColors.primary,
+                        color: AppColors.blue600,
                       ),
-                      SizedBox(width: 1.5.w),
+                      const SizedBox(width: 6),
                       Text(
                         l10n.addBill,
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: AppColors.primary,
+                          color: AppColors.blue600,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -132,17 +145,18 @@ class UpcomingBillsCard extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(width: 2.w),
+            const SizedBox(width: 8),
             Expanded(
               child: GestureDetector(
                 onTap: onManageBills,
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.2.h),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: colorScheme.surface,
+                    color: AppColors.surfaceGlass80Light,
                     borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.3),
+                      color: AppColors.blue600.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -153,13 +167,13 @@ class UpcomingBillsCard extends StatelessWidget {
                       Icon(
                         Icons.settings_outlined,
                         size: 18,
-                        color: AppColors.primary,
+                        color: AppColors.blue600,
                       ),
-                      SizedBox(width: 1.5.w),
+                      const SizedBox(width: 6),
                       Text(
                         l10n.manageBills,
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: AppColors.primary,
+                          color: AppColors.blue600,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -177,7 +191,6 @@ class UpcomingBillsCard extends StatelessWidget {
   Widget _buildBillsList(
     BuildContext context,
     ThemeData theme,
-    ColorScheme colorScheme,
     AppLocalizations l10n,
   ) {
     final now = DateTime.now();
@@ -192,12 +205,13 @@ class UpcomingBillsCard extends StatelessWidget {
               child: GestureDetector(
                 onTap: onAddBill,
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.2.h),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryTint,
+                    color: AppColors.blueBg50,
                     borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.2),
+                      color: AppColors.blue600.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),
@@ -208,13 +222,13 @@ class UpcomingBillsCard extends StatelessWidget {
                       Icon(
                         Icons.add_rounded,
                         size: 18,
-                        color: AppColors.primary,
+                        color: AppColors.blue600,
                       ),
-                      SizedBox(width: 1.5.w),
+                      const SizedBox(width: 6),
                       Text(
                         l10n.addBill,
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: AppColors.primary,
+                          color: AppColors.blue600,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -223,17 +237,18 @@ class UpcomingBillsCard extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(width: 2.w),
+            const SizedBox(width: 8),
             Expanded(
               child: GestureDetector(
                 onTap: onManageBills,
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.2.h),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: colorScheme.surface,
+                    color: AppColors.surfaceGlass80Light,
                     borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.3),
+                      color: AppColors.blue600.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -244,13 +259,13 @@ class UpcomingBillsCard extends StatelessWidget {
                       Icon(
                         Icons.settings_outlined,
                         size: 18,
-                        color: AppColors.primary,
+                        color: AppColors.blue600,
                       ),
-                      SizedBox(width: 1.5.w),
+                      const SizedBox(width: 6),
                       Text(
                         l10n.manageBills,
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: AppColors.primary,
+                          color: AppColors.blue600,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -261,23 +276,22 @@ class UpcomingBillsCard extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 2.h),
+        const SizedBox(height: 16),
         ...billsToShow.map((bill) => _buildBillItem(
               context,
               theme,
-              colorScheme,
               bill,
               now,
               l10n,
             )),
         if (bills.length > _maxBillsToShow) ...[
-          SizedBox(height: 1.h),
+          const SizedBox(height: 8),
           GestureDetector(
             onTap: onManageBills,
             child: Text(
               l10n.viewAllRecurringExpenses(bills.length),
               style: theme.textTheme.labelMedium?.copyWith(
-                color: AppColors.primary,
+                color: AppColors.blue600,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -290,13 +304,13 @@ class UpcomingBillsCard extends StatelessWidget {
   Widget _buildBillItem(
     BuildContext context,
     ThemeData theme,
-    ColorScheme colorScheme,
     RecurringExpense bill,
     DateTime now,
     AppLocalizations l10n,
   ) {
     final nextDue = _computeNextDueDate(bill.dueDay, now);
-    final daysUntil = nextDue.difference(DateTime(now.year, now.month, now.day)).inDays;
+    final daysUntil =
+        nextDue.difference(DateTime(now.year, now.month, now.day)).inDays;
 
     final formattedAmount = IncoreNumberFormatter.formatMoney(
       bill.amount,
@@ -317,7 +331,7 @@ class UpcomingBillsCard extends StatelessWidget {
     }
 
     return Padding(
-      padding: EdgeInsets.only(bottom: 1.5.h),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
           Expanded(
@@ -328,18 +342,16 @@ class UpcomingBillsCard extends StatelessWidget {
                   bill.name,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
+                    color: AppColors.slate900,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 0.3.h),
+                const SizedBox(height: 2),
                 Text(
                   dueDateText,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: daysUntil <= 3
-                        ? AppColors.expense
-                        : colorScheme.onSurfaceVariant,
+                    color: AppColors.slate500,
                   ),
                 ),
               ],
@@ -349,7 +361,7 @@ class UpcomingBillsCard extends StatelessWidget {
             formattedAmount,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w700,
-              color: colorScheme.onSurface,
+              color: AppColors.slate900,
             ),
           ),
         ],

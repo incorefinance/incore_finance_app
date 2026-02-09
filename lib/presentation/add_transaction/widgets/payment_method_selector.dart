@@ -40,10 +40,12 @@ class PaymentMethodSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     final paymentMethods = PaymentMethod.values;
+
+    // Calculate tile width for 3-column grid
+    final tileWidth = (100.w - 8.w - 4.w) / 3;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,67 +53,84 @@ class PaymentMethodSelector extends StatelessWidget {
         Text(
           l10n.paymentMethod,
           style: theme.textTheme.labelMedium?.copyWith(
-            color: colorScheme.onSurface.withValues(alpha: 0.7),
+            color: AppColors.slate500,
+            fontWeight: FontWeight.w500,
           ),
         ),
         SizedBox(height: 1.h),
-        SizedBox(
-          height: 6.h,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: paymentMethods.length,
-            separatorBuilder: (context, index) => SizedBox(width: 2.w),
-            itemBuilder: (context, index) {
-              final method = paymentMethods[index];
-              final dbValue = method.dbValue;
-              final label = getLocalizedPaymentLabel(context, method);
+        Wrap(
+          spacing: 2.w,
+          runSpacing: 1.4.h,
+          children: paymentMethods.map((method) {
+            final dbValue = method.dbValue;
+            final label = getLocalizedPaymentLabel(context, method);
+            final isSelected = selectedMethod == dbValue;
 
-              final isSelected = selectedMethod == dbValue;
-
-              return InkWell(
-                onTap: () => onMethodSelected(dbValue),
-                borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
-                  decoration: BoxDecoration(
+            return InkWell(
+              onTap: () => onMethodSelected(dbValue),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: tileWidth,
+                padding: EdgeInsets.symmetric(vertical: 1.4.h),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.blueBg50
+                      : AppColors.surfaceGlass80Light,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
                     color: isSelected
-                        ? AppColors.primarySoft.withValues(alpha: 0.15)
-                        : colorScheme.surface,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppColors.primary
-                          : colorScheme.outline.withValues(alpha: 0.2),
-                      width: isSelected ? 2 : 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CustomIconWidget(
-                        iconName: _iconFor(method),
-                        color: isSelected
-                            ? AppColors.primary
-                            : colorScheme.onSurface.withValues(alpha: 0.7),
-                        size: 20,
-                      ),
-                      SizedBox(width: 2.w),
-                      Text(
-                        label,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: isSelected
-                              ? AppColors.primary
-                              : colorScheme.onSurface.withValues(alpha: 0.7),
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w400,
-                        ),
-                      ),
-                    ],
+                        ? AppColors.blue600.withValues(alpha: 0.25)
+                        : AppColors.borderGlass60Light,
+                    width: 1,
                   ),
                 ),
-              );
-            },
-          ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Icon container box
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.blueBg50
+                            : AppColors.surfaceGlass80Light,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusIconBox),
+                        border: isSelected
+                            ? null
+                            : Border.all(
+                                color: AppColors.borderGlass60Light,
+                                width: 1,
+                              ),
+                      ),
+                      child: Center(
+                        child: CustomIconWidget(
+                          iconName: _iconFor(method),
+                          color: isSelected ? AppColors.blue600 : AppColors.slate400,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 0.8.h),
+                    // Centered label below icon
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 1.w),
+                      child: Text(
+                        label,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: isSelected ? AppColors.blue600 : AppColors.slate500,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );

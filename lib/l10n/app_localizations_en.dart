@@ -57,6 +57,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cashBalance => 'Cash Balance';
 
   @override
+  String get totalBalance => 'Total Balance';
+
+  @override
   String get last30Days => 'Last 30 Days';
 
   @override
@@ -151,6 +154,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearFilters => 'Clear Filters';
+
+  @override
+  String get transactionType => 'Transaction Type';
 
   @override
   String get all => 'All';
@@ -354,7 +360,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageBackups => 'Manage your data backups';
 
   @override
-  String get notifications => 'NOTIFICATIONS';
+  String get notifications => 'Notifications';
 
   @override
   String get allNotifications => 'All Notifications';

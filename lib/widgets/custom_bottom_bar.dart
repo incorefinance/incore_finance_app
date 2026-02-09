@@ -1,4 +1,13 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+
+import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
+
+/// Clearance height for scrollable content to avoid being hidden behind the floating nav bar.
+/// Use this in screens with CustomBottomBar as bottom padding/spacer.
+const double kBottomNavClearance = 120;
 
 enum BottomBarItem {
   dashboard,
@@ -65,11 +74,8 @@ class CustomBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
-    final selectedColor = cs.primary;
-    final unselectedColor = cs.onSurface.withValues(alpha: 0.65);
+    final selectedColor = AppColors.blue600;
+    final unselectedColor = AppColors.slate400;
 
     final showCenterAdd =
       onAddTransaction != null &&
@@ -109,38 +115,49 @@ class CustomBottomBar extends StatelessWidget {
     // With center add button: render 2 items, a spacer slot, then 2 items.
     // The + button is overlaid so it "sits" on the bar.
     return _BarShell(
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          Row(
-            children: [
-              navItem(BottomBarItem.dashboard),
-              navItem(BottomBarItem.transactions),
-
-              // Center slot reserved only on screens that actually show +
-              const SizedBox(width: 72),
-
-              navItem(BottomBarItem.analytics),
-              navItem(BottomBarItem.settings),
+      fab: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF3B82F6), // blue-500
+              Color(0xFF4F46E5), // indigo-600
             ],
           ),
-
-          Positioned(
-            top: -18, // raise it a bit above the bar
-            child: SizedBox(
-              width: 56,
-              height: 56,
-              child: FloatingActionButton(
-                onPressed: onAddTransaction,
-                elevation: 6,
-                backgroundColor: cs.primary,
-                foregroundColor: cs.onPrimary,
-                shape: const CircleBorder(),
-                child: const Icon(Icons.add, size: 28),
+          boxShadow: AppShadows.fabLight,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: onAddTransaction,
+            customBorder: const CircleBorder(),
+            splashColor: Colors.white.withValues(alpha: 0.25),
+            highlightColor: Colors.white.withValues(alpha: 0.10),
+            child: const Center(
+              child: Icon(
+                Icons.add,
+                size: 28,
+                color: Colors.white,
               ),
             ),
           ),
+        ),
+      ),
+      child: Row(
+        children: [
+          navItem(BottomBarItem.dashboard),
+          navItem(BottomBarItem.transactions),
+
+          // Center slot reserved only on screens that actually show +
+          const SizedBox(width: 72),
+
+          navItem(BottomBarItem.analytics),
+          navItem(BottomBarItem.settings),
         ],
       ),
     );
@@ -149,31 +166,66 @@ class CustomBottomBar extends StatelessWidget {
 
 class _BarShell extends StatelessWidget {
   final Widget child;
+  final Widget? fab;
 
-  const _BarShell({required this.child});
+  const _BarShell({required this.child, this.fab});
+
+  static const double _fabOverflow = 20; // FAB extends above pill
+  static const double _pillHeight = 72;
+  static const double _bottomInset = 24;
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: cs.surface,
-        boxShadow: [
-          BoxShadow(
-            color: cs.shadow.withValues(alpha: 0.08),
-            offset: const Offset(0, -2),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 72,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: child,
+    return SizedBox(
+      height: _fabOverflow + _pillHeight + _bottomInset,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, _bottomInset),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 448),
+            // Stack allows FAB to overflow outside ClipRRect
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                // Glass pill (with blur - clips its own contents)
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: AppShadows.navLight,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(28),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                      child: Container(
+                        height: _pillHeight,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceGlass90Light,
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                            color: AppColors.borderGlass60Light,
+                            width: 1,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // FAB positioned outside ClipRRect so it won't be clipped
+                if (fab != null)
+                  Positioned(
+                    top: -18,
+                    child: fab!,
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -208,20 +260,34 @@ class _BottomBarItemWidget extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 6),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Semantics(
-                label: label,
-                selected: isSelected,
-                child: Icon(
-                  icon,
-                  size: 28,
-                  color: color,
-                ),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Center(
+            child: Semantics(
+              label: label,
+              selected: isSelected,
+              button: true,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 24,
+                    color: color,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: color,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../theme/app_colors.dart';
 import '../../../widgets/custom_icon_widget.dart';
 
 /// Individual setting item tile with icon, title, subtitle, and trailing widget
@@ -34,7 +35,7 @@ class SettingTile extends StatelessWidget {
 
     // Determine colors based on enabled state
     final effectiveIconColor = enabled
-        ? (iconColor ?? colorScheme.onSurfaceVariant)
+        ? (iconColor ?? AppColors.blue600)
         : colorScheme.onSurface.withValues(alpha: 0.38);
     final effectiveTitleColor = enabled
         ? colorScheme.onSurface
@@ -59,7 +60,9 @@ class SettingTile extends StatelessWidget {
                     width: 10.w,
                     height: 10.w,
                     decoration: BoxDecoration(
-                      color: effectiveIconColor.withValues(alpha: 0.1),
+                      color: enabled
+                          ? AppColors.blueBg50
+                          : effectiveIconColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(

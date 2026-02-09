@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:incore_finance/models/payment_method.dart';
 import 'package:incore_finance/models/transaction_category.dart';
@@ -69,7 +71,6 @@ class _TransactionCardState extends State<TransactionCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     final t = widget.transaction;
@@ -100,36 +101,40 @@ class _TransactionCardState extends State<TransactionCard> {
     final formattedAmount = isExpense ? '- $formattedAbs' : formattedAbs;
 
     return Container(
-      padding: EdgeInsets.all(4.w),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.1),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppShadows.cardLight,
       ),
-      child: Row(
-        children: [
-          // Left icon box (keep grey look)
-          Container(
-            width: 12.w,
-            height: 12.w,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+              color: AppColors.surfaceGlass80Light,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.borderGlass60Light,
+                width: 1,
+              ),
+            ),
+            child: Row(
+        children: [
+          // Left icon box
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.blueBg50,
+              borderRadius: BorderRadius.circular(AppTheme.radiusIconBox),
             ),
             child: Center(
               child: CustomIconWidget(
                 iconName: categoryIcon,
-                color: colorScheme.onSurface.withValues(alpha: 0.45),
-                size: 22,
+                color: AppColors.blue600,
+                size: 20,
               ),
             ),
           ),
@@ -148,6 +153,7 @@ class _TransactionCardState extends State<TransactionCard> {
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
+                    color: AppColors.slate900,
                   ),
                 ),
                 SizedBox(height: 0.4.h),
@@ -161,7 +167,7 @@ class _TransactionCardState extends State<TransactionCard> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.65),
+                          color: AppColors.slate500,
                         ),
                       ),
                     ),
@@ -174,13 +180,13 @@ class _TransactionCardState extends State<TransactionCard> {
                     Icon(
                       Icons.payment,
                       size: 16,
-                      color: colorScheme.onSurface.withValues(alpha: 0.55),
+                      color: AppColors.slate400,
                     ),
                     SizedBox(width: 1.5.w),
                     Text(
                       paymentLabel,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.65),
+                        color: AppColors.slate400,
                       ),
                     ),
                   ],
@@ -199,7 +205,7 @@ class _TransactionCardState extends State<TransactionCard> {
                 formattedAmount,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: isExpense ? colorScheme.error : AppColors.success,
+                  color: isExpense ? AppColors.rose700 : AppColors.teal700,
                 ),
               ),
               SizedBox(height: 0.6.h),
@@ -228,12 +234,15 @@ class _TransactionCardState extends State<TransactionCard> {
                   ],
                 icon: Icon(
                   Icons.more_horiz,
-                  color: colorScheme.onSurface.withValues(alpha: 0.55),
+                  color: AppColors.slate400,
                 ),
               ),
             ],
           ),
         ],
+      ),
+          ),
+        ),
       ),
     );
   }

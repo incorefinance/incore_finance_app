@@ -6,6 +6,9 @@ import '../../../core/app_export.dart';
 import '../../../models/payment_method.dart';
 import '../../../models/transaction_category.dart';
 import '../../../theme/app_colors.dart';
+import '../../../utils/category_localizer.dart';
+import '../../../utils/payment_localizer.dart';
+import '../transactions_list.dart' show TransactionTypeFilter;
 
 /// Bottom sheet for transaction filtering options
 class FilterBottomSheet extends StatefulWidget {
@@ -24,12 +27,22 @@ class FilterBottomSheet extends StatefulWidget {
 
 class _FilterBottomSheetState extends State<FilterBottomSheet> {
   late Map<String, dynamic> _filters;
+  TransactionTypeFilter _typeFilter = TransactionTypeFilter.all;
 
   @override
   void initState() {
     super.initState();
-    // Copy so we never mutate the original map reference
     _filters = Map<String, dynamic>.from(widget.currentFilters);
+
+    // Parse incoming transactionType
+    final typeStr = _filters['transactionType'] as String?;
+    if (typeStr == 'income') {
+      _typeFilter = TransactionTypeFilter.income;
+    } else if (typeStr == 'expense') {
+      _typeFilter = TransactionTypeFilter.expense;
+    } else {
+      _typeFilter = TransactionTypeFilter.all;
+    }
   }
 
   void _selectCategory(String? categoryDbValue) {
@@ -44,6 +57,26 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     });
   }
 
+  void _selectType(TransactionTypeFilter type) {
+    setState(() {
+      _typeFilter = type;
+
+      // Auto-clear category if incompatible with new type
+      final selectedCatDbValue = _filters['categoryId'] as String?;
+      if (selectedCatDbValue != null) {
+        final selectedCat =
+            TransactionCategory.fromDbValue(selectedCatDbValue);
+        if (selectedCat != null) {
+          final isIncomeCat = selectedCat.isIncome;
+          if ((type == TransactionTypeFilter.income && !isIncomeCat) ||
+              (type == TransactionTypeFilter.expense && isIncomeCat)) {
+            _filters['categoryId'] = null;
+          }
+        }
+      }
+    });
+  }
+
   void _clearFilters() {
     setState(() {
       _filters['categoryId'] = null;
@@ -52,11 +85,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       _filters['client'] = null;
       _filters['startDate'] = null;
       _filters['endDate'] = null;
+      _typeFilter = TransactionTypeFilter.all;
     });
   }
 
   void _applyFilters() {
-    widget.onApplyFilters(Map<String, dynamic>.from(_filters));
+    final appliedFilters = Map<String, dynamic>.from(_filters);
+    appliedFilters['transactionType'] = _typeFilter.name;
+    widget.onApplyFilters(appliedFilters);
   }
 
   String _iconForPaymentMethod(PaymentMethod method) {
@@ -78,89 +114,224 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     }
   }
 
-  Widget _buildDateChip(String? value, String label) {
-    final isSelected = _filters['dateRange'] == value;
-
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) {
-        setState(() {
-          _filters['dateRange'] = value;
-        });
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     final selectedCategoryDbValue = _filters['categoryId'] as String?;
     final selectedPaymentDbValue = _filters['paymentMethod'] as String?;
+    final selectedDateRange = _filters['dateRange'] as String?;
 
-    // Business logic grouping: Income first, then Expenses
     final incomeCategories =
         TransactionCategory.values.where((c) => c.isIncome).toList();
     final expenseCategories =
         TransactionCategory.values.where((c) => !c.isIncome).toList();
 
-    final tileWidth = (100.w - 8.w - 4.w) / 3; // 3 columns, safe spacing
+    final tileWidth = (100.w - 8.w - 4.w) / 3;
 
+    // Build category/payment tile with frosted design
     Widget buildTile({
       required bool isSelected,
       required String label,
       required String iconName,
       required VoidCallback onTap,
+      bool isDisabled = false,
     }) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        child: Container(
-          width: tileWidth,
-          padding: EdgeInsets.symmetric(vertical: 1.4.h),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.primarySoft.withValues(alpha: 0.12)
-                : colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-            border: Border.all(
-              color: isSelected
-                  ? AppColors.primarySoft
-                  : colorScheme.outline.withValues(alpha: 0.18),
-              width: isSelected ? 2 : 1,
+      // When disabled: lower opacity, no tap response
+      return IgnorePointer(
+        ignoring: isDisabled,
+        child: Opacity(
+          opacity: isDisabled ? 0.4 : 1.0,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              width: tileWidth,
+              padding: EdgeInsets.symmetric(vertical: 1.4.h),
+              decoration: BoxDecoration(
+                color: isSelected && !isDisabled
+                    ? AppColors.blueBg50
+                    : AppColors.surfaceGlass80Light,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected && !isDisabled
+                      ? AppColors.blue600.withValues(alpha: 0.25)
+                      : AppColors.borderGlass60Light,
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: isSelected && !isDisabled
+                          ? AppColors.blueBg50
+                          : AppColors.surfaceGlass80Light,
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusIconBox),
+                      border: isSelected && !isDisabled
+                          ? null
+                          : Border.all(
+                              color: AppColors.borderGlass60Light,
+                              width: 1,
+                            ),
+                    ),
+                    child: Center(
+                      child: CustomIconWidget(
+                        iconName: iconName,
+                        color: isDisabled
+                            ? AppColors.slate400
+                            : (isSelected
+                                ? AppColors.blue600
+                                : AppColors.slate400),
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 0.8.h),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 1.w),
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: isDisabled
+                            ? AppColors.slate400
+                            : (isSelected
+                                ? AppColors.blue600
+                                : AppColors.slate500),
+                        fontWeight:
+                            isSelected && !isDisabled ? FontWeight.w600 : FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomIconWidget(
-                iconName: iconName,
-                color: isSelected
-                    ? AppColors.primarySoft
-                    : colorScheme.onSurface.withValues(alpha: 0.65),
-                size: 22,
+        ),
+      );
+    }
+
+    // Build date chip with frosted design
+    Widget buildDateChip(String? value, String label) {
+      final isSelected = selectedDateRange == value;
+
+      return InkWell(
+        onTap: () {
+          setState(() {
+            _filters['dateRange'] = value;
+          });
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.blueBg50
+                : AppColors.surfaceGlass80Light,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.blue600.withValues(alpha: 0.25)
+                  : AppColors.borderGlass60Light,
+              width: 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: isSelected ? AppColors.blue600 : AppColors.slate500,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Build type option for toggle
+    Widget buildTypeOption(TransactionTypeFilter type, String label) {
+      final isSelected = _typeFilter == type;
+
+      // Colors based on type
+      Color bgColor;
+      Color borderColor;
+      Color textColor;
+
+      if (isSelected) {
+        if (type == TransactionTypeFilter.income) {
+          bgColor = AppColors.tealBg80;
+          borderColor = AppColors.tealBorder50;
+          textColor = AppColors.teal700;
+        } else if (type == TransactionTypeFilter.expense) {
+          bgColor = AppColors.roseBg80;
+          borderColor = AppColors.roseBorder50;
+          textColor = AppColors.rose700;
+        } else {
+          bgColor = AppColors.blueBg50;
+          borderColor = AppColors.blue600.withValues(alpha: 0.25);
+          textColor = AppColors.blue600;
+        }
+      } else {
+        bgColor = Colors.transparent;
+        borderColor = Colors.transparent;
+        textColor = AppColors.slate500;
+      }
+
+      return Expanded(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _selectType(type),
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(20),
+                border: isSelected
+                    ? Border.all(color: borderColor, width: 1)
+                    : null,
               ),
-              SizedBox(height: 0.8.h),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 1.w),
+              child: Center(
                 child: Text(
                   label,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: isSelected
-                        ? AppColors.primarySoft
-                        : colorScheme.onSurface.withValues(alpha: 0.8),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: textColor,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),
               ),
-            ],
+            ),
           ),
+        ),
+      );
+    }
+
+    // Build type toggle segment
+    Widget buildTypeToggle() {
+      return Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceGlass80Light,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: AppColors.borderGlass60Light,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            buildTypeOption(TransactionTypeFilter.all, l10n.all),
+            buildTypeOption(TransactionTypeFilter.income, l10n.income),
+            buildTypeOption(TransactionTypeFilter.expense, l10n.expense),
+          ],
         ),
       );
     }
@@ -172,7 +343,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           Text(
             title,
             style: theme.textTheme.titleSmall?.copyWith(
-              color: colorScheme.onSurface.withValues(alpha: 0.65),
+              color: AppColors.slate500,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -182,9 +353,16 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             runSpacing: 1.4.h,
             children: cats.map((cat) {
               final isSelected = selectedCategoryDbValue == cat.dbValue;
+              // Disable categories that don't match the selected type filter
+              final isDisabled =
+                  (_typeFilter == TransactionTypeFilter.income &&
+                      !cat.isIncome) ||
+                  (_typeFilter == TransactionTypeFilter.expense &&
+                      cat.isIncome);
               return buildTile(
                 isSelected: isSelected,
-                label: cat.label,
+                isDisabled: isDisabled,
+                label: getLocalizedCategoryLabel(context, cat),
                 iconName: cat.iconName,
                 onTap: () => _selectCategory(isSelected ? null : cat.dbValue),
               );
@@ -204,7 +382,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           final isSelected = selectedPaymentDbValue == m.dbValue;
           return buildTile(
             isSelected: isSelected,
-            label: m.label,
+            label: getLocalizedPaymentLabel(context, m),
             iconName: _iconForPaymentMethod(m),
             onTap: () => _selectPaymentMethod(isSelected ? null : m.dbValue),
           );
@@ -214,7 +392,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: AppColors.canvasFrostedLight,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
@@ -236,7 +414,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   height: 4,
                   margin: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.borderSubtle,
+                    color: AppColors.slate400,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -249,14 +427,17 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     children: [
                       Text(
                         l10n.filterTransactions,
-                        style: theme.textTheme.titleLarge,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: AppColors.slate900,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       TextButton(
                         onPressed: _clearFilters,
                         child: Text(
                           l10n.clearAll,
                           style: theme.textTheme.labelLarge?.copyWith(
-                            color: AppColors.error,
+                            color: AppColors.rose600,
                           ),
                         ),
                       ),
@@ -265,7 +446,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 ),
 
                 SizedBox(height: 1.h),
-                Divider(color: colorScheme.outline),
+                Divider(color: AppColors.dividerGlass60Light),
 
                 Flexible(
                   child: SingleChildScrollView(
@@ -276,42 +457,68 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 16),
+                        // Transaction Type Toggle
                         Text(
-                          l10n.dateRange,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
+                          l10n.transactionType,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: AppColors.slate500,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 1.h),
+                        buildTypeToggle(),
+
+                        SizedBox(height: 3.h),
+
+                        // Date Range
+                        Text(
+                          l10n.dateRange,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: AppColors.slate500,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 1.h),
                         Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
+                          spacing: 2.w,
+                          runSpacing: 1.h,
                           children: [
-                            _buildDateChip(null, l10n.allTime),
-                            _buildDateChip('today', l10n.today),
-                            _buildDateChip('week', l10n.lastSevenDays),
-                            _buildDateChip('month', l10n.thisMonth),
-                            _buildDateChip('year', l10n.thisYear),
+                            buildDateChip(null, l10n.allTime),
+                            buildDateChip('today', l10n.today),
+                            buildDateChip('week', l10n.lastSevenDays),
+                            buildDateChip('month', l10n.thisMonth),
+                            buildDateChip('year', l10n.thisYear),
                           ],
                         ),
+
                         SizedBox(height: 3.h),
+
+                        // Category section header
                         Text(
                           l10n.category,
-                          style: theme.textTheme.titleMedium,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: AppColors.slate500,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         SizedBox(height: 1.8.h),
 
-                        // Income first, then Expenses
+                        // Income categories
                         buildCategorySection(l10n.income, incomeCategories),
                         SizedBox(height: 3.h),
+
+                        // Expense categories
                         buildCategorySection(l10n.expenses, expenseCategories),
 
                         SizedBox(height: 3.h),
 
+                        // Payment Method
                         Text(
                           l10n.paymentMethod,
-                          style: theme.textTheme.titleMedium,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: AppColors.slate500,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         SizedBox(height: 1.8.h),
                         buildPaymentSection(),
@@ -322,20 +529,34 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   ),
                 ),
 
-                Divider(color: colorScheme.outline),
+                Divider(color: AppColors.dividerGlass60Light),
 
                 // Apply button
                 Padding(
                   padding: EdgeInsets.fromLTRB(4.w, 1.h, 4.w, 2.h),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _applyFilters();
-                      // DO NOT pop here – parent handles it
-                    },
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: Size(double.infinity, 6.h),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 6.h,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _applyFilters();
+                        // Parent handles pop
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.blue600,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: Text(
+                        l10n.applyFilters,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                    child: Text(l10n.applyFilters),
                   ),
                 ),
               ],

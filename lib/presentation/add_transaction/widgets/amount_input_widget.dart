@@ -74,16 +74,16 @@ class _AmountInputWidgetState extends State<AmountInputWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 3.h),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color:
-            widget.isIncome
-                ? AppColors.income.withValues(alpha: 0.1)
-                : AppColors.expense.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        color: AppColors.surfaceGlass80Light,
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        border: Border.all(
+          color: AppColors.borderGlass60Light,
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,7 +91,8 @@ class _AmountInputWidgetState extends State<AmountInputWidget> {
           Text(
             'Amount',
             style: theme.textTheme.labelMedium?.copyWith(
-              color: colorScheme.onSurface.withValues(alpha: 0.7),
+              color: AppColors.slate500,
+              fontWeight: FontWeight.w500,
             ),
           ),
           SizedBox(height: 1.h),
@@ -101,7 +102,7 @@ class _AmountInputWidgetState extends State<AmountInputWidget> {
             inputFormatters: [_formatter],
             style: theme.textTheme.displaySmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: widget.isIncome ? AppColors.income : AppColors.expense,
+              color: widget.isIncome ? AppColors.teal700 : AppColors.rose700,
             ),
             decoration: InputDecoration(
               border: InputBorder.none,
@@ -110,7 +111,7 @@ class _AmountInputWidgetState extends State<AmountInputWidget> {
               hintText: '${widget.currencySymbol}0.00',
               hintStyle: theme.textTheme.displaySmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: colorScheme.onSurface.withValues(alpha: 0.3),
+                color: AppColors.slate400,
               ),
               contentPadding: EdgeInsets.zero,
             ),

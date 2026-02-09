@@ -229,7 +229,7 @@ class _AddEditRecurringExpenseDialogState
         ElevatedButton(
           onPressed: _isSaveEnabled && !_isSaving ? _handleSave : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+            backgroundColor: AppColors.blue600,
           ),
           child: _isSaving
               ? SizedBox(

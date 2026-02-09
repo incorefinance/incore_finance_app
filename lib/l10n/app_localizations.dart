@@ -191,6 +191,12 @@ abstract class AppLocalizations {
   /// **'Cash Balance'**
   String get cashBalance;
 
+  /// No description provided for @totalBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Balance'**
+  String get totalBalance;
+
   /// No description provided for @last30Days.
   ///
   /// In en, this message translates to:
@@ -382,6 +388,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear Filters'**
   String get clearFilters;
+
+  /// No description provided for @transactionType.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Type'**
+  String get transactionType;
 
   /// No description provided for @all.
   ///
@@ -788,7 +800,7 @@ abstract class AppLocalizations {
   /// No description provided for @notifications.
   ///
   /// In en, this message translates to:
-  /// **'NOTIFICATIONS'**
+  /// **'Notifications'**
   String get notifications;
 
   /// No description provided for @allNotifications.
