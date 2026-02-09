@@ -49,6 +49,7 @@ class _AddTransactionState extends State<AddTransaction> {
   bool _isIncome = false;
   String? _selectedCategory;
   String? _selectedPaymentMethod;
+  String? _selectedTemplate; // Track selected quick template
   DateTime _selectedDate = DateTime.now();
   bool _isSaveEnabled = false;
   bool _isSaving = false;
@@ -258,6 +259,7 @@ class _AddTransactionState extends State<AddTransaction> {
     double amount,
   ) {
     setState(() {
+      _selectedTemplate = description; // Track selected template
       _descriptionController.text = description;
       // Category is no longer auto-assigned from templates
       // User must select category manually from the Category Selector
@@ -276,9 +278,76 @@ class _AddTransactionState extends State<AddTransaction> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(
-              context,
-            ).colorScheme.copyWith(primary: AppColors.primary),
+            colorScheme: ColorScheme.light(
+              primary: AppColors.blue600,
+              onPrimary: Colors.white,
+              surface: AppColors.canvasFrostedLight,
+              onSurface: AppColors.slate900,
+              surfaceContainerHighest: AppColors.surfaceGlass80Light,
+            ),
+            datePickerTheme: DatePickerThemeData(
+              backgroundColor: AppColors.canvasFrostedLight,
+              headerBackgroundColor: AppColors.surfaceGlass80Light,
+              headerForegroundColor: AppColors.slate900,
+              dayForegroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.white;
+                }
+                if (states.contains(WidgetState.disabled)) {
+                  return AppColors.slate400;
+                }
+                return AppColors.slate900;
+              }),
+              dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return AppColors.blue600;
+                }
+                return Colors.transparent;
+              }),
+              todayForegroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.white;
+                }
+                return AppColors.blue600;
+              }),
+              todayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return AppColors.blue600;
+                }
+                return Colors.transparent;
+              }),
+              todayBorder: BorderSide(color: AppColors.blue600, width: 1),
+              yearForegroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.white;
+                }
+                return AppColors.slate900;
+              }),
+              yearBackgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return AppColors.blue600;
+                }
+                return Colors.transparent;
+              }),
+              weekdayStyle: TextStyle(
+                color: AppColors.slate500,
+                fontWeight: FontWeight.w500,
+              ),
+              dayStyle: TextStyle(
+                color: AppColors.slate900,
+                fontWeight: FontWeight.w400,
+              ),
+              surfaceTintColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+              ),
+              cancelButtonStyle: ButtonStyle(
+                foregroundColor: WidgetStateProperty.all(AppColors.slate600),
+              ),
+              confirmButtonStyle: ButtonStyle(
+                foregroundColor: WidgetStateProperty.all(AppColors.blue600),
+              ),
+            ),
           ),
           child: child!,
         );
@@ -299,7 +368,7 @@ class _AddTransactionState extends State<AddTransaction> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: AppColors.canvasFrostedLight,
       body: SafeArea(
         child: Column(
           children: [
@@ -309,7 +378,7 @@ class _AddTransactionState extends State<AddTransaction> {
               width: 10.w,
               height: 0.5.h,
               decoration: BoxDecoration(
-                color: colorScheme.onSurface.withValues(alpha: 0.2),
+                color: AppColors.slate400,
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -325,10 +394,7 @@ class _AddTransactionState extends State<AddTransaction> {
                     child: Text(
                       l10n.cancel,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color:
-                            _isSaving
-                                ? colorScheme.onSurface.withValues(alpha: 0.3)
-                                : colorScheme.onSurface.withValues(alpha: 0.7),
+                        color: _isSaving ? AppColors.slate400 : AppColors.slate600,
                       ),
                     ),
                   ),
@@ -336,6 +402,7 @@ class _AddTransactionState extends State<AddTransaction> {
                     _isEditing ? l10n.editTransaction : l10n.addTransaction,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: AppColors.slate900,
                     ),
                   ),
                   _isSaving
@@ -357,10 +424,8 @@ class _AddTransactionState extends State<AddTransaction> {
                           style: theme.textTheme.titleMedium?.copyWith(
                             color:
                                 _isSaveEnabled && !_isSaving
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurface.withValues(
-                                      alpha: 0.3,
-                                    ),
+                                    ? AppColors.blue600
+                                    : AppColors.slate400,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -371,7 +436,7 @@ class _AddTransactionState extends State<AddTransaction> {
 
             Divider(
               height: 1,
-              color: colorScheme.outline.withValues(alpha: 0.2),
+              color: AppColors.dividerGlass60Light,
             ),
 
             // Content
@@ -399,6 +464,7 @@ class _AddTransactionState extends State<AddTransaction> {
                         setState(() {
                           _isIncome = isIncome;
                           _selectedCategory = null;
+                          _selectedTemplate = null; // Clear template when type changes
                         });
                         _validateForm();
                       },
@@ -411,22 +477,94 @@ class _AddTransactionState extends State<AddTransaction> {
                       controller: _descriptionController,
                       decoration: InputDecoration(
                         labelText: l10n.description,
+                        labelStyle: TextStyle(color: AppColors.slate500),
                         hintText: l10n.enterDescription,
+                        hintStyle: TextStyle(color: AppColors.slate400),
                         prefixIcon: Padding(
                           padding: EdgeInsets.all(3.w),
                           child: CustomIconWidget(
                             iconName: 'description',
-                            color: colorScheme.onSurface.withValues(alpha: 0.5),
+                            color: AppColors.slate400,
                             size: 24,
                           ),
                         ),
+                        filled: true,
+                        fillColor: AppColors.surfaceGlass80Light,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppTheme.radiusMedium,
-                          ),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                          borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                          borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                          borderSide: BorderSide(color: AppColors.blue600.withValues(alpha: 0.5), width: 1.5),
                         ),
                       ),
+                      style: TextStyle(color: AppColors.slate900),
                       textCapitalization: TextCapitalization.sentences,
+                    ),
+
+                    SizedBox(height: 3.h),
+
+                    // Date Picker
+                    InkWell(
+                      onTap: () => _selectDate(context),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 4.w,
+                          vertical: 2.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceGlass80Light,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                          border: Border.all(
+                            color: AppColors.borderGlass60Light,
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            CustomIconWidget(
+                              iconName: 'calendar_today',
+                              color: AppColors.slate400,
+                              size: 24,
+                            ),
+                            SizedBox(width: 3.w),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.date,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: AppColors.slate500,
+                                    ),
+                                  ),
+                                  SizedBox(height: 0.5.h),
+                                  Text(
+                                    DateFormat(
+                                      'MMM dd, yyyy',
+                                    ).format(_selectedDate),
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.slate900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            CustomIconWidget(
+                              iconName: 'chevron_right',
+                              color: AppColors.slate400,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
 
                     SizedBox(height: 3.h),
@@ -463,91 +601,34 @@ class _AddTransactionState extends State<AddTransaction> {
                       controller: _clientController,
                       decoration: InputDecoration(
                         labelText: l10n.optionalClient,
+                        labelStyle: TextStyle(color: AppColors.slate500),
                         hintText: l10n.enterClientHint,
+                        hintStyle: TextStyle(color: AppColors.slate400),
                         prefixIcon: Padding(
                           padding: EdgeInsets.all(3.w),
                           child: CustomIconWidget(
                             iconName: 'person',
-                            color: colorScheme.onSurface.withValues(alpha: 0.5),
+                            color: AppColors.slate400,
                             size: 24,
                           ),
                         ),
+                        filled: true,
+                        fillColor: AppColors.surfaceGlass80Light,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppTheme.radiusMedium,
-                          ),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                          borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                          borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                          borderSide: BorderSide(color: AppColors.blue600.withValues(alpha: 0.5), width: 1.5),
                         ),
                       ),
+                      style: TextStyle(color: AppColors.slate900),
                       textCapitalization: TextCapitalization.words,
-                    ),
-
-                    SizedBox(height: 3.h),
-
-                    // Date Picker
-                    InkWell(
-                      onTap: () => _selectDate(context),
-                      borderRadius: BorderRadius.circular(
-                        AppTheme.radiusMedium,
-                      ),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 4.w,
-                          vertical: 2.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surface,
-                          borderRadius: BorderRadius.circular(
-                            AppTheme.radiusMedium,
-                          ),
-                          border: Border.all(
-                            color: colorScheme.outline.withValues(alpha: 0.2),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            CustomIconWidget(
-                              iconName: 'calendar_today',
-                              color: colorScheme.onSurface.withValues(
-                                alpha: 0.7,
-                              ),
-                              size: 24,
-                            ),
-                            SizedBox(width: 3.w),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.date,
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: colorScheme.onSurface.withValues(
-                                        alpha: 0.6,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 0.5.h),
-                                  Text(
-                                    DateFormat(
-                                      'MMM dd, yyyy',
-                                    ).format(_selectedDate),
-                                    style: theme.textTheme.bodyLarge?.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            CustomIconWidget(
-                              iconName: 'chevron_right',
-                              color: colorScheme.onSurface.withValues(
-                                alpha: 0.3,
-                              ),
-                              size: 20,
-                            ),
-                          ],
-                        ),
-                      ),
                     ),
 
                     SizedBox(height: 3.h),
@@ -557,6 +638,7 @@ class _AddTransactionState extends State<AddTransaction> {
                       onTemplateSelected: _handleTemplateSelection,
                       isIncome: _isIncome,
                       locale: _locale,
+                      selectedTemplate: _selectedTemplate,
                     ),
 
                     SizedBox(height: 2.h),

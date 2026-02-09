@@ -57,6 +57,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cashBalance => 'Saldo Disponível';
 
   @override
+  String get totalBalance => 'Saldo Total';
+
+  @override
   String get last30Days => 'Últimos 30 Dias';
 
   @override
@@ -153,7 +156,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get clearFilters => 'Limpar Filtros';
 
   @override
-  String get all => 'Todas';
+  String get transactionType => 'Tipo de Transação';
+
+  @override
+  String get all => 'Todos';
 
   @override
   String get expense => 'Despesa';
@@ -354,7 +360,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get manageBackups => 'Gerir as suas cópias de segurança';
 
   @override
-  String get notifications => 'NOTIFICAÇÕES';
+  String get notifications => 'Notificações';
 
   @override
   String get allNotifications => 'Todas as Notificações';

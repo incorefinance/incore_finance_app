@@ -135,4 +135,86 @@ abstract final class AppColors {
   /// Subtle glow used in dark theme elevation
   /// 0x1FFFFFFF
   static const Color shadowGlow = Color(0x1FFFFFFF);
+
+  // ============================================================================
+  // FROSTED GLASS DESIGN SYSTEM - New tokens for iOS-style glassmorphism
+  // ============================================================================
+
+  // ─── Neutrals and Surfaces (Light) ───────────────────────────────────────
+
+  /// Frosted canvas background for light mode
+  static const Color canvasFrostedLight = Color(0xFFF9FAFB);
+
+  /// 80% white glass surface
+  static const Color surfaceGlass80Light = Color(0xCCFFFFFF);
+
+  /// 90% white glass surface (for nav)
+  static const Color surfaceGlass90Light = Color(0xE6FFFFFF);
+
+  /// 60% white glass border
+  static const Color borderGlass60Light = Color.fromRGBO(255, 255, 255, 0.60);
+
+  /// 60% slate divider for glass surfaces
+  static const Color dividerGlass60Light = Color.fromRGBO(226, 232, 240, 0.60);
+
+  // ─── Slate Text Scale ────────────────────────────────────────────────────
+
+  /// Slate 900 - Primary text
+  static const Color slate900 = Color(0xFF0F172A);
+
+  /// Slate 600 - Secondary text
+  static const Color slate600 = Color(0xFF475569);
+
+  /// Slate 500 - Tertiary text
+  static const Color slate500 = Color(0xFF64748B);
+
+  /// Slate 400 - Disabled/inactive
+  static const Color slate400 = Color(0xFF94A3B8);
+
+  // ─── Teal Accent ─────────────────────────────────────────────────────────
+
+  static const Color teal600 = Color(0xFF0D9488);
+  static const Color teal700 = Color(0xFF0F766E);
+  static const Color tealBg80 = Color.fromRGBO(240, 253, 250, 0.80);
+  static const Color tealBorder50 = Color.fromRGBO(204, 251, 241, 0.50);
+
+  // ─── Rose Accent ─────────────────────────────────────────────────────────
+
+  static const Color rose600 = Color(0xFFE11D48);
+  static const Color rose700 = Color(0xFFBE123C);
+  static const Color roseBg80 = Color.fromRGBO(255, 241, 242, 0.80);
+  static const Color roseBorder50 = Color.fromRGBO(255, 228, 230, 0.50);
+
+  // ─── Red (Negative Trend) ────────────────────────────────────────────────
+
+  static const Color red600 = Color(0xFFDC2626);
+  static const Color redBg80 = Color.fromRGBO(254, 242, 242, 0.80);
+
+  // ─── Blue Accent ─────────────────────────────────────────────────────────
+
+  static const Color blue600 = Color(0xFF2563EB);
+  static const Color blueBg50 = Color(0xFFEFF6FF);
+
+  // ─── Neutral Badge ───────────────────────────────────────────────────────
+
+  static const Color badgeBg80 = Color.fromRGBO(241, 245, 249, 0.80);
+
+  // ─── Shadow Colors (Frosted System) ──────────────────────────────────────
+
+  /// Card shadow for frosted design
+  static const Color shadowCardLight = Color.fromRGBO(0, 0, 0, 0.08);
+
+  /// Nav bar shadow
+  static const Color shadowNavLight = Color.fromRGBO(0, 0, 0, 0.12);
+
+  /// FAB shadow
+  static const Color shadowFabLight = Color.fromRGBO(0, 0, 0, 0.25);
+
+  // ─── Frosted Glass (Dark Mode - for future use) ──────────────────────────
+
+  static const Color canvasFrostedDark = Color(0xFF0F172A);
+  static const Color surfaceGlass80Dark = Color.fromRGBO(15, 23, 42, 0.80);
+  static const Color surfaceGlass90Dark = Color.fromRGBO(15, 23, 42, 0.90);
+  static const Color borderGlass60Dark = Color.fromRGBO(30, 41, 59, 0.60);
+  static const Color dividerGlass60Dark = Color.fromRGBO(51, 65, 85, 0.60);
 }

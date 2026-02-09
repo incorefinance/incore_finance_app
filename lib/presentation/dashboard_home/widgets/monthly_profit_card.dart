@@ -1,10 +1,12 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../../utils/number_formatter.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_colors.dart';
+import '../../../theme/app_theme.dart';
 
 class MonthlyProfitCard extends StatelessWidget {
   final double profit;
@@ -58,7 +60,6 @@ class MonthlyProfitCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     final formatted = IncoreNumberFormatter.formatMoney(
@@ -70,75 +71,78 @@ class MonthlyProfitCard extends StatelessWidget {
 
     // Up/down color logic: based on percentageChange direction.
     final bool isUp = percentageChange >= 0;
-    final Color trendColor = isUp ? AppColors.success : AppColors.error;
 
     final showBadge = _shouldShowTrendBadge();
 
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-      padding: EdgeInsets.all(4.w),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(
-          color: AppColors.borderSubtle,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.06),
-            offset: const Offset(0, 6),
-            blurRadius: 18,
-            spreadRadius: 0,
-          ),
-        ],
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        boxShadow: AppShadows.cardLight,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Profit + This month hierarchy
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.profit,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 0.3.h),
-                  Text(
-                    l10n.thisMonth,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceGlass80Light,
+              borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+              border: Border.all(
+                color: AppColors.borderGlass60Light,
+                width: 1,
               ),
-              // Conditionally show trend chip
-              if (showBadge)
-                _TrendChip(
-                  value: percentageChange,
-                  color: trendColor,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Profit + This month hierarchy
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.profit,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: AppColors.slate500,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.thisMonth,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.slate400,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Conditionally show trend chip
+                    if (showBadge)
+                      _TrendChip(
+                        value: percentageChange,
+                        isUp: isUp,
+                      ),
+                  ],
                 ),
-            ],
-          ),
-          SizedBox(height: 1.4.h),
-          Text(
-            formatted,
-            style: theme.textTheme.displaySmall?.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w800,
+                const SizedBox(height: 12),
+                Text(
+                  formatted,
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    color: AppColors.slate900,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -146,11 +150,11 @@ class MonthlyProfitCard extends StatelessWidget {
 
 class _TrendChip extends StatelessWidget {
   final double value;
-  final Color color;
+  final bool isUp;
 
   const _TrendChip({
     required this.value,
-    required this.color,
+    required this.isUp,
   });
 
   @override
@@ -158,15 +162,18 @@ class _TrendChip extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    final bool isUp = value >= 0;
     final String directionText = isUp ? l10n.up : l10n.down;
+    final chipColor = isUp ? AppColors.teal600 : AppColors.red600;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 0.7.h),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        border: Border.all(color: color.withValues(alpha: 0.35), width: 1),
+        color: isUp ? AppColors.tealBg80 : AppColors.redBg80,
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(
+          color: isUp ? AppColors.tealBorder50 : AppColors.roseBorder50,
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -174,13 +181,13 @@ class _TrendChip extends StatelessWidget {
           Icon(
             isUp ? Icons.trending_up : Icons.trending_down,
             size: 16,
-            color: color,
+            color: chipColor,
           ),
-          SizedBox(width: 1.w),
+          const SizedBox(width: 4),
           Text(
             '$directionText ${value.abs().toStringAsFixed(1)}% ${l10n.vsLastMonth}',
             style: theme.textTheme.labelMedium?.copyWith(
-              color: color,
+              color: chipColor,
               fontWeight: FontWeight.w700,
             ),
           ),

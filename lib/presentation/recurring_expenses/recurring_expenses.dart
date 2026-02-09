@@ -196,18 +196,16 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: AppColors.canvasFrostedLight,
       appBar: AppBar(
         title: Text(l10n.recurringExpenses),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
+        backgroundColor: AppColors.canvasFrostedLight,
+        foregroundColor: AppColors.slate900,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -216,7 +214,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(
-                color: AppColors.primary,
+                color: AppColors.blue600,
               ),
             )
           : _loadError != null
@@ -230,7 +228,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
                   : _buildExpensesList(context),
       floatingActionButton: FloatingActionButton(
         onPressed: _handleAddExpense,
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.blue600,
         child: const Icon(Icons.add),
       ),
     );
@@ -238,7 +236,6 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
 
   Widget _buildEmptyState(BuildContext context, AppLocalizations l10n) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Center(
       child: Padding(
@@ -249,13 +246,13 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
             Icon(
               Icons.calendar_today_outlined,
               size: 60,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+              color: AppColors.slate400.withValues(alpha: 0.5),
             ),
             SizedBox(height: 2.h),
             Text(
               l10n.noRecurringExpenses,
               style: theme.textTheme.titleLarge?.copyWith(
-                color: colorScheme.onSurface,
+                color: AppColors.slate900,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -264,14 +261,14 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
               l10n.addRecurringExpensesHint,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+                color: AppColors.slate500,
               ),
             ),
             SizedBox(height: 3.h),
             ElevatedButton(
               onPressed: _handleAddExpense,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: AppColors.blue600,
                 padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.2.h),
               ),
               child: Text(
@@ -291,7 +288,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
   Widget _buildExpensesList(BuildContext context) {
     return RefreshIndicator(
       onRefresh: _loadRecurringExpenses,
-      color: AppColors.primary,
+      color: AppColors.blue600,
       child: ListView.builder(
         padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 4.w),
         itemCount: _expenses.length,

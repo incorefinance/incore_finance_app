@@ -406,14 +406,16 @@ class _SettingsState extends State<Settings> {
 
     final canExport = _entitlementService.canExportData(_currentPlan);
 
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: AppColors.canvas,
-        bottomNavigationBar: CustomBottomBar(
-          currentItem: BottomBarItem.settings,
-          onItemSelected: (_) {},
-        ),
-        body: SingleChildScrollView(
+    return Scaffold(
+      extendBody: true,
+      backgroundColor: AppColors.canvasFrostedLight,
+      bottomNavigationBar: CustomBottomBar(
+        currentItem: BottomBarItem.settings,
+        onItemSelected: (_) {},
+      ),
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 4.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -542,6 +544,8 @@ class _SettingsState extends State<Settings> {
                     trailing: Switch(
                       value: _isDarkMode,
                       onChanged: _toggleDarkMode,
+                      activeThumbColor: AppColors.blue600,
+                      activeTrackColor: AppColors.blueBg50,
                     ),
                     showDivider: true,
                   ),
@@ -585,6 +589,8 @@ class _SettingsState extends State<Settings> {
                     trailing: Switch(
                       value: _biometricEnabled,
                       onChanged: _toggleBiometric,
+                      activeThumbColor: AppColors.blue600,
+                      activeTrackColor: AppColors.blueBg50,
                     ),
                     showDivider: true,
                   ),
@@ -597,6 +603,8 @@ class _SettingsState extends State<Settings> {
                     trailing: Switch(
                       value: _notificationsEnabled,
                       onChanged: _toggleNotifications,
+                      activeThumbColor: AppColors.blue600,
+                      activeTrackColor: AppColors.blueBg50,
                     ),
                     showDivider: false,
                   ),
@@ -703,7 +711,7 @@ class _SettingsState extends State<Settings> {
                 ],
               ),
 
-              SizedBox(height: 4.h),
+              SizedBox(height: kBottomNavClearance),
             ],
           ),
         ),
@@ -716,7 +724,7 @@ class _SettingsState extends State<Settings> {
 // Private Widgets
 // =============================================================================
 
-/// Card wrapper for settings sections
+/// Card wrapper for settings sections with frosted glass styling
 class _SectionCard extends StatelessWidget {
   final String title;
   final List<Widget> children;
@@ -738,30 +746,39 @@ class _SectionCard extends StatelessWidget {
           child: Text(
             title,
             style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.primary,
+              color: AppColors.slate500,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
             ),
           ),
         ),
-        Card(
-          elevation: 0,
+        Container(
           margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: AppColors.borderSubtle,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+            boxShadow: AppShadows.cardLight,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceGlass80Light,
+                borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+                border: Border.all(
+                  color: AppColors.borderGlass60Light,
+                  width: 1,
+                ),
+              ),
+              child: Column(children: children),
             ),
           ),
-          color: AppColors.surface,
-          child: Column(children: children),
         ),
       ],
     );
   }
 }
 
-/// Upgrade banner for free users
+/// Upgrade banner for free users with frosted glass styling
 class _UpgradeBanner extends StatelessWidget {
   final VoidCallback onTap;
 
@@ -771,56 +788,64 @@ class _UpgradeBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Material(
-      color: AppColors.primary,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.workspace_premium,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              SizedBox(width: 3.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.upgradeToPremium,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        boxShadow: AppShadows.cardLight,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        child: Material(
+          color: AppColors.blue600,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusIconBox),
                     ),
-                    Text(
-                      l10n.premiumDescription,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 12,
-                      ),
+                    child: const Icon(
+                      Icons.workspace_premium,
+                      color: Colors.white,
+                      size: 24,
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(width: 3.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.upgradeToPremium,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          l10n.premiumDescription,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right,
+                    color: Colors.white,
+                  ),
+                ],
               ),
-              const Icon(
-                Icons.chevron_right,
-                color: Colors.white,
-              ),
-            ],
+            ),
           ),
         ),
       ),

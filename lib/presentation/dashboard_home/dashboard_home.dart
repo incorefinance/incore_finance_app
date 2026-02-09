@@ -17,7 +17,7 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/app_error_widget.dart';
-import './widgets/cash_position_card.dart';
+import './widgets/total_balance_card.dart';
 import './widgets/monthly_profit_card.dart';
 import './widgets/upcoming_bills_placeholder.dart';
 import './widgets/upcoming_bills_card.dart';
@@ -59,6 +59,9 @@ class _DashboardHomeState extends State<DashboardHome> {
   bool _isLoadingDashboard = true;
   AppError? _loadError;
   List<RecurringExpense> _recurringBills = [];
+
+  double _totalIncome = 0.0;
+  double _totalExpense = 0.0;
 
   SafetyBufferSnapshot? _safetyBufferSnapshot;
   TaxShieldSnapshot? _taxShieldSnapshot;
@@ -230,6 +233,8 @@ class _DashboardHomeState extends State<DashboardHome> {
 
       setState(() {
         _cashBalance = cashBalance;
+        _totalIncome = totalIncome;
+        _totalExpense = totalExpense;
         _monthlyProfit = currentProfit;
         _prevMonthProfit = prevProfit;
         _prevMonthHasData = prevHasData;
@@ -307,8 +312,10 @@ class _DashboardHomeState extends State<DashboardHome> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      extendBody: true,
+      backgroundColor: AppColors.canvasFrostedLight,
       body: SafeArea(
+        bottom: false,
         child: RefreshIndicator(
           onRefresh: _handleRefresh,
           color: AppColors.primary,
@@ -368,12 +375,15 @@ class _DashboardHomeState extends State<DashboardHome> {
                           )
                         : Column(
                         children: [
-                          // Block 1: Cash Position (primary, top)
-                          CashPositionCard(
+                          // Block 1: Total Balance (primary, top)
+                          TotalBalanceCard(
                             balance: _cashBalance,
+                            income: _totalIncome,
+                            expenses: _totalExpense,
                             locale: _currencySettings.locale,
                             symbol: _currencySettings.symbol,
                             currencyCode: _currencySettings.currencyCode,
+                            onWalletPressed: null, // Future: navigate to wallet/accounts
                           ),
 
                           // Block 2: Safety Buffer
@@ -424,8 +434,8 @@ class _DashboardHomeState extends State<DashboardHome> {
                       ),
               ),
 
-              // Bottom spacing
-              SliverToBoxAdapter(child: SizedBox(height: 4.h)),
+              // Bottom spacing - accounts for floating nav bar
+              SliverToBoxAdapter(child: SizedBox(height: kBottomNavClearance)),
             ],
           ),
         ),

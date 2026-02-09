@@ -11,18 +11,19 @@ class QuickTemplatesWidget extends StatelessWidget {
       onTemplateSelected;
   final bool isIncome;
   final String locale;
+  final String? selectedTemplate; // Track selected template by description
 
   const QuickTemplatesWidget({
     super.key,
     required this.onTemplateSelected,
     required this.isIncome,
     required this.locale,
+    this.selectedTemplate,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     final templates = isIncome
         ? [
@@ -66,83 +67,111 @@ class QuickTemplatesWidget extends StatelessWidget {
             },
           ];
 
+    // Calculate tile width for 3-column grid (matching category/payment selectors)
+    final tileWidth = (100.w - 8.w - 4.w) / 3;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Quick Templates',
           style: theme.textTheme.labelMedium?.copyWith(
-            color: colorScheme.onSurface.withValues(alpha: 0.7),
+            color: AppColors.slate500,
+            fontWeight: FontWeight.w500,
           ),
         ),
         SizedBox(height: 1.h),
-        SizedBox(
-          height: 8.h,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: templates.length,
-            separatorBuilder: (context, index) => SizedBox(width: 2.w),
-            itemBuilder: (context, index) {
-              final template = templates[index];
-              final formatted = IncoreNumberFormatter.formatAmount(
-                template['amount'] as double,
-                locale: locale,
-              );
+        Wrap(
+          spacing: 2.w,
+          runSpacing: 1.4.h,
+          children: templates.map((template) {
+            final description = template['description'] as String;
+            final formatted = IncoreNumberFormatter.formatAmount(
+              template['amount'] as double,
+              locale: locale,
+            );
+            final isSelected = selectedTemplate == description;
 
-              return InkWell(
-                onTap: () => onTemplateSelected(
-                  template['description'] as String,
-                  template['category'] as String,
-                  template['amount'] as double,
+            // Colors based on income/expense type
+            final accentColor = isIncome ? AppColors.teal600 : AppColors.rose600;
+            final accentBgColor = isIncome ? AppColors.tealBg80 : AppColors.roseBg80;
+            final accentBorderColor = isIncome ? AppColors.tealBorder50 : AppColors.roseBorder50;
+
+            return InkWell(
+              onTap: () => onTemplateSelected(
+                description,
+                template['category'] as String,
+                template['amount'] as double,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: tileWidth,
+                padding: EdgeInsets.symmetric(vertical: 1.4.h),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? accentBgColor
+                      : AppColors.surfaceGlass80Light,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? accentBorderColor
+                        : AppColors.borderGlass60Light,
+                    width: 1,
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 4.w,
-                    vertical: 1.5.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                    border: Border.all(
-                      color: colorScheme.outline.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          CustomIconWidget(
-                            iconName: template['icon'] as String,
-                            color:
-                                isIncome ? AppColors.income : AppColors.expense,
-                            size: 20,
-                          ),
-                          SizedBox(width: 2.w),
-                          Text(
-                            template['description'] as String,
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Icon container box
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: accentBgColor,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusIconBox),
+                        border: isSelected
+                            ? null
+                            : Border.all(
+                                color: accentBorderColor,
+                                width: 1,
+                              ),
                       ),
-                      SizedBox(height: 0.5.h),
-                      Text(
-                        formatted,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      child: Center(
+                        child: CustomIconWidget(
+                          iconName: template['icon'] as String,
+                          color: accentColor,
+                          size: 20,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: 0.8.h),
+                    // Centered label below icon
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 1.w),
+                      child: Text(
+                        description,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: isSelected ? accentColor : AppColors.slate900,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 0.3.h),
+                    // Amount below description
+                    Text(
+                      formatted,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: isSelected ? accentColor : AppColors.slate500,
+                      ),
+                    ),
+                  ],
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );

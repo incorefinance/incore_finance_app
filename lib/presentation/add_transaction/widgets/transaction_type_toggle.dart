@@ -18,16 +18,13 @@ class TransactionTypeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Container(
-      padding: EdgeInsets.all(0.5.h),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        color: AppColors.surfaceGlass80Light,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.2),
+          color: AppColors.borderGlass60Light,
           width: 1,
         ),
       ),
@@ -75,35 +72,42 @@ class TransactionTypeToggle extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
 
+    // Determine income vs expense from the color param (no new params)
+    final isIncomeType = color == AppColors.income;
+
+    // Selected colors based on type
+    final selectedBgColor = isIncomeType ? AppColors.tealBg80 : AppColors.roseBg80;
+    final selectedBorderColor = isIncomeType ? AppColors.tealBorder50 : AppColors.roseBorder50;
+    final selectedTextColor = isIncomeType ? AppColors.teal700 : AppColors.rose700;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 1.5.h),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color:
-                isSelected ? color.withValues(alpha: 0.15) : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+            color: isSelected ? selectedBgColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            border: isSelected
+                ? Border.all(color: selectedBorderColor, width: 1)
+                : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // KEEP existing icon - no changes to icon name or presence
               CustomIconWidget(
                 iconName: icon,
-                color: isSelected
-                    ? color
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                color: isSelected ? selectedTextColor : AppColors.slate500,
                 size: 18,
               ),
-              SizedBox(width: 1.w),
+              const SizedBox(width: 4),
               Text(
                 label,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: isSelected
-                      ? color
-                      : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  color: isSelected ? selectedTextColor : AppColors.slate500,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),

@@ -40,17 +40,22 @@ class _PendingDelete {
 
 enum DateRangeFilter { today, week, month, year }
 
+/// Transaction type filter for income/expense filtering
+enum TransactionTypeFilter { all, income, expense }
+
 class TransactionFilters {
   final String query;
   final String? categoryId;
   final DateRangeFilter? dateRange;
   final PaymentMethod? paymentMethod;
+  final TransactionTypeFilter transactionType;
 
   const TransactionFilters({
     this.query = '',
     this.categoryId,
     this.dateRange,
     this.paymentMethod,
+    this.transactionType = TransactionTypeFilter.all,
   });
 
   TransactionFilters copyWith({
@@ -58,12 +63,14 @@ class TransactionFilters {
     String? categoryId,
     DateRangeFilter? dateRange,
     PaymentMethod? paymentMethod,
+    TransactionTypeFilter? transactionType,
   }) {
     return TransactionFilters(
       query: query ?? this.query,
       categoryId: categoryId ?? this.categoryId,
       dateRange: dateRange ?? this.dateRange,
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      transactionType: transactionType ?? this.transactionType,
     );
   }
 
@@ -71,7 +78,8 @@ class TransactionFilters {
       query.isNotEmpty ||
       categoryId != null ||
       dateRange != null ||
-      paymentMethod != null;
+      paymentMethod != null ||
+      transactionType != TransactionTypeFilter.all;
 }
 
 class TransactionsList extends StatefulWidget {
@@ -253,10 +261,16 @@ void _onTransactionsChanged() {
     final matchesPaymentMethod =
         _filters.paymentMethod == null || txPm == _filters.paymentMethod;
 
+    // Transaction type filter - uses existing transaction.type field ('income' or 'expense')
+    final matchesType = _filters.transactionType == TransactionTypeFilter.all ||
+        (_filters.transactionType == TransactionTypeFilter.income && transaction.type == 'income') ||
+        (_filters.transactionType == TransactionTypeFilter.expense && transaction.type == 'expense');
+
     return matchesSearch &&
         matchesCategory &&
         matchesDateRange &&
-        matchesPaymentMethod;
+        matchesPaymentMethod &&
+        matchesType;
   }).toList();
 
   filtered.sort((a, b) => b.date.compareTo(a.date));
@@ -423,7 +437,7 @@ void _onTransactionsChanged() {
 
         widgets.add(
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 0.5.h),
+            padding: const EdgeInsets.symmetric(vertical: 4),
             child: Dismissible(
               key: ValueKey('tx_${transaction.id}'),
               direction: DismissDirection.endToStart,
@@ -438,8 +452,8 @@ void _onTransactionsChanged() {
                 alignment: Alignment.centerRight,
                 padding: EdgeInsets.only(right: 5.w),
                 decoration: BoxDecoration(
-                  color: colorScheme.error,
-                  borderRadius: BorderRadius.circular(14),
+                  color: AppColors.rose600,
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Icon(
                   Icons.delete_outline,
@@ -463,7 +477,7 @@ void _onTransactionsChanged() {
         final pending = pendingForMonth[pendingIndex];
         widgets.add(
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 0.5.h),
+            padding: const EdgeInsets.symmetric(vertical: 4),
             child: _DeletedInlineRow(
               message: l10n.transactionDeleted,
               actionLabel: l10n.undo,
@@ -652,6 +666,7 @@ void _onTransactionsChanged() {
             'categoryId': _filters.categoryId,
             'dateRange': _filters.dateRange?.name,
             'paymentMethod': _filters.paymentMethod?.dbValue,
+            'transactionType': _filters.transactionType.name,
             'client': null,
             'startDate': null,
             'endDate': null,
@@ -673,10 +688,20 @@ void _onTransactionsChanged() {
         final pmRaw = result['paymentMethod'] as String?;
         final paymentMethod = PaymentMethodParser.fromAny(pmRaw);
 
+        // Parse transaction type filter
+        final typeStr = result['transactionType'] as String?;
+        final transactionType = typeStr != null
+            ? TransactionTypeFilter.values.firstWhere(
+                (e) => e.name == typeStr,
+                orElse: () => TransactionTypeFilter.all,
+              )
+            : TransactionTypeFilter.all;
+
         _filters = _filters.copyWith(
           categoryId: categoryId,
           dateRange: dateRange,
           paymentMethod: paymentMethod,
+          transactionType: transactionType,
         );
       });
       _logFiltersChanged();
@@ -693,8 +718,10 @@ void _onTransactionsChanged() {
     final hasActiveFilters = _filters.hasActiveFilters;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      extendBody: true,
+      backgroundColor: AppColors.canvasFrostedLight,
       body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
             Padding(
@@ -817,10 +844,10 @@ void _onTransactionsChanged() {
                                 : _buildNoResultsState(theme, colorScheme))
                             : ListView.builder(
                                 padding: EdgeInsets.only(
-                                  left: AppTheme.screenHorizontalPadding,
-                                  right: AppTheme.screenHorizontalPadding,
+                                  left: 0,
+                                  right: 0,
                                   top: 2.h,
-                                  bottom: 12.h,
+                                  bottom: kBottomNavClearance,
                                 ),
                                 itemCount: transactionsByMonth.length,
                                 itemBuilder: (context, index) {
@@ -831,11 +858,13 @@ void _onTransactionsChanged() {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Padding(
-                                        padding: EdgeInsets.symmetric(vertical: 1.h),
+                                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                                         child: Text(
                                           monthKey,
-                                          style: theme.textTheme.titleMedium
-                                              ?.copyWith(fontWeight: FontWeight.w600),
+                                          style: theme.textTheme.titleMedium?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.slate500,
+                                          ),
                                         ),
                                       ),
                                       ..._buildMonthRows(
