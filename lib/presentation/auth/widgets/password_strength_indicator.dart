@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import '../../../services/password_validator.dart';
-import '../../../theme/app_colors.dart';
 import '../../../theme/app_theme.dart';
 
 /// Password strength indicator widget showing:
@@ -27,9 +26,6 @@ class PasswordStrengthIndicator extends StatelessWidget {
     // Policy validation (enforced)
     final policyResult = PasswordValidator.validatePolicy(password);
     final meetsPolicy = policyResult.isValid;
-    final policyProgressValue = password.isEmpty
-    ? 0.0
-    : (password.length / PasswordValidator.minLength).clamp(0.0, 1.0);
 
     // Strength evaluation (advisory)
     final strengthResult = PasswordValidator.evaluateStrength(

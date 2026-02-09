@@ -22,6 +22,12 @@ import './widgets/monthly_profit_card.dart';
 import './widgets/upcoming_bills_placeholder.dart';
 import './widgets/upcoming_bills_card.dart';
 import '../recurring_expenses/widgets/add_edit_recurring_expense_dialog.dart';
+import '../../domain/safety_buffer/safety_buffer_calculator.dart';
+import '../../domain/safety_buffer/safety_buffer_snapshot.dart';
+import '../../domain/tax_shield/tax_shield_calculator.dart';
+import '../../domain/tax_shield/tax_shield_snapshot.dart';
+import '../../data/settings/tax_shield_settings_store.dart';
+import './widgets/safety_buffer_card.dart';
 
 /// Dashboard Home Screen
 /// Dashboard Home responsibility:
@@ -53,6 +59,12 @@ class _DashboardHomeState extends State<DashboardHome> {
   bool _isLoadingDashboard = true;
   AppError? _loadError;
   List<RecurringExpense> _recurringBills = [];
+
+  SafetyBufferSnapshot? _safetyBufferSnapshot;
+  TaxShieldSnapshot? _taxShieldSnapshot;
+  double _taxShieldPercent = TaxShieldSettingsStore.defaultPercent;
+  final TaxShieldSettingsStore _taxShieldSettingsStore =
+      TaxShieldSettingsStore();
 
   UserCurrencySettings _currencySettings = const UserCurrencySettings(
     currencyCode: 'EUR',
@@ -182,6 +194,40 @@ class _DashboardHomeState extends State<DashboardHome> {
         // Keep empty list if loading fails
       }
 
+      // ─── Safety Buffer Calculation (reuses already-loaded data) ───────────
+      final taxPercent = await _taxShieldSettingsStore.getTaxShieldPercent();
+
+      // Filter transactions to 180-day insight window (same as InsightDataPreparer)
+      final insightCutoff = now.subtract(const Duration(days: 180));
+      final insightTransactions = allTxs
+          .where((tx) => tx.date.isAfter(insightCutoff))
+          .toList();
+
+      // Monthly fixed outflow from already-loaded recurring bills
+      double monthlyFixedOutflow = 0.0;
+      for (final bill in bills) {
+        monthlyFixedOutflow += bill.amount.abs();
+      }
+
+      // Compute TaxShield (same calculator as Analytics)
+      const taxCalc = TaxShieldCalculator();
+      final taxShield = taxCalc.compute(
+        now: now,
+        latestBalance: cashBalance,
+        insightTransactions: insightTransactions,
+        taxShieldPercent: taxPercent,
+      );
+
+      // Compute SafetyBuffer (same calculator as Analytics)
+      const bufferCalc = SafetyBufferCalculator();
+      final safetyBuffer = bufferCalc.compute(
+        taxShield: taxShield,
+        monthlyFixedOutflow: monthlyFixedOutflow,
+      );
+
+      // Guard against widget being disposed during async operations
+      if (!mounted) return;
+
       setState(() {
         _cashBalance = cashBalance;
         _monthlyProfit = currentProfit;
@@ -190,6 +236,9 @@ class _DashboardHomeState extends State<DashboardHome> {
         _profitPercentageChange = profitPercentageChange;
         _isProfit = currentProfit >= 0;
         _recurringBills = bills;
+        _safetyBufferSnapshot = safetyBuffer;
+        _taxShieldSnapshot = taxShield;
+        _taxShieldPercent = taxPercent;
         _isLoadingDashboard = false;
       });
     } catch (e, st) {
@@ -327,7 +376,28 @@ class _DashboardHomeState extends State<DashboardHome> {
                             currencyCode: _currencySettings.currencyCode,
                           ),
 
-                          // Block 2: This Month Performance
+                          // Block 2: Safety Buffer
+                          if (_safetyBufferSnapshot != null &&
+                              _taxShieldSnapshot != null)
+                            Builder(
+                              builder: (context) {
+                                final l10n = AppLocalizations.of(context)!;
+                                return SafetyBufferCard(
+                                  bufferDays: _safetyBufferSnapshot!.bufferDays,
+                                  bufferWeeks: _safetyBufferSnapshot!.bufferWeeks,
+                                  taxPercent: (_taxShieldPercent * 100).round(),
+                                  taxAmount:
+                                      _taxShieldSnapshot!.taxShieldReserved,
+                                  qualifier: _safetyBufferSnapshot!.usedTwoMonths
+                                      ? l10n.safetyBufferQualBasedOnLastTwoMonths
+                                      : l10n.safetyBufferQualBasedOnLastMonth,
+                                  currencyLocale: _currencySettings.locale,
+                                  currencySymbol: _currencySettings.symbol,
+                                );
+                              },
+                            ),
+
+                          // Block 3: This Month Performance
                           MonthlyProfitCard(
                             profit: _monthlyProfit,
                             percentageChange: _profitPercentageChange,
@@ -339,7 +409,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                             currencyCode: _currencySettings.currencyCode,
                           ),
 
-                          // Block 3: Upcoming Bills
+                          // Block 4: Upcoming Bills
                           _recurringBills.isEmpty
                               ? const UpcomingBillsPlaceholder()
                               : UpcomingBillsCard(

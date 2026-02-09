@@ -462,5 +462,182 @@
     "analyticsRisk": "Risco",
     "analyticsIncomeVsExpensesHealthyExplanation": "As despesas estão bem abaixo do rendimento.",
     "analyticsIncomeVsExpensesWatchExplanation": "As despesas estão perto do rendimento. Convém acompanhar.",
-    "analyticsIncomeVsExpensesRiskExplanation": "As despesas estão acima do rendimento. Isto pode reduzir a sua margem."
+    "analyticsIncomeVsExpensesRiskExplanation": "As despesas estão acima do rendimento. Isto pode reduzir a sua margem.",
+
+    "analyticsCashBalanceHealthyExplanation": "O saldo de caixa está estável.",
+    "analyticsCashBalanceWatchExplanation": "O saldo de caixa está a descer. Convém acompanhar.",
+    "analyticsCashBalanceRiskExplanation": "O saldo de caixa está baixo ou negativo. Isto pode limitar a sua capacidade de pagar despesas.",
+
+    "analyticsProfitHealthyExplanation": "O lucro está estável.",
+    "analyticsProfitWatchExplanation": "O lucro está a descer. Convém acompanhar.",
+    "analyticsProfitRiskExplanation": "O lucro é negativo. Isto pode limitar a sua capacidade de investir ou pagar despesas.",
+
+    "analyticsExpenseBreakdownHealthy": "As despesas estão bem distribuídas.",
+    "analyticsExpenseBreakdownWatch": "Uma categoria representa uma grande parte das despesas.",
+    "analyticsExpenseBreakdownRisk": "As despesas estão muito concentradas numa única categoria.",
+
+    "analyticsIncomeBreakdownHealthy": "O rendimento vem de várias fontes.",
+    "analyticsIncomeBreakdownWatch": "O rendimento depende muito de uma fonte.",
+    "analyticsIncomeBreakdownRisk": "O rendimento depende quase totalmente de uma única fonte.",
+
+    "insightLowCashTitle": "Caixa baixo",
+    "insightLowCashBodyRisk": "O seu saldo de caixa está baixo ou negativo. Considere reduzir despesas para proteger a sua margem.",
+    "insightLowCashBodyWatch": "O seu saldo de caixa está a descer. Convém acompanhar as próximas despesas.",
+    "insightLowRunwayTitle": "Margem de caixa curta",
+    "insightLowRunwayBodyRisk": "Ao ritmo recente de despesas, pode ter menos de {days} dias de margem.",
+    "insightLowRunwayBodyWatch": "Ao ritmo recente de despesas, pode ter cerca de {days} dias de margem.",
+    "insightActionReviewExpenses": "Rever despesas",
+    "insightDismiss": "Dispensar",
+    "insightExpenseSpikeTitle": "Despesas aumentaram",
+    "insightExpenseSpikeBody": "As despesas de {recentMonth} estão mais altas do que em {priorMonth}. Pode ajudar rever o que mudou.",
+    "insightExpenseSpikeWhy": "Com base em {recentMonth} {recentTotal} vs {priorMonth} {priorTotal} ({absChange}, {pctChange}%).",
+    "@insightExpenseSpikeWhy": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "recentTotal": {"type": "String"},
+            "priorMonth": {"type": "String"},
+            "priorTotal": {"type": "String"},
+            "absChange": {"type": "String"},
+            "pctChange": {"type": "String"}
+        }
+    },
+    "insightMissingIncomeTitle": "Sem rendimento registado",
+    "insightMissingIncomeWhy": "Com base em {recentMonth} {recentTotal} vs {priorMonth} {priorTotal}.",
+    "@insightMissingIncomeWhy": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "recentTotal": {"type": "String"},
+            "priorMonth": {"type": "String"},
+            "priorTotal": {"type": "String"}
+        }
+    },
+    "insightLowCashRunwayWhy": "Com base no saldo {balance} e numa média mensal de despesas {avgExpenses} (autonomia {days} dias).",
+    "@insightLowCashRunwayWhy": {
+        "placeholders": {
+            "balance": {"type": "String"},
+            "avgExpenses": {"type": "String"},
+            "days": {"type": "String"}
+        }
+    },
+    "insightLowCashBufferWhy": "Com base no saldo de caixa {balance}{trend}.",
+    "@insightLowCashBufferWhy": {
+        "placeholders": {
+            "balance": {"type": "String"},
+            "trend": {"type": "String"}
+        }
+    },
+    "insightMissingIncomeBodyRisk": "Teve rendimento em {priorMonth} mas nenhum em {recentMonth}. Adicione qualquer rendimento que tenha recebido.",
+    "insightMissingIncomeBodyWatch": "Sem rendimento registado em {recentMonth}. Se recebeu algum, considere adicioná-lo.",
+    "insightDetailTxCount": "{count, plural, one{# transação} other{# transações}}",
+    "@insightDetailTxCount": {
+        "placeholders": {
+            "count": {"type": "int"}
+        }
+    },
+    "insightDetailMonthCompare": "{recentMonth} vs {priorMonth}",
+    "@insightDetailMonthCompare": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "priorMonth": {"type": "String"}
+        }
+    },
+    "insightDetailDowntrendStreak": "Tendência descendente há {days} dias",
+    "@insightDetailDowntrendStreak": {
+        "placeholders": {
+            "days": {"type": "int"}
+        }
+    },
+    "insightDetailRunwayMonthsUsed": "Média baseada em {months} meses",
+    "@insightDetailRunwayMonthsUsed": {
+        "placeholders": {
+            "months": {"type": "int"}
+        }
+    },
+    "insightDetailExpenseSpikeCause": "Mais transações em {recentMonth} ({recentCount}) do que em {priorMonth} ({priorCount})",
+    "@insightDetailExpenseSpikeCause": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "recentCount": {"type": "int"},
+            "priorMonth": {"type": "String"},
+            "priorCount": {"type": "int"}
+        }
+    },
+    "insightDetailExpenseSpikeAvgCause": "Maior gasto médio por transação em {recentMonth} ({recentAvg}) do que em {priorMonth} ({priorAvg})",
+    "@insightDetailExpenseSpikeAvgCause": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "recentAvg": {"type": "String"},
+            "priorMonth": {"type": "String"},
+            "priorAvg": {"type": "String"}
+        }
+    },
+    "insightDetailMissingIncomeCause": "Sem transações de rendimento em {recentMonth} ({priorCount} em {priorMonth})",
+    "@insightDetailMissingIncomeCause": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "priorCount": {"type": "int"},
+            "priorMonth": {"type": "String"}
+        }
+    },
+
+    "safetyBufferTitle": "Margem de segurança",
+    "safetyBufferNotEnoughData": "Dados insuficientes",
+    "safetyBufferDays": "{days} dias",
+    "@safetyBufferDays": {
+        "placeholders": {
+            "days": {"type": "int"}
+        }
+    },
+    "safetyBufferDaysWithWeeks": "{days} dias ({weeks} sem)",
+    "@safetyBufferDaysWithWeeks": {
+        "placeholders": {
+            "days": {"type": "int"},
+            "weeks": {"type": "String"}
+        }
+    },
+    "safetyBufferQualAfterReserveAndBills": "Após reserva de impostos e despesas fixas",
+    "safetyBufferQualBasedOnLastMonth": "Com base no último mês",
+    "safetyBufferQualBasedOnLastTwoMonths": "Com base nos últimos 2 meses",
+    "safetyBufferTaxReserveIncluded": "Reserva de impostos incluída: {percent}% do rendimento",
+    "@safetyBufferTaxReserveIncluded": {
+        "placeholders": {
+            "percent": {"type": "int"}
+        }
+    },
+    "safetyBufferTaxReserveIncludedWithAmount": "Reserva de impostos incluída: {percent}% do rendimento (reservado {amount})",
+    "@safetyBufferTaxReserveIncludedWithAmount": {
+        "placeholders": {
+            "percent": {"type": "int"},
+            "amount": {"type": "String"}
+        }
+    },
+
+    "taxReserveTitle": "Reserva de impostos",
+    "taxReserveBody": "Reserve uma percentagem do seu rendimento para impostos. Este valor é excluído do cálculo da margem de segurança.",
+    "taxReserveUpdatedSnack": "Reserva de impostos atualizada",
+
+    "pressurePointHeadsUp": "Atenção",
+    "pressurePointDueNext7Days": "{amount} de despesas fixas nos próximos 7 dias",
+    "@pressurePointDueNext7Days": {
+        "placeholders": {
+            "amount": {"type": "String"}
+        }
+    },
+    "pressurePointReviewBills": "Rever despesas",
+    "pressurePointOpeningBills": "A abrir despesas recorrentes",
+    "pressurePointReducePressureTitle": "Reduzir pressão",
+    "pressurePointReducePressureBody": "Escolha uma ação para aliviar os próximos dias",
+    "pressurePointPauseNonEssential": "Pausar não essenciais",
+    "pressurePointPauseSelected": "Pausar selecionadas",
+    "pressurePointPausedSnack": "Feito. Contas pausadas.",
+    "pressurePointPauseErrorSnack": "Não foi possível pausar. Tente novamente.",
+    "pressurePointNoBillsSelected": "Selecione pelo menos uma conta",
+    "pressureReliefTitle": "Pressão reduzida",
+    "pressureReliefSubtitlePaused": "Pausou {count} contas",
+    "@pressureReliefSubtitlePaused": {
+        "placeholders": {
+            "count": {"type": "int"}
+        }
+    },
+    "pressureReliefDismiss": "Fechar"
 }

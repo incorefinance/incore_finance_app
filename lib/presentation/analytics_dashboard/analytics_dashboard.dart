@@ -27,7 +27,30 @@ import 'package:incore_finance/core/state/transactions_change_notifier.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_colors.dart';
 import '../../domain/analytics/interpreters/income_vs_expenses_interpreter.dart';
+import '../../domain/analytics/interpreters/cash_balance_trend_interpreter.dart';
+import '../../domain/analytics/interpreters/profit_trend_interpreter.dart';
+import '../../domain/analytics/interpreters/category_breakdown_interpreter.dart';
 import '../../domain/analytics/interpretation/interpretation_status.dart';
+import './widgets/chart_card_header.dart';
+import './widgets/insight_card.dart';
+import './widgets/safety_buffer_section.dart';
+import '../../domain/guidance/insight.dart';
+import '../../domain/guidance/insight_id.dart';
+import '../../domain/guidance/insight_severity.dart';
+import '../../domain/guidance/engine/insight_engine.dart';
+import '../../data/guidance/insight_state_store.dart';
+import '../../data/guidance/shared_prefs_insight_state_store.dart';
+import '../../domain/onboarding/income_type.dart';
+import '../../data/profile/user_income_repository.dart';
+import 'insights/insight_data_preparer.dart';
+import '../../domain/safety_buffer/safety_buffer_snapshot.dart';
+import '../../domain/tax_shield/tax_shield_snapshot.dart';
+import '../../data/settings/tax_shield_settings_store.dart';
+import './widgets/tax_shield_bottom_sheet.dart';
+import '../../services/recurring_expenses_repository.dart';
+import '../../models/recurring_expense.dart';
+import '../../data/telemetry/local_event_store.dart';
+import './widgets/pressure_relief_banner.dart';
 
 String _dateLocale = 'en_US';
 
@@ -40,6 +63,45 @@ class _IncomeVsExpensesInterpretationData {
   final String explanation;
 
   const _IncomeVsExpensesInterpretationData({
+    required this.status,
+    required this.label,
+    required this.explanation,
+  });
+}
+
+/// Holds localized interpretation data for Cash Balance Trend chart.
+class _CashBalanceTrendInterpretationData {
+  final InterpretationStatus status;
+  final String label;
+  final String explanation;
+
+  const _CashBalanceTrendInterpretationData({
+    required this.status,
+    required this.label,
+    required this.explanation,
+  });
+}
+
+/// Holds localized interpretation data for Profit Trends chart.
+class _ProfitTrendInterpretationData {
+  final InterpretationStatus status;
+  final String label;
+  final String explanation;
+
+  const _ProfitTrendInterpretationData({
+    required this.status,
+    required this.label,
+    required this.explanation,
+  });
+}
+
+/// Holds localized interpretation data for Category Breakdown (Income or Expense).
+class _CategoryBreakdownInterpretationData {
+  final InterpretationStatus status;
+  final String label;
+  final String explanation;
+
+  const _CategoryBreakdownInterpretationData({
     required this.status,
     required this.label,
     required this.explanation,
@@ -87,6 +149,59 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
   String _currencyLocale = 'pt_PT';
   String _currencySymbol = '€';
   String _currencyCode = 'EUR';
+
+  // Insight state
+  final InsightStateStore _insightStore = SharedPrefsInsightStateStore();
+  Insight? _currentInsight;
+  DateTime? _currentInsightDismissedUntil;
+
+  // Expense window totals for expense spike insight (calendar month based)
+  double _recentExpenseTotal = 0.0;
+  double _priorExpenseTotal = 0.0;
+  DateTime? _expenseSpikeRecentMonthStart;
+  DateTime? _expenseSpikePriorMonthStart;
+
+  // Expense spike explainability values
+  double _expenseSpikeAbsoluteIncrease = 0.0;
+  double _expenseSpikePercentIncrease = 0.0;
+
+  // Income window totals for missing income insight (calendar month based)
+  double _recentIncomeTotal = 0.0;
+  double _priorIncomeTotal = 0.0;
+  DateTime? _missingIncomeRecentMonthStart;
+  DateTime? _missingIncomePriorMonthStart;
+  IncomeType? _incomeType;
+
+  // Average monthly expense for runway calculation (last 2-3 full months)
+  double? _avgMonthlyExpenseForRunway;
+
+  // Insight-specific balance data (fixed 90-day window, independent of chart range)
+  List<Map<String, dynamic>> _insightBalanceData = [];
+
+  // Evidence values for v2 details
+  bool _lowCashBufferHasDownTrend = false;
+  int? _lowCashBufferDownTrendStreakDays;
+  int? _lowCashRunwayMonthsUsed;
+  int _missingIncomePriorTxCount = 0;
+  int _expenseSpikeRecentTxCount = 0;
+  int _expenseSpikePriorTxCount = 0;
+
+  SafetyBufferSnapshot? _safetyBufferSnapshot;
+  TaxShieldSnapshot? _taxShieldSnapshot;
+  final TaxShieldSettingsStore _taxShieldSettingsStore = TaxShieldSettingsStore();
+  double _taxShieldPercent = TaxShieldSettingsStore.defaultPercent;
+
+  final RecurringExpensesRepository _recurringExpensesRepository =
+      RecurringExpensesRepository();
+  List<RecurringExpense> _activeRecurringExpenses = [];
+
+  // Pressure relief banner + event tracking
+  final LocalEventStore _localEventStore = LocalEventStore();
+  bool _showPressureRelief = false;
+  int _pausedBillsCount = 0;
+  DateTime? _pressureReliefShownAt;
+  bool _isPressurePointVisible = false;
+  bool _checkResolvedAfterPause = false;
 
   @override
   void initState() {
@@ -149,6 +264,21 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
     }
   }
 
+  void _showRelief({required int pausedCount}) {
+    setState(() {
+      _showPressureRelief = true;
+      _pausedBillsCount = pausedCount;
+      _pressureReliefShownAt = DateTime.now();
+    });
+    Future.delayed(const Duration(seconds: 12), () {
+      if (!mounted) return;
+      if (_pressureReliefShownAt != null &&
+          DateTime.now().difference(_pressureReliefShownAt!).inSeconds >= 12) {
+        setState(() => _showPressureRelief = false);
+      }
+    });
+  }
+
   Future<void> _loadAnalyticsData() async {
     setState(() {
       _isLoading = true;
@@ -209,8 +339,61 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
       // Calculate month-over-month changes
       _calculateMonthOverMonthChanges(transactions, now);
 
-      // Load cash balance data (30 days)
+      // === Prepare insight-specific data (fixed windows, independent of chart range) ===
+      _taxShieldPercent = await _taxShieldSettingsStore.getTaxShieldPercent();
+      final prepared = await InsightDataPreparer(
+        transactionsRepository: _transactionsRepository,
+        baselineRepository: _baselineRepository,
+        recurringExpensesRepository: RecurringExpensesRepository(),
+        taxShieldPercent: _taxShieldPercent,
+      ).prepare(now: now);
+
+      // Store prepared data in state variables
+      _insightBalanceData = prepared.insightBalanceData;
+      _recentExpenseTotal = prepared.recentExpenseTotal;
+      _priorExpenseTotal = prepared.priorExpenseTotal;
+      _expenseSpikeRecentMonthStart = prepared.expenseSpikeRecentMonthStart;
+      _expenseSpikePriorMonthStart = prepared.expenseSpikePriorMonthStart;
+      _expenseSpikeAbsoluteIncrease = prepared.expenseSpikeAbsoluteIncrease;
+      _expenseSpikePercentIncrease = prepared.expenseSpikePercentIncrease;
+      _recentIncomeTotal = prepared.recentIncomeTotal;
+      _priorIncomeTotal = prepared.priorIncomeTotal;
+      _missingIncomeRecentMonthStart = prepared.missingIncomeRecentMonthStart;
+      _missingIncomePriorMonthStart = prepared.missingIncomePriorMonthStart;
+      _avgMonthlyExpenseForRunway = prepared.avgMonthlyExpenseForRunway;
+      _lowCashBufferHasDownTrend = prepared.lowCashBufferHasDownTrend;
+      _lowCashBufferDownTrendStreakDays = prepared.lowCashBufferDownTrendStreakDays;
+      _lowCashRunwayMonthsUsed = prepared.lowCashRunwayMonthsUsed;
+      _missingIncomePriorTxCount = prepared.missingIncomePriorTxCount;
+      _expenseSpikeRecentTxCount = prepared.expenseSpikeRecentTxCount;
+      _expenseSpikePriorTxCount = prepared.expenseSpikePriorTxCount;
+      _safetyBufferSnapshot = prepared.safetyBuffer;
+      _taxShieldSnapshot = prepared.taxShield;
+
+      // Fetch active recurring expenses for pressure point calculation
+      try {
+        _activeRecurringExpenses =
+            await _recurringExpensesRepository.getActiveRecurringExpenses();
+      } catch (_) {
+        _activeRecurringExpenses = [];
+      }
+
+      // Load income type from user profile
+      try {
+        final incomeRepository = UserIncomeRepository();
+        final (incomeType, _) = await incomeRepository.getIncomeProfile();
+        _incomeType = incomeType;
+      } catch (_) {
+        _incomeType = null;
+      }
+
+      // Load cash balance data for charts (range-dependent)
       await _loadCashBalanceData();
+
+      if (!mounted) return;
+
+      // Refresh insight based on current data
+      await _refreshInsight();
 
       if (!mounted) return;
 
@@ -385,6 +568,355 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
     } catch (_) {
       _balanceData = [];
       _transactionDayIndices = {};
+    }
+  }
+
+  /// Returns (latestBalance, meaningfulPointCount) from insight balance data.
+  /// Uses fixed 90-day window independent of chart range.
+  ({double? balance, int count}) _getInsightCashBalanceData() {
+    if (_insightBalanceData.isEmpty) return (balance: null, count: 0);
+
+    int meaningfulCount = 0;
+    double? latestBalance;
+
+    for (int i = _insightBalanceData.length - 1; i >= 0; i--) {
+      final balance = (_insightBalanceData[i]['balance'] as num?)?.toDouble();
+      if (balance != null && !balance.isNaN) {
+        meaningfulCount++;
+        latestBalance ??= balance;
+      }
+    }
+
+    // Require at least 2 meaningful points
+    if (meaningfulCount < 2) {
+      return (balance: null, count: meaningfulCount);
+    }
+
+    return (balance: latestBalance, count: meaningfulCount);
+  }
+
+  /// Refreshes the current insight based on cash balance data.
+  Future<void> _refreshInsight() async {
+    // Use insight-specific data (fixed windows, independent of chart range)
+    final cashInterp = _getInsightCashBalanceTrendInterpretation(context);
+    final cashStatus = cashInterp?.status;
+
+    // Get latest cash balance with meaningful point count (from insight data)
+    final cashData = _getInsightCashBalanceData();
+
+    // Pick top insight
+    const engine = InsightEngine();
+    final insight = engine.pickTopInsight(
+      cashStatus: cashStatus,
+      latestCashBalance: cashData.balance,
+      meaningfulCashPointCount: cashData.count,
+      avgMonthlyExpense: _avgMonthlyExpenseForRunway,
+      recentExpenseTotal: _recentExpenseTotal,
+      priorExpenseTotal: _priorExpenseTotal,
+      incomeType: _incomeType,
+      recentIncomeTotal: _recentIncomeTotal,
+      priorIncomeTotal: _priorIncomeTotal,
+    );
+
+    if (insight == null) {
+      _currentInsight = null;
+      _currentInsightDismissedUntil = null;
+      return;
+    }
+
+    // Check if dismissed
+    final dismissedUntil = await _insightStore.getDismissedUntil(insight.id);
+    final now = DateTime.now();
+
+    if (dismissedUntil != null && dismissedUntil.isAfter(now)) {
+      _currentInsight = insight;
+      _currentInsightDismissedUntil = dismissedUntil;
+    } else {
+      _currentInsight = insight;
+      _currentInsightDismissedUntil = null;
+    }
+  }
+
+  /// Returns the dismiss duration in days for a given insight.
+  int _getDismissDurationDays(InsightId id) {
+    switch (id) {
+      case InsightId.lowCashBuffer:
+        return 7;
+      case InsightId.lowCashRunway:
+        return 7;
+      case InsightId.missingIncome:
+        return 14;
+      case InsightId.expenseSpike:
+        return 14;
+    }
+  }
+
+  /// Returns the localized title for the given insight.
+  String _getInsightTitle(AppLocalizations l10n, Insight insight) {
+    switch (insight.id) {
+      case InsightId.lowCashBuffer:
+        return l10n.insightLowCashTitle;
+      case InsightId.lowCashRunway:
+        return l10n.insightLowRunwayTitle;
+      case InsightId.missingIncome:
+        return l10n.insightMissingIncomeTitle;
+      case InsightId.expenseSpike:
+        return l10n.insightExpenseSpikeTitle;
+    }
+  }
+
+  /// Returns the localized body for the given insight.
+  String _getInsightBody(AppLocalizations l10n, Insight insight) {
+    switch (insight.id) {
+      case InsightId.lowCashBuffer:
+        return insight.severity == InsightSeverity.risk
+            ? l10n.insightLowCashBodyRisk
+            : l10n.insightLowCashBodyWatch;
+      case InsightId.lowCashRunway:
+        // Compute runway days for display (use floor for conservative messaging)
+        // Use insight-specific data (fixed 90-day window) for consistency with evaluation
+        final cashData = _getInsightCashBalanceData();
+        final avgExpense = _avgMonthlyExpenseForRunway ?? 0.0;
+        int runwayDays = 0;
+        if (cashData.balance != null && avgExpense > 0) {
+          final avgDailyBurn = avgExpense / 30.0;
+          runwayDays = (cashData.balance! / avgDailyBurn).floor();
+        }
+        return insight.severity == InsightSeverity.risk
+            ? l10n.insightLowRunwayBodyRisk(runwayDays)
+            : l10n.insightLowRunwayBodyWatch(runwayDays);
+      case InsightId.missingIncome:
+        // Format month labels for display
+        final incomeRecentMonth = _missingIncomeRecentMonthStart != null
+            ? DateFormat.MMM(_dateLocale).format(_missingIncomeRecentMonthStart!)
+            : '';
+        final incomePriorMonth = _missingIncomePriorMonthStart != null
+            ? DateFormat.MMM(_dateLocale).format(_missingIncomePriorMonthStart!)
+            : '';
+        return insight.severity == InsightSeverity.risk
+            ? l10n.insightMissingIncomeBodyRisk(incomePriorMonth, incomeRecentMonth)
+            : l10n.insightMissingIncomeBodyWatch(incomeRecentMonth);
+      case InsightId.expenseSpike:
+        // Format month labels for display
+        final recentMonth = _expenseSpikeRecentMonthStart != null
+            ? DateFormat.MMM(_dateLocale).format(_expenseSpikeRecentMonthStart!)
+            : '';
+        final priorMonth = _expenseSpikePriorMonthStart != null
+            ? DateFormat.MMM(_dateLocale).format(_expenseSpikePriorMonthStart!)
+            : '';
+        return l10n.insightExpenseSpikeBody(recentMonth, priorMonth);
+    }
+  }
+
+  /// Returns explainability text for Expense Spike insight only.
+  String? _getExpenseSpikeExplainability(BuildContext context) {
+    if (_currentInsight?.id != InsightId.expenseSpike) return null;
+    if (_recentExpenseTotal == 0 && _priorExpenseTotal == 0) return null;
+
+    final l10n = AppLocalizations.of(context)!;
+    final currency = NumberFormat.currency(
+      locale: _currencyLocale,
+      symbol: _currencySymbol,
+    );
+
+    final recentMonth = _expenseSpikeRecentMonthStart != null
+        ? DateFormat.MMM(_dateLocale).format(_expenseSpikeRecentMonthStart!)
+        : '';
+    final priorMonth = _expenseSpikePriorMonthStart != null
+        ? DateFormat.MMM(_dateLocale).format(_expenseSpikePriorMonthStart!)
+        : '';
+
+    final recentStr = currency.format(_recentExpenseTotal);
+    final priorStr = currency.format(_priorExpenseTotal);
+
+    final abs = _expenseSpikeAbsoluteIncrease;
+    final absSign = abs >= 0 ? '+' : '-';
+    final absStr = '$absSign${currency.format(abs.abs())}';
+
+    final pct = _expenseSpikePercentIncrease;
+    final pctStr = pct.isNaN ? '0' : pct.abs().toStringAsFixed(pct.abs() < 10 ? 1 : 0);
+    final pctSign = pct >= 0 ? '+' : '-';
+    final pctSigned = '$pctSign$pctStr';
+
+    return l10n.insightExpenseSpikeWhy(
+      recentMonth,
+      recentStr,
+      priorMonth,
+      priorStr,
+      absStr,
+      pctSigned,
+    );
+  }
+
+  /// Returns explainability text for Missing Income insight only.
+  String? _getMissingIncomeExplainability(BuildContext context) {
+    if (_currentInsight?.id != InsightId.missingIncome) return null;
+
+    final l10n = AppLocalizations.of(context)!;
+    final currency = NumberFormat.currency(
+      locale: _currencyLocale,
+      symbol: _currencySymbol,
+    );
+
+    final recentMonth = _missingIncomeRecentMonthStart != null
+        ? DateFormat.MMM(_dateLocale).format(_missingIncomeRecentMonthStart!)
+        : '';
+    final priorMonth = _missingIncomePriorMonthStart != null
+        ? DateFormat.MMM(_dateLocale).format(_missingIncomePriorMonthStart!)
+        : '';
+
+    final recentStr = currency.format(_recentIncomeTotal);
+    final priorStr = currency.format(_priorIncomeTotal);
+
+    return l10n.insightMissingIncomeWhy(recentMonth, recentStr, priorMonth, priorStr);
+  }
+
+  /// Returns explainability text for Low Cash Runway insight only.
+  String? _getLowCashRunwayExplainability(BuildContext context) {
+    if (_currentInsight?.id != InsightId.lowCashRunway) return null;
+
+    // Use insight-specific data (fixed 90-day window) - same as insight evaluation
+    final cashData = _getInsightCashBalanceData();
+    final balance = cashData.balance;
+    final avg = _avgMonthlyExpenseForRunway;
+
+    // Guard: return null if we can't compute meaningful values
+    if (balance == null || balance.isNaN) return null;
+    if (balance <= 0) return null;
+    if (avg == null || avg.isNaN || avg <= 0) return null;
+
+    // Match exact calculation from _getInsightBody
+    final avgDailyBurn = avg / 30.0;
+    final runwayDays = (balance / avgDailyBurn).floor();
+
+    final l10n = AppLocalizations.of(context)!;
+    final currency = NumberFormat.currency(
+      locale: _currencyLocale,
+      symbol: _currencySymbol,
+    );
+
+    return l10n.insightLowCashRunwayWhy(
+      currency.format(balance),
+      currency.format(avg),
+      runwayDays.toString(),
+    );
+  }
+
+  /// Returns explainability text for Low Cash Buffer insight only.
+  String? _getLowCashBufferExplainability(BuildContext context) {
+    if (_currentInsight?.id != InsightId.lowCashBuffer) return null;
+
+    // Use insight-specific data (fixed 90-day window)
+    final cashData = _getInsightCashBalanceData();
+    final balance = cashData.balance;
+
+    if (balance == null || balance.isNaN) return null;
+
+    final l10n = AppLocalizations.of(context)!;
+    final currency = NumberFormat.currency(
+      locale: _currencyLocale,
+      symbol: _currencySymbol,
+    );
+
+    // Determine trend suffix from insight interpretation
+    String trendSuffix = '';
+    final interp = _getInsightCashBalanceTrendInterpretation(context);
+    if (interp != null &&
+        (interp.status == InterpretationStatus.watch ||
+         interp.status == InterpretationStatus.risk)) {
+      // Use localized trend suffix
+      trendSuffix = l10n.localeName == 'pt'
+          ? ' e uma tendência descendente'
+          : ' and a downward trend';
+    }
+
+    return l10n.insightLowCashBufferWhy(
+      currency.format(balance),
+      trendSuffix,
+    );
+  }
+
+  /// Returns detail lines for v2 explainability.
+  List<String>? _getInsightDetails(BuildContext context) {
+    final insight = _currentInsight;
+    if (insight == null) return null;
+
+    final l10n = AppLocalizations.of(context)!;
+
+    switch (insight.id) {
+      case InsightId.expenseSpike:
+        final recentMonth = _expenseSpikeRecentMonthStart != null
+            ? DateFormat.MMM(_dateLocale).format(_expenseSpikeRecentMonthStart!)
+            : '';
+        final priorMonth = _expenseSpikePriorMonthStart != null
+            ? DateFormat.MMM(_dateLocale).format(_expenseSpikePriorMonthStart!)
+            : '';
+        if (recentMonth.isEmpty || priorMonth.isEmpty) return null;
+
+        // Case 1: More transactions in recent month
+        if (_expenseSpikeRecentTxCount > _expenseSpikePriorTxCount) {
+          return [
+            l10n.insightDetailExpenseSpikeCause(
+              recentMonth,
+              _expenseSpikeRecentTxCount,
+              priorMonth,
+              _expenseSpikePriorTxCount,
+            ),
+          ];
+        }
+
+        // Case 2: Higher average spend (both have transactions)
+        if (_expenseSpikeRecentTxCount > 0 && _expenseSpikePriorTxCount > 0) {
+          final currency = NumberFormat.currency(
+            locale: _currencyLocale,
+            symbol: _currencySymbol,
+          );
+          final recentAvg = _recentExpenseTotal / _expenseSpikeRecentTxCount;
+          final priorAvg = _priorExpenseTotal / _expenseSpikePriorTxCount;
+          return [
+            l10n.insightDetailExpenseSpikeAvgCause(
+              recentMonth,
+              currency.format(recentAvg),
+              priorMonth,
+              currency.format(priorAvg),
+            ),
+          ];
+        }
+
+        // Case 3: Can't determine cause
+        return null;
+
+      case InsightId.missingIncome:
+        // Only show when there were prior transactions (causal: had income, now none)
+        if (_missingIncomePriorTxCount == 0) return null;
+        final recentMonth = _missingIncomeRecentMonthStart != null
+            ? DateFormat.MMM(_dateLocale).format(_missingIncomeRecentMonthStart!)
+            : '';
+        final priorMonth = _missingIncomePriorMonthStart != null
+            ? DateFormat.MMM(_dateLocale).format(_missingIncomePriorMonthStart!)
+            : '';
+        if (recentMonth.isEmpty || priorMonth.isEmpty) return null;
+        return [
+          l10n.insightDetailMissingIncomeCause(
+            recentMonth,
+            _missingIncomePriorTxCount,
+            priorMonth,
+          ),
+        ];
+
+      case InsightId.lowCashRunway:
+        if (_lowCashRunwayMonthsUsed == null) return null;
+        return [
+          l10n.insightDetailRunwayMonthsUsed(_lowCashRunwayMonthsUsed!),
+        ];
+
+      case InsightId.lowCashBuffer:
+        if (!_lowCashBufferHasDownTrend) return null;
+        final streak = _lowCashBufferDownTrendStreakDays;
+        if (streak == null || streak == 0) return null;
+        return [
+          l10n.insightDetailDowntrendStreak(streak),
+        ];
     }
   }
 
@@ -610,33 +1142,11 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (badge != null) ...[
-                SizedBox(width: 2.w),
-                badge,
-              ],
-            ],
+          ChartCardHeader(
+            title: title,
+            badge: badge,
+            subtitle: subtitle,
           ),
-          if (subtitle != null) ...[
-            SizedBox(height: 0.75.h),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
           SizedBox(height: 2.h),
           Expanded(child: child),
         ],
@@ -707,7 +1217,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
       case InterpretationStatus.healthy:
         return cs.primaryContainer.withValues(alpha: 0.7);
       case InterpretationStatus.watch:
-        return cs.tertiaryContainer.withValues(alpha: 0.7);
+        return Colors.amber.withValues(alpha: 0.3);
       case InterpretationStatus.risk:
         return cs.errorContainer.withValues(alpha: 0.7);
     }
@@ -719,7 +1229,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
       case InterpretationStatus.healthy:
         return cs.onPrimaryContainer;
       case InterpretationStatus.watch:
-        return cs.onTertiaryContainer;
+        return Colors.amber.shade800;
       case InterpretationStatus.risk:
         return cs.onErrorContainer;
     }
@@ -728,6 +1238,288 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
   /// Builds a status badge for the Income vs Expenses chart.
   Widget? _buildIncomeVsExpensesBadge(
       BuildContext context, _IncomeVsExpensesInterpretationData? interp) {
+    if (interp == null) return null;
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
+      decoration: BoxDecoration(
+        color: _badgeBackground(interp.status, colorScheme),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+      ),
+      child: Text(
+        interp.label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: _badgeText(interp.status, colorScheme),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  /// Returns localized interpretation for Cash Balance Trend chart.
+  /// Returns null if data is insufficient or all zero.
+  _CashBalanceTrendInterpretationData? _getCashBalanceTrendInterpretation(
+      BuildContext context) {
+    // Need at least 2 data points for meaningful analysis
+    if (_balanceData.length < 2) return null;
+
+    // Check if there's any non-zero balance
+    bool hasMeaningfulData = false;
+    for (final point in _balanceData) {
+      final balance = (point['balance'] as num?)?.toDouble() ?? 0.0;
+      if (balance != 0) {
+        hasMeaningfulData = true;
+        break;
+      }
+    }
+    if (!hasMeaningfulData) return null;
+
+    final l10n = AppLocalizations.of(context)!;
+
+    const interpreter = CashBalanceTrendInterpreter();
+    final interpretation = interpreter.interpret(balanceData: _balanceData);
+
+    // Interpreter returns null if fewer than 2 meaningful points
+    if (interpretation == null) return null;
+
+    // Map status to localized label and explanation
+    switch (interpretation.status) {
+      case InterpretationStatus.healthy:
+        return _CashBalanceTrendInterpretationData(
+          status: InterpretationStatus.healthy,
+          label: l10n.analyticsHealthy,
+          explanation: l10n.analyticsCashBalanceHealthyExplanation,
+        );
+      case InterpretationStatus.watch:
+        return _CashBalanceTrendInterpretationData(
+          status: InterpretationStatus.watch,
+          label: l10n.analyticsWatch,
+          explanation: l10n.analyticsCashBalanceWatchExplanation,
+        );
+      case InterpretationStatus.risk:
+        return _CashBalanceTrendInterpretationData(
+          status: InterpretationStatus.risk,
+          label: l10n.analyticsRisk,
+          explanation: l10n.analyticsCashBalanceRiskExplanation,
+        );
+    }
+  }
+
+  /// Returns cash balance trend interpretation for insight evaluation.
+  /// Uses fixed 90-day window independent of chart range.
+  _CashBalanceTrendInterpretationData? _getInsightCashBalanceTrendInterpretation(
+      BuildContext context) {
+    if (_insightBalanceData.length < 2) return null;
+
+    bool hasMeaningfulData = false;
+    for (final point in _insightBalanceData) {
+      final balance = (point['balance'] as num?)?.toDouble() ?? 0.0;
+      if (balance != 0) {
+        hasMeaningfulData = true;
+        break;
+      }
+    }
+    if (!hasMeaningfulData) return null;
+
+    final l10n = AppLocalizations.of(context)!;
+
+    const interpreter = CashBalanceTrendInterpreter();
+    final interpretation = interpreter.interpret(balanceData: _insightBalanceData);
+
+    if (interpretation == null) return null;
+
+    switch (interpretation.status) {
+      case InterpretationStatus.healthy:
+        return _CashBalanceTrendInterpretationData(
+          status: InterpretationStatus.healthy,
+          label: l10n.analyticsHealthy,
+          explanation: l10n.analyticsCashBalanceHealthyExplanation,
+        );
+      case InterpretationStatus.watch:
+        return _CashBalanceTrendInterpretationData(
+          status: InterpretationStatus.watch,
+          label: l10n.analyticsWatch,
+          explanation: l10n.analyticsCashBalanceWatchExplanation,
+        );
+      case InterpretationStatus.risk:
+        return _CashBalanceTrendInterpretationData(
+          status: InterpretationStatus.risk,
+          label: l10n.analyticsRisk,
+          explanation: l10n.analyticsCashBalanceRiskExplanation,
+        );
+    }
+  }
+
+  /// Builds a status badge for the Cash Balance Trend chart.
+  Widget? _buildCashBalanceTrendBadge(
+      BuildContext context, _CashBalanceTrendInterpretationData? interp) {
+    if (interp == null) return null;
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
+      decoration: BoxDecoration(
+        color: _badgeBackground(interp.status, colorScheme),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+      ),
+      child: Text(
+        interp.label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: _badgeText(interp.status, colorScheme),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  /// Returns localized interpretation for Profit Trends chart.
+  /// Returns null if data is insufficient or all zero.
+  _ProfitTrendInterpretationData? _getProfitTrendInterpretation(
+      BuildContext context) {
+    if (_profitTrendsData.length < 2) return null;
+
+    // Check for meaningful (non-zero) data
+    bool hasMeaningfulData = false;
+    for (final point in _profitTrendsData) {
+      final profit = (point['profit'] as num?)?.toDouble();
+      if (profit != null && !profit.isNaN && profit != 0) {
+        hasMeaningfulData = true;
+        break;
+      }
+    }
+    if (!hasMeaningfulData) return null;
+
+    final l10n = AppLocalizations.of(context)!;
+
+    const interpreter = ProfitTrendInterpreter();
+    final interpretation = interpreter.interpret(profitData: _profitTrendsData);
+
+    if (interpretation == null) return null;
+
+    switch (interpretation.status) {
+      case InterpretationStatus.healthy:
+        return _ProfitTrendInterpretationData(
+          status: InterpretationStatus.healthy,
+          label: l10n.analyticsHealthy,
+          explanation: l10n.analyticsProfitHealthyExplanation,
+        );
+      case InterpretationStatus.watch:
+        return _ProfitTrendInterpretationData(
+          status: InterpretationStatus.watch,
+          label: l10n.analyticsWatch,
+          explanation: l10n.analyticsProfitWatchExplanation,
+        );
+      case InterpretationStatus.risk:
+        return _ProfitTrendInterpretationData(
+          status: InterpretationStatus.risk,
+          label: l10n.analyticsRisk,
+          explanation: l10n.analyticsProfitRiskExplanation,
+        );
+    }
+  }
+
+  /// Builds a status badge for the Profit Trends chart.
+  Widget? _buildProfitTrendBadge(
+      BuildContext context, _ProfitTrendInterpretationData? interp) {
+    if (interp == null) return null;
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
+      decoration: BoxDecoration(
+        color: _badgeBackground(interp.status, colorScheme),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+      ),
+      child: Text(
+        interp.label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: _badgeText(interp.status, colorScheme),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  /// Returns localized interpretation for Expense Breakdown.
+  _CategoryBreakdownInterpretationData? _getExpenseBreakdownInterpretation(
+      BuildContext context) {
+    if (_expenseCategoryData.isEmpty) return null;
+
+    final l10n = AppLocalizations.of(context)!;
+    const interpreter = CategoryBreakdownInterpreter();
+
+    final interpretation =
+        interpreter.interpret(categories: _expenseCategoryData);
+
+    if (interpretation == null) return null;
+
+    switch (interpretation.status) {
+      case InterpretationStatus.healthy:
+        return _CategoryBreakdownInterpretationData(
+          status: interpretation.status,
+          label: l10n.analyticsHealthy,
+          explanation: l10n.analyticsExpenseBreakdownHealthy,
+        );
+      case InterpretationStatus.watch:
+        return _CategoryBreakdownInterpretationData(
+          status: interpretation.status,
+          label: l10n.analyticsWatch,
+          explanation: l10n.analyticsExpenseBreakdownWatch,
+        );
+      case InterpretationStatus.risk:
+        return _CategoryBreakdownInterpretationData(
+          status: interpretation.status,
+          label: l10n.analyticsRisk,
+          explanation: l10n.analyticsExpenseBreakdownRisk,
+        );
+    }
+  }
+
+  /// Returns localized interpretation for Income Sources.
+  _CategoryBreakdownInterpretationData? _getIncomeBreakdownInterpretation(
+      BuildContext context) {
+    if (_incomeCategoryData.isEmpty) return null;
+
+    final l10n = AppLocalizations.of(context)!;
+    const interpreter = CategoryBreakdownInterpreter();
+
+    final interpretation =
+        interpreter.interpret(categories: _incomeCategoryData);
+
+    if (interpretation == null) return null;
+
+    switch (interpretation.status) {
+      case InterpretationStatus.healthy:
+        return _CategoryBreakdownInterpretationData(
+          status: interpretation.status,
+          label: l10n.analyticsHealthy,
+          explanation: l10n.analyticsIncomeBreakdownHealthy,
+        );
+      case InterpretationStatus.watch:
+        return _CategoryBreakdownInterpretationData(
+          status: interpretation.status,
+          label: l10n.analyticsWatch,
+          explanation: l10n.analyticsIncomeBreakdownWatch,
+        );
+      case InterpretationStatus.risk:
+        return _CategoryBreakdownInterpretationData(
+          status: interpretation.status,
+          label: l10n.analyticsRisk,
+          explanation: l10n.analyticsIncomeBreakdownRisk,
+        );
+    }
+  }
+
+  /// Builds a status badge for category breakdown sections.
+  Widget? _buildCategoryBreakdownBadge(
+      BuildContext context, _CategoryBreakdownInterpretationData? interp) {
     if (interp == null) return null;
 
     final theme = Theme.of(context);
@@ -897,6 +1689,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
     required Color accentColor,
     required List<Map<String, dynamic>> fullData,
     required VoidCallback onViewAll,
+    Widget? badge,
+    String? subtitle,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -924,12 +1718,10 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w700,
-            ),
+          ChartCardHeader(
+            title: title,
+            badge: badge,
+            subtitle: subtitle,
           ),
           SizedBox(height: 2.h),
           if (data.isEmpty)
@@ -1060,6 +1852,115 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                             ),
                             const SizedBox(height: 24),
 
+                            // Insight card (shown when insight is active and not dismissed)
+                            if (_currentInsight != null &&
+                                _currentInsightDismissedUntil == null)
+                              InsightCard(
+                                severity: _currentInsight!.severity,
+                                title: _getInsightTitle(l10n, _currentInsight!),
+                                body: _getInsightBody(l10n, _currentInsight!),
+                                secondaryText: _getLowCashBufferExplainability(context)
+                                    ?? _getExpenseSpikeExplainability(context)
+                                    ?? _getMissingIncomeExplainability(context)
+                                    ?? _getLowCashRunwayExplainability(context),
+                                details: _getInsightDetails(context),
+                                actionLabel: l10n.insightActionReviewExpenses,
+                                onAction: () {
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    '/transactions-list',
+                                  );
+                                },
+                                onDismiss: () async {
+                                  final days = _getDismissDurationDays(
+                                    _currentInsight!.id,
+                                  );
+                                  await _insightStore.dismissForDays(
+                                    _currentInsight!.id,
+                                    days,
+                                  );
+                                  setState(() {
+                                    _currentInsightDismissedUntil =
+                                        DateTime.now().add(
+                                      Duration(days: days),
+                                    );
+                                  });
+                                },
+                                dismissTooltip: l10n.insightDismiss,
+                              ),
+
+                            // Calm relief banner (after successful pause)
+                            if (_showPressureRelief &&
+                                !(_currentInsight != null &&
+                                    _currentInsightDismissedUntil == null))
+                              PressureReliefBanner(
+                                title: l10n.pressureReliefTitle,
+                                subtitle: l10n.pressureReliefSubtitlePaused(
+                                    _pausedBillsCount),
+                                onDismiss: () => setState(
+                                    () => _showPressureRelief = false),
+                              ),
+
+                            // Safety buffer row + pressure point line
+                            SafetyBufferSection(
+                              snapshot: _safetyBufferSnapshot,
+                              taxShield: _taxShieldSnapshot,
+                              activeRecurringExpenses: _activeRecurringExpenses,
+                              currencyLocale: _currencyLocale,
+                              currencySymbol: _currencySymbol,
+                              isInsightCardVisible: _currentInsight != null &&
+                                  _currentInsightDismissedUntil == null,
+                              onReviewBillsTap: () {
+                                Navigator.pushNamed(
+                                    context, AppRoutes.recurringExpenses);
+                              },
+                              onTaxShieldTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (_) => TaxShieldBottomSheet(
+                                    currentPercent: _taxShieldPercent,
+                                    onSave: (newPercent) async {
+                                      await _taxShieldSettingsStore
+                                          .setTaxShieldPercent(newPercent);
+                                      if (!mounted) return;
+                                      await _loadAnalyticsData();
+                                    },
+                                  ),
+                                );
+                              },
+                              onPressurePointActionsOpened: () {
+                                _localEventStore.log('pressure_point_opened');
+                              },
+                              onPressurePointVisibilityChanged: (visible) {
+                                if (_isPressurePointVisible != visible) {
+                                  _isPressurePointVisible = visible;
+                                  if (!visible && _checkResolvedAfterPause) {
+                                    _checkResolvedAfterPause = false;
+                                    _localEventStore
+                                        .log('pressure_point_resolved');
+                                  }
+                                }
+                              },
+                              onPauseExpenses: (expenseIds) async {
+                                final count = expenseIds.length;
+                                for (final id in expenseIds) {
+                                  await _recurringExpensesRepository
+                                      .deactivateRecurringExpense(id: id);
+                                }
+                                if (!mounted) return;
+                                _checkResolvedAfterPause = true;
+                                await _loadAnalyticsData();
+                                if (!mounted) return;
+                                await _localEventStore.log(
+                                  'pressure_point_paused_bills',
+                                  props: {'count': count},
+                                );
+                                _showRelief(pausedCount: count);
+                              },
+                            ),
+
                             // ========================================
                             // Section 1: Overview
                             // ========================================
@@ -1120,35 +2021,49 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                             const SizedBox(height: 12),
 
                             // Income sources card with tiles
-                            _buildCategoryTilesCard(
-                              context: context,
-                              title: l10n.incomeSources,
-                              data: _incomeCategoryData,
-                              accentColor: AppColors.income,
-                              fullData: _fullIncomeCategoryData,
-                              onViewAll: () => _showCategoryBreakdownSheet(
+                            () {
+                              final interp =
+                                  _getIncomeBreakdownInterpretation(context);
+                              return _buildCategoryTilesCard(
                                 context: context,
                                 title: l10n.incomeSources,
-                                fullData: _fullIncomeCategoryData,
+                                data: _incomeCategoryData,
                                 accentColor: AppColors.income,
-                              ),
-                            ),
+                                fullData: _fullIncomeCategoryData,
+                                onViewAll: () => _showCategoryBreakdownSheet(
+                                  context: context,
+                                  title: l10n.incomeSources,
+                                  fullData: _fullIncomeCategoryData,
+                                  accentColor: AppColors.income,
+                                ),
+                                badge: _buildCategoryBreakdownBadge(
+                                    context, interp),
+                                subtitle: interp?.explanation,
+                              );
+                            }(),
                             const SizedBox(height: 16),
 
                             // Expense breakdown card with tiles
-                            _buildCategoryTilesCard(
-                              context: context,
-                              title: l10n.expenseBreakdown,
-                              data: _expenseCategoryData,
-                              accentColor: AppColors.expense,
-                              fullData: _fullExpenseCategoryData,
-                              onViewAll: () => _showCategoryBreakdownSheet(
+                            () {
+                              final interp =
+                                  _getExpenseBreakdownInterpretation(context);
+                              return _buildCategoryTilesCard(
                                 context: context,
                                 title: l10n.expenseBreakdown,
-                                fullData: _fullExpenseCategoryData,
+                                data: _expenseCategoryData,
                                 accentColor: AppColors.expense,
-                              ),
-                            ),
+                                fullData: _fullExpenseCategoryData,
+                                onViewAll: () => _showCategoryBreakdownSheet(
+                                  context: context,
+                                  title: l10n.expenseBreakdown,
+                                  fullData: _fullExpenseCategoryData,
+                                  accentColor: AppColors.expense,
+                                ),
+                                badge: _buildCategoryBreakdownBadge(
+                                    context, interp),
+                                subtitle: interp?.explanation,
+                              );
+                            }(),
                             const SizedBox(height: 24),
 
                             // ========================================
@@ -1167,33 +2082,46 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
                             // Cash Balance chart
                             if (_balanceData.isNotEmpty)
-                              _buildChartCard(
-                                context: context,
-                                title: l10n.cashBalanceTrend,
-                                child: CashBalanceChart(
-                                  balanceData: _balanceData,
-                                  locale: _currencyLocale,
-                                  symbol: _currencySymbol,
-                                  currencyCode: _currencyCode,
-                                  transactionIndices: _transactionDayIndices,
-                                ),
-                              ),
+                              () {
+                                final interp =
+                                    _getCashBalanceTrendInterpretation(context);
+                                return _buildChartCard(
+                                  context: context,
+                                  title: l10n.cashBalanceTrend,
+                                  badge:
+                                      _buildCashBalanceTrendBadge(context, interp),
+                                  subtitle: interp?.explanation,
+                                  child: CashBalanceChart(
+                                    balanceData: _balanceData,
+                                    locale: _currencyLocale,
+                                    symbol: _currencySymbol,
+                                    currencyCode: _currencyCode,
+                                    transactionIndices: _transactionDayIndices,
+                                  ),
+                                );
+                              }(),
                             const SizedBox(height: 16),
 
                             // Profit trends chart
                             if (_profitTrendsData.isEmpty)
                               Text(l10n.notEnoughData),
                             if (_profitTrendsData.isNotEmpty)
-                              _buildChartCard(
-                                context: context,
-                                title: l10n.profitTrends,
-                                child: ProfitTrendsChartWidget(
-                                  trendData: _profitTrendsData,
-                                  locale: _currencyLocale,
-                                  symbol: _currencySymbol,
-                                  currencyCode: _currencyCode,
-                                ),
-                              ),
+                              () {
+                                final interp =
+                                    _getProfitTrendInterpretation(context);
+                                return _buildChartCard(
+                                  context: context,
+                                  title: l10n.profitTrends,
+                                  badge: _buildProfitTrendBadge(context, interp),
+                                  subtitle: interp?.explanation,
+                                  child: ProfitTrendsChartWidget(
+                                    trendData: _profitTrendsData,
+                                    locale: _currencyLocale,
+                                    symbol: _currencySymbol,
+                                    currencyCode: _currencyCode,
+                                  ),
+                                );
+                              }(),
 
                             SizedBox(height: 10.h),
                           ],

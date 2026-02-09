@@ -1158,4 +1158,240 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get analyticsIncomeVsExpensesRiskExplanation => 'Expenses are higher than income. This may reduce your runway.';
+
+  @override
+  String get analyticsCashBalanceHealthyExplanation => 'Cash balance is stable.';
+
+  @override
+  String get analyticsCashBalanceWatchExplanation => 'Cash balance is trending down. Keep an eye on this.';
+
+  @override
+  String get analyticsCashBalanceRiskExplanation => 'Cash balance is low or negative. This may limit your ability to cover expenses.';
+
+  @override
+  String get analyticsProfitHealthyExplanation => 'Profit is stable.';
+
+  @override
+  String get analyticsProfitWatchExplanation => 'Profit is trending down. Keep an eye on this.';
+
+  @override
+  String get analyticsProfitRiskExplanation => 'Profit is negative. This may limit your ability to invest or cover expenses.';
+
+  @override
+  String get analyticsExpenseBreakdownHealthy => 'Spending is spread across categories.';
+
+  @override
+  String get analyticsExpenseBreakdownWatch => 'One category takes a large share of your expenses.';
+
+  @override
+  String get analyticsExpenseBreakdownRisk => 'Spending is heavily concentrated in one category.';
+
+  @override
+  String get analyticsIncomeBreakdownHealthy => 'Income comes from multiple sources.';
+
+  @override
+  String get analyticsIncomeBreakdownWatch => 'Income relies heavily on one source.';
+
+  @override
+  String get analyticsIncomeBreakdownRisk => 'Income depends mostly on a single source.';
+
+  @override
+  String get insightLowCashTitle => 'Cash is tight';
+
+  @override
+  String get insightLowCashBodyRisk => 'Your cash balance is low or negative. Consider reducing expenses to protect your runway.';
+
+  @override
+  String get insightLowCashBodyWatch => 'Your cash balance is trending down. Keep an eye on upcoming expenses.';
+
+  @override
+  String get insightLowRunwayTitle => 'Cash runway is short';
+
+  @override
+  String insightLowRunwayBodyRisk(int days) {
+    return 'At your recent spending pace, you may have less than $days days of runway.';
+  }
+
+  @override
+  String insightLowRunwayBodyWatch(int days) {
+    return 'At your recent spending pace, you may have about $days days of runway.';
+  }
+
+  @override
+  String get insightActionReviewExpenses => 'Review expenses';
+
+  @override
+  String get insightDismiss => 'Dismiss';
+
+  @override
+  String get insightExpenseSpikeTitle => 'Spending increased';
+
+  @override
+  String insightExpenseSpikeBody(String recentMonth, String priorMonth) {
+    return '$recentMonth spending is higher than $priorMonth. Consider reviewing what changed.';
+  }
+
+  @override
+  String insightExpenseSpikeWhy(String recentMonth, String recentTotal, String priorMonth, String priorTotal, String absChange, String pctChange) {
+    return 'Based on $recentMonth $recentTotal vs $priorMonth $priorTotal ($absChange, $pctChange%).';
+  }
+
+  @override
+  String get insightMissingIncomeTitle => 'No income recorded';
+
+  @override
+  String insightMissingIncomeWhy(String recentMonth, String recentTotal, String priorMonth, String priorTotal) {
+    return 'Based on $recentMonth $recentTotal vs $priorMonth $priorTotal.';
+  }
+
+  @override
+  String insightLowCashRunwayWhy(String balance, String avgExpenses, String days) {
+    return 'Based on balance $balance and avg monthly expenses $avgExpenses (runway $days days).';
+  }
+
+  @override
+  String insightLowCashBufferWhy(String balance, String trend) {
+    return 'Based on cash balance $balance$trend.';
+  }
+
+  @override
+  String insightMissingIncomeBodyRisk(String priorMonth, String recentMonth) {
+    return 'You had income in $priorMonth but none in $recentMonth. Add any income you may have received.';
+  }
+
+  @override
+  String insightMissingIncomeBodyWatch(String recentMonth) {
+    return 'No income recorded in $recentMonth. If you received any, consider adding it.';
+  }
+
+  @override
+  String insightDetailTxCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# transactions',
+      one: '# transaction',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insightDetailMonthCompare(String recentMonth, String priorMonth) {
+    return '$recentMonth vs $priorMonth';
+  }
+
+  @override
+  String insightDetailDowntrendStreak(int days) {
+    return 'Downtrend for $days days';
+  }
+
+  @override
+  String insightDetailRunwayMonthsUsed(int months) {
+    return 'Avg based on $months months';
+  }
+
+  @override
+  String insightDetailExpenseSpikeCause(String recentMonth, int recentCount, String priorMonth, int priorCount) {
+    return 'More transactions in $recentMonth ($recentCount) than $priorMonth ($priorCount)';
+  }
+
+  @override
+  String insightDetailExpenseSpikeAvgCause(String recentMonth, String recentAvg, String priorMonth, String priorAvg) {
+    return 'Higher average spend per transaction in $recentMonth ($recentAvg) than $priorMonth ($priorAvg)';
+  }
+
+  @override
+  String insightDetailMissingIncomeCause(String recentMonth, int priorCount, String priorMonth) {
+    return 'No income transactions in $recentMonth ($priorCount in $priorMonth)';
+  }
+
+  @override
+  String get safetyBufferTitle => 'Safety buffer';
+
+  @override
+  String get safetyBufferNotEnoughData => 'Not enough data';
+
+  @override
+  String safetyBufferDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String safetyBufferDaysWithWeeks(int days, String weeks) {
+    return '$days days ($weeks wk)';
+  }
+
+  @override
+  String get safetyBufferQualAfterReserveAndBills => 'After tax reserve and fixed bills';
+
+  @override
+  String get safetyBufferQualBasedOnLastMonth => 'Based on last month';
+
+  @override
+  String get safetyBufferQualBasedOnLastTwoMonths => 'Based on last 2 months';
+
+  @override
+  String safetyBufferTaxReserveIncluded(int percent) {
+    return 'Tax reserve included: $percent% of income';
+  }
+
+  @override
+  String safetyBufferTaxReserveIncludedWithAmount(int percent, String amount) {
+    return 'Tax reserve included: $percent% of income (reserved $amount)';
+  }
+
+  @override
+  String get taxReserveTitle => 'Tax reserve';
+
+  @override
+  String get taxReserveBody => 'Set aside a percentage of your income as a tax reserve. This amount is excluded from your safety buffer calculation.';
+
+  @override
+  String get taxReserveUpdatedSnack => 'Tax reserve updated';
+
+  @override
+  String get pressurePointHeadsUp => 'Heads up';
+
+  @override
+  String pressurePointDueNext7Days(String amount) {
+    return '$amount fixed bills due in the next 7 days';
+  }
+
+  @override
+  String get pressurePointReviewBills => 'Review bills';
+
+  @override
+  String get pressurePointOpeningBills => 'Opening recurring bills';
+
+  @override
+  String get pressurePointReducePressureTitle => 'Reduce pressure';
+
+  @override
+  String get pressurePointReducePressureBody => 'Choose an action to ease the next days';
+
+  @override
+  String get pressurePointPauseNonEssential => 'Pause non essential';
+
+  @override
+  String get pressurePointPauseSelected => 'Pause selected';
+
+  @override
+  String get pressurePointPausedSnack => 'All set. Bills paused.';
+
+  @override
+  String get pressurePointPauseErrorSnack => 'Could not pause bills. Try again.';
+
+  @override
+  String get pressurePointNoBillsSelected => 'Select at least one bill';
+
+  @override
+  String get pressureReliefTitle => 'Pressure reduced';
+
+  @override
+  String pressureReliefSubtitlePaused(int count) {
+    return 'Paused $count bills';
+  }
+
+  @override
+  String get pressureReliefDismiss => 'Dismiss';
 }
