@@ -2356,6 +2356,378 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expenses are higher than income. This may reduce your runway.'**
   String get analyticsIncomeVsExpensesRiskExplanation;
+
+  /// No description provided for @analyticsCashBalanceHealthyExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash balance is stable.'**
+  String get analyticsCashBalanceHealthyExplanation;
+
+  /// No description provided for @analyticsCashBalanceWatchExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash balance is trending down. Keep an eye on this.'**
+  String get analyticsCashBalanceWatchExplanation;
+
+  /// No description provided for @analyticsCashBalanceRiskExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash balance is low or negative. This may limit your ability to cover expenses.'**
+  String get analyticsCashBalanceRiskExplanation;
+
+  /// No description provided for @analyticsProfitHealthyExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Profit is stable.'**
+  String get analyticsProfitHealthyExplanation;
+
+  /// No description provided for @analyticsProfitWatchExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Profit is trending down. Keep an eye on this.'**
+  String get analyticsProfitWatchExplanation;
+
+  /// No description provided for @analyticsProfitRiskExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Profit is negative. This may limit your ability to invest or cover expenses.'**
+  String get analyticsProfitRiskExplanation;
+
+  /// No description provided for @analyticsExpenseBreakdownHealthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending is spread across categories.'**
+  String get analyticsExpenseBreakdownHealthy;
+
+  /// No description provided for @analyticsExpenseBreakdownWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'One category takes a large share of your expenses.'**
+  String get analyticsExpenseBreakdownWatch;
+
+  /// No description provided for @analyticsExpenseBreakdownRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending is heavily concentrated in one category.'**
+  String get analyticsExpenseBreakdownRisk;
+
+  /// No description provided for @analyticsIncomeBreakdownHealthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Income comes from multiple sources.'**
+  String get analyticsIncomeBreakdownHealthy;
+
+  /// No description provided for @analyticsIncomeBreakdownWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Income relies heavily on one source.'**
+  String get analyticsIncomeBreakdownWatch;
+
+  /// No description provided for @analyticsIncomeBreakdownRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Income depends mostly on a single source.'**
+  String get analyticsIncomeBreakdownRisk;
+
+  /// No description provided for @insightLowCashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash is tight'**
+  String get insightLowCashTitle;
+
+  /// No description provided for @insightLowCashBodyRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cash balance is low or negative. Consider reducing expenses to protect your runway.'**
+  String get insightLowCashBodyRisk;
+
+  /// No description provided for @insightLowCashBodyWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cash balance is trending down. Keep an eye on upcoming expenses.'**
+  String get insightLowCashBodyWatch;
+
+  /// No description provided for @insightLowRunwayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash runway is short'**
+  String get insightLowRunwayTitle;
+
+  /// No description provided for @insightLowRunwayBodyRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'At your recent spending pace, you may have less than {days} days of runway.'**
+  String insightLowRunwayBodyRisk(int days);
+
+  /// No description provided for @insightLowRunwayBodyWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'At your recent spending pace, you may have about {days} days of runway.'**
+  String insightLowRunwayBodyWatch(int days);
+
+  /// No description provided for @insightActionReviewExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Review expenses'**
+  String get insightActionReviewExpenses;
+
+  /// No description provided for @insightDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get insightDismiss;
+
+  /// No description provided for @insightExpenseSpikeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending increased'**
+  String get insightExpenseSpikeTitle;
+
+  /// No description provided for @insightExpenseSpikeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{recentMonth} spending is higher than {priorMonth}. Consider reviewing what changed.'**
+  String insightExpenseSpikeBody(String recentMonth, String priorMonth);
+
+  /// No description provided for @insightExpenseSpikeWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on {recentMonth} {recentTotal} vs {priorMonth} {priorTotal} ({absChange}, {pctChange}%).'**
+  String insightExpenseSpikeWhy(String recentMonth, String recentTotal, String priorMonth, String priorTotal, String absChange, String pctChange);
+
+  /// No description provided for @insightMissingIncomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No income recorded'**
+  String get insightMissingIncomeTitle;
+
+  /// No description provided for @insightMissingIncomeWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on {recentMonth} {recentTotal} vs {priorMonth} {priorTotal}.'**
+  String insightMissingIncomeWhy(String recentMonth, String recentTotal, String priorMonth, String priorTotal);
+
+  /// No description provided for @insightLowCashRunwayWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on balance {balance} and avg monthly expenses {avgExpenses} (runway {days} days).'**
+  String insightLowCashRunwayWhy(String balance, String avgExpenses, String days);
+
+  /// No description provided for @insightLowCashBufferWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on cash balance {balance}{trend}.'**
+  String insightLowCashBufferWhy(String balance, String trend);
+
+  /// No description provided for @insightMissingIncomeBodyRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'You had income in {priorMonth} but none in {recentMonth}. Add any income you may have received.'**
+  String insightMissingIncomeBodyRisk(String priorMonth, String recentMonth);
+
+  /// No description provided for @insightMissingIncomeBodyWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No income recorded in {recentMonth}. If you received any, consider adding it.'**
+  String insightMissingIncomeBodyWatch(String recentMonth);
+
+  /// No description provided for @insightDetailTxCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{# transaction} other{# transactions}}'**
+  String insightDetailTxCount(int count);
+
+  /// No description provided for @insightDetailMonthCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'{recentMonth} vs {priorMonth}'**
+  String insightDetailMonthCompare(String recentMonth, String priorMonth);
+
+  /// No description provided for @insightDetailDowntrendStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Downtrend for {days} days'**
+  String insightDetailDowntrendStreak(int days);
+
+  /// No description provided for @insightDetailRunwayMonthsUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg based on {months} months'**
+  String insightDetailRunwayMonthsUsed(int months);
+
+  /// No description provided for @insightDetailExpenseSpikeCause.
+  ///
+  /// In en, this message translates to:
+  /// **'More transactions in {recentMonth} ({recentCount}) than {priorMonth} ({priorCount})'**
+  String insightDetailExpenseSpikeCause(String recentMonth, int recentCount, String priorMonth, int priorCount);
+
+  /// No description provided for @insightDetailExpenseSpikeAvgCause.
+  ///
+  /// In en, this message translates to:
+  /// **'Higher average spend per transaction in {recentMonth} ({recentAvg}) than {priorMonth} ({priorAvg})'**
+  String insightDetailExpenseSpikeAvgCause(String recentMonth, String recentAvg, String priorMonth, String priorAvg);
+
+  /// No description provided for @insightDetailMissingIncomeCause.
+  ///
+  /// In en, this message translates to:
+  /// **'No income transactions in {recentMonth} ({priorCount} in {priorMonth})'**
+  String insightDetailMissingIncomeCause(String recentMonth, int priorCount, String priorMonth);
+
+  /// No description provided for @safetyBufferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety buffer'**
+  String get safetyBufferTitle;
+
+  /// No description provided for @safetyBufferNotEnoughData.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data'**
+  String get safetyBufferNotEnoughData;
+
+  /// No description provided for @safetyBufferDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String safetyBufferDays(int days);
+
+  /// No description provided for @safetyBufferDaysWithWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days ({weeks} wk)'**
+  String safetyBufferDaysWithWeeks(int days, String weeks);
+
+  /// No description provided for @safetyBufferQualAfterReserveAndBills.
+  ///
+  /// In en, this message translates to:
+  /// **'After tax reserve and fixed bills'**
+  String get safetyBufferQualAfterReserveAndBills;
+
+  /// No description provided for @safetyBufferQualBasedOnLastMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on last month'**
+  String get safetyBufferQualBasedOnLastMonth;
+
+  /// No description provided for @safetyBufferQualBasedOnLastTwoMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on last 2 months'**
+  String get safetyBufferQualBasedOnLastTwoMonths;
+
+  /// No description provided for @safetyBufferTaxReserveIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax reserve included: {percent}% of income'**
+  String safetyBufferTaxReserveIncluded(int percent);
+
+  /// No description provided for @safetyBufferTaxReserveIncludedWithAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax reserve included: {percent}% of income (reserved {amount})'**
+  String safetyBufferTaxReserveIncludedWithAmount(int percent, String amount);
+
+  /// No description provided for @taxReserveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax reserve'**
+  String get taxReserveTitle;
+
+  /// No description provided for @taxReserveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Set aside a percentage of your income as a tax reserve. This amount is excluded from your safety buffer calculation.'**
+  String get taxReserveBody;
+
+  /// No description provided for @taxReserveUpdatedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax reserve updated'**
+  String get taxReserveUpdatedSnack;
+
+  /// No description provided for @pressurePointHeadsUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Heads up'**
+  String get pressurePointHeadsUp;
+
+  /// No description provided for @pressurePointDueNext7Days.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} fixed bills due in the next 7 days'**
+  String pressurePointDueNext7Days(String amount);
+
+  /// No description provided for @pressurePointReviewBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Review bills'**
+  String get pressurePointReviewBills;
+
+  /// No description provided for @pressurePointOpeningBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening recurring bills'**
+  String get pressurePointOpeningBills;
+
+  /// No description provided for @pressurePointReducePressureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce pressure'**
+  String get pressurePointReducePressureTitle;
+
+  /// No description provided for @pressurePointReducePressureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an action to ease the next days'**
+  String get pressurePointReducePressureBody;
+
+  /// No description provided for @pressurePointPauseNonEssential.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause non essential'**
+  String get pressurePointPauseNonEssential;
+
+  /// No description provided for @pressurePointPauseSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause selected'**
+  String get pressurePointPauseSelected;
+
+  /// No description provided for @pressurePointPausedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'All set. Bills paused.'**
+  String get pressurePointPausedSnack;
+
+  /// No description provided for @pressurePointPauseErrorSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not pause bills. Try again.'**
+  String get pressurePointPauseErrorSnack;
+
+  /// No description provided for @pressurePointNoBillsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least one bill'**
+  String get pressurePointNoBillsSelected;
+
+  /// No description provided for @pressureReliefTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure reduced'**
+  String get pressureReliefTitle;
+
+  /// No description provided for @pressureReliefSubtitlePaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused {count} bills'**
+  String pressureReliefSubtitlePaused(int count);
+
+  /// No description provided for @pressureReliefDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get pressureReliefDismiss;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

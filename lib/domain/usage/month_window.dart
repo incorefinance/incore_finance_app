@@ -17,8 +17,10 @@ enum MonthWindowMode {
 /// For [MonthWindowMode.dateOnly]: returns local DateTime at midnight.
 /// For [MonthWindowMode.timestamptz]: returns UTC DateTime at midnight.
 DateTime getMonthStart(DateTime date, MonthWindowMode mode) {
-  final localStart = DateTime(date.year, date.month, 1);
-  return mode == MonthWindowMode.timestamptz ? localStart.toUtc() : localStart;
+  if (mode == MonthWindowMode.timestamptz) {
+    return DateTime.utc(date.year, date.month, 1);
+  }
+  return DateTime(date.year, date.month, 1);
 }
 
 /// Calculate start of month after [date].
@@ -29,8 +31,10 @@ DateTime getMonthStart(DateTime date, MonthWindowMode mode) {
 /// Dart's DateTime constructor handles month overflow correctly:
 /// DateTime(2026, 13, 1) becomes DateTime(2027, 1, 1).
 DateTime getNextMonthStart(DateTime date, MonthWindowMode mode) {
-  final localNext = DateTime(date.year, date.month + 1, 1);
-  return mode == MonthWindowMode.timestamptz ? localNext.toUtc() : localNext;
+  if (mode == MonthWindowMode.timestamptz) {
+    return DateTime.utc(date.year, date.month + 1, 1);
+  }
+  return DateTime(date.year, date.month + 1, 1);
 }
 
 /// Calculate current month boundaries for database queries.

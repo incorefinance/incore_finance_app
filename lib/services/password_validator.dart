@@ -112,7 +112,8 @@ class PasswordValidator {
 
     final score = result.score?.toInt() ?? 0; // 0-4
     final label = _scoreToLabel(score);
-    final feedback = result.feedback?.warning ?? result.feedback?.suggestions?.join(', ');
+    final feedback =
+        result.feedback.warning ?? result.feedback.suggestions?.join(', ');
 
     return PasswordStrengthResult(
       score: score,

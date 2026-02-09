@@ -462,5 +462,209 @@
     "analyticsRisk": "Risk",
     "analyticsIncomeVsExpensesHealthyExplanation": "Expenses are well below income.",
     "analyticsIncomeVsExpensesWatchExplanation": "Expenses are close to income. Keep an eye on this.",
-    "analyticsIncomeVsExpensesRiskExplanation": "Expenses are higher than income. This may reduce your runway."
+    "analyticsIncomeVsExpensesRiskExplanation": "Expenses are higher than income. This may reduce your runway.",
+
+    "analyticsCashBalanceHealthyExplanation": "Cash balance is stable.",
+    "analyticsCashBalanceWatchExplanation": "Cash balance is trending down. Keep an eye on this.",
+    "analyticsCashBalanceRiskExplanation": "Cash balance is low or negative. This may limit your ability to cover expenses.",
+
+    "analyticsProfitHealthyExplanation": "Profit is stable.",
+    "analyticsProfitWatchExplanation": "Profit is trending down. Keep an eye on this.",
+    "analyticsProfitRiskExplanation": "Profit is negative. This may limit your ability to invest or cover expenses.",
+
+    "analyticsExpenseBreakdownHealthy": "Spending is spread across categories.",
+    "analyticsExpenseBreakdownWatch": "One category takes a large share of your expenses.",
+    "analyticsExpenseBreakdownRisk": "Spending is heavily concentrated in one category.",
+
+    "analyticsIncomeBreakdownHealthy": "Income comes from multiple sources.",
+    "analyticsIncomeBreakdownWatch": "Income relies heavily on one source.",
+    "analyticsIncomeBreakdownRisk": "Income depends mostly on a single source.",
+
+    "insightLowCashTitle": "Cash is tight",
+    "insightLowCashBodyRisk": "Your cash balance is low or negative. Consider reducing expenses to protect your runway.",
+    "insightLowCashBodyWatch": "Your cash balance is trending down. Keep an eye on upcoming expenses.",
+    "insightLowRunwayTitle": "Cash runway is short",
+    "insightLowRunwayBodyRisk": "At your recent spending pace, you may have less than {days} days of runway.",
+    "@insightLowRunwayBodyRisk": {
+        "placeholders": {
+            "days": {"type": "int"}
+        }
+    },
+    "insightLowRunwayBodyWatch": "At your recent spending pace, you may have about {days} days of runway.",
+    "@insightLowRunwayBodyWatch": {
+        "placeholders": {
+            "days": {"type": "int"}
+        }
+    },
+    "insightActionReviewExpenses": "Review expenses",
+    "insightDismiss": "Dismiss",
+    "insightExpenseSpikeTitle": "Spending increased",
+    "insightExpenseSpikeBody": "{recentMonth} spending is higher than {priorMonth}. Consider reviewing what changed.",
+    "@insightExpenseSpikeBody": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "priorMonth": {"type": "String"}
+        }
+    },
+    "insightExpenseSpikeWhy": "Based on {recentMonth} {recentTotal} vs {priorMonth} {priorTotal} ({absChange}, {pctChange}%).",
+    "@insightExpenseSpikeWhy": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "recentTotal": {"type": "String"},
+            "priorMonth": {"type": "String"},
+            "priorTotal": {"type": "String"},
+            "absChange": {"type": "String"},
+            "pctChange": {"type": "String"}
+        }
+    },
+    "insightMissingIncomeTitle": "No income recorded",
+    "insightMissingIncomeWhy": "Based on {recentMonth} {recentTotal} vs {priorMonth} {priorTotal}.",
+    "@insightMissingIncomeWhy": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "recentTotal": {"type": "String"},
+            "priorMonth": {"type": "String"},
+            "priorTotal": {"type": "String"}
+        }
+    },
+    "insightLowCashRunwayWhy": "Based on balance {balance} and avg monthly expenses {avgExpenses} (runway {days} days).",
+    "@insightLowCashRunwayWhy": {
+        "placeholders": {
+            "balance": {"type": "String"},
+            "avgExpenses": {"type": "String"},
+            "days": {"type": "String"}
+        }
+    },
+    "insightLowCashBufferWhy": "Based on cash balance {balance}{trend}.",
+    "@insightLowCashBufferWhy": {
+        "placeholders": {
+            "balance": {"type": "String"},
+            "trend": {"type": "String"}
+        }
+    },
+    "insightMissingIncomeBodyRisk": "You had income in {priorMonth} but none in {recentMonth}. Add any income you may have received.",
+    "@insightMissingIncomeBodyRisk": {
+        "placeholders": {
+            "priorMonth": {"type": "String"},
+            "recentMonth": {"type": "String"}
+        }
+    },
+    "insightMissingIncomeBodyWatch": "No income recorded in {recentMonth}. If you received any, consider adding it.",
+    "@insightMissingIncomeBodyWatch": {
+        "placeholders": {
+            "recentMonth": {"type": "String"}
+        }
+    },
+    "insightDetailTxCount": "{count, plural, one{# transaction} other{# transactions}}",
+    "@insightDetailTxCount": {
+        "placeholders": {
+            "count": {"type": "int"}
+        }
+    },
+    "insightDetailMonthCompare": "{recentMonth} vs {priorMonth}",
+    "@insightDetailMonthCompare": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "priorMonth": {"type": "String"}
+        }
+    },
+    "insightDetailDowntrendStreak": "Downtrend for {days} days",
+    "@insightDetailDowntrendStreak": {
+        "placeholders": {
+            "days": {"type": "int"}
+        }
+    },
+    "insightDetailRunwayMonthsUsed": "Avg based on {months} months",
+    "@insightDetailRunwayMonthsUsed": {
+        "placeholders": {
+            "months": {"type": "int"}
+        }
+    },
+    "insightDetailExpenseSpikeCause": "More transactions in {recentMonth} ({recentCount}) than {priorMonth} ({priorCount})",
+    "@insightDetailExpenseSpikeCause": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "recentCount": {"type": "int"},
+            "priorMonth": {"type": "String"},
+            "priorCount": {"type": "int"}
+        }
+    },
+    "insightDetailExpenseSpikeAvgCause": "Higher average spend per transaction in {recentMonth} ({recentAvg}) than {priorMonth} ({priorAvg})",
+    "@insightDetailExpenseSpikeAvgCause": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "recentAvg": {"type": "String"},
+            "priorMonth": {"type": "String"},
+            "priorAvg": {"type": "String"}
+        }
+    },
+    "insightDetailMissingIncomeCause": "No income transactions in {recentMonth} ({priorCount} in {priorMonth})",
+    "@insightDetailMissingIncomeCause": {
+        "placeholders": {
+            "recentMonth": {"type": "String"},
+            "priorCount": {"type": "int"},
+            "priorMonth": {"type": "String"}
+        }
+    },
+
+    "safetyBufferTitle": "Safety buffer",
+    "safetyBufferNotEnoughData": "Not enough data",
+    "safetyBufferDays": "{days} days",
+    "@safetyBufferDays": {
+        "placeholders": {
+            "days": {"type": "int"}
+        }
+    },
+    "safetyBufferDaysWithWeeks": "{days} days ({weeks} wk)",
+    "@safetyBufferDaysWithWeeks": {
+        "placeholders": {
+            "days": {"type": "int"},
+            "weeks": {"type": "String"}
+        }
+    },
+    "safetyBufferQualAfterReserveAndBills": "After tax reserve and fixed bills",
+    "safetyBufferQualBasedOnLastMonth": "Based on last month",
+    "safetyBufferQualBasedOnLastTwoMonths": "Based on last 2 months",
+    "safetyBufferTaxReserveIncluded": "Tax reserve included: {percent}% of income",
+    "@safetyBufferTaxReserveIncluded": {
+        "placeholders": {
+            "percent": {"type": "int"}
+        }
+    },
+    "safetyBufferTaxReserveIncludedWithAmount": "Tax reserve included: {percent}% of income (reserved {amount})",
+    "@safetyBufferTaxReserveIncludedWithAmount": {
+        "placeholders": {
+            "percent": {"type": "int"},
+            "amount": {"type": "String"}
+        }
+    },
+
+    "taxReserveTitle": "Tax reserve",
+    "taxReserveBody": "Set aside a percentage of your income as a tax reserve. This amount is excluded from your safety buffer calculation.",
+    "taxReserveUpdatedSnack": "Tax reserve updated",
+
+    "pressurePointHeadsUp": "Heads up",
+    "pressurePointDueNext7Days": "{amount} fixed bills due in the next 7 days",
+    "@pressurePointDueNext7Days": {
+        "placeholders": {
+            "amount": {"type": "String"}
+        }
+    },
+    "pressurePointReviewBills": "Review bills",
+    "pressurePointOpeningBills": "Opening recurring bills",
+    "pressurePointReducePressureTitle": "Reduce pressure",
+    "pressurePointReducePressureBody": "Choose an action to ease the next days",
+    "pressurePointPauseNonEssential": "Pause non essential",
+    "pressurePointPauseSelected": "Pause selected",
+    "pressurePointPausedSnack": "All set. Bills paused.",
+    "pressurePointPauseErrorSnack": "Could not pause bills. Try again.",
+    "pressurePointNoBillsSelected": "Select at least one bill",
+    "pressureReliefTitle": "Pressure reduced",
+    "pressureReliefSubtitlePaused": "Paused {count} bills",
+    "@pressureReliefSubtitlePaused": {
+        "placeholders": {
+            "count": {"type": "int"}
+        }
+    },
+    "pressureReliefDismiss": "Dismiss"
 }
