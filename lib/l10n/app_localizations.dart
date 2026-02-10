@@ -1718,14 +1718,20 @@ abstract class AppLocalizations {
   /// No description provided for @monthOverMonth.
   ///
   /// In en, this message translates to:
-  /// **'Month over Month'**
+  /// **'This month vs last month'**
   String get monthOverMonth;
 
   /// No description provided for @comparedWithLastMonth.
   ///
   /// In en, this message translates to:
-  /// **'Compared with last month'**
+  /// **'Calendar months'**
   String get comparedWithLastMonth;
+
+  /// No description provided for @appliesToChartsBelow.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to charts below'**
+  String get appliesToChartsBelow;
 
   /// No description provided for @percentOfExpenses.
   ///

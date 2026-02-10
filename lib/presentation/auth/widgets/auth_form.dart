@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../routes/app_routes.dart';
 import '../../../services/password_validator.dart';
+import '../../../theme/app_colors.dart';
 import 'password_strength_indicator.dart';
 
 /// Minimal email/password auth form for sign in and sign up.
@@ -20,6 +21,7 @@ class _AuthFormState extends State<AuthForm> {
 
   bool _isSignUpMode = false;
   bool _isLoading = false;
+  bool _obscurePassword = true;
   String? _messageText;
   String? _errorText;
 
@@ -152,12 +154,6 @@ class _AuthFormState extends State<AuthForm> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(
-              Icons.lock_outline,
-              size: 64,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 24),
             Text(
               _isSignUpMode ? 'Create account' : 'Sign in',
               style: theme.textTheme.headlineSmall?.copyWith(
@@ -172,9 +168,20 @@ class _AuthFormState extends State<AuthForm> {
               keyboardType: TextInputType.emailAddress,
               autocorrect: false,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Email',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.blue600, width: 2),
+                ),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -190,12 +197,34 @@ class _AuthFormState extends State<AuthForm> {
             // Password field
             TextFormField(
               controller: _passwordController,
-              obscureText: true,
+              obscureText: _obscurePassword,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Password',
                 hintText: 'At least 12 characters',
-                border: OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    color: AppColors.slate400,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.blue600, width: 2),
+                ),
               ),
               validator: (value) {
                 if (_isSignUpMode) {
@@ -234,13 +263,13 @@ class _AuthFormState extends State<AuthForm> {
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
+                  color: AppColors.blueBg50,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   _messageText!,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
+                    color: AppColors.blue600,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -267,11 +296,19 @@ class _AuthFormState extends State<AuthForm> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _handleSubmit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.blue600,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppColors.blue600.withValues(alpha: 0.5),
+                ),
                 child: _isLoading
                     ? const SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : Text(_isSignUpMode ? 'Create Account' : 'Sign In'),
               ),

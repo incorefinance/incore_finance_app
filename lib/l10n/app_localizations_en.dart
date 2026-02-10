@@ -837,10 +837,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trends => 'Trends';
 
   @override
-  String get monthOverMonth => 'Month over Month';
+  String get monthOverMonth => 'This month vs last month';
 
   @override
-  String get comparedWithLastMonth => 'Compared with last month';
+  String get comparedWithLastMonth => 'Calendar months';
+
+  @override
+  String get appliesToChartsBelow => 'Applies to charts below';
 
   @override
   String percentOfExpenses(String percent) {

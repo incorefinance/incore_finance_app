@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../theme/app_colors.dart';
 import '../../../widgets/custom_icon_widget.dart';
 
 /// Dialog for selecting app language
@@ -122,8 +123,8 @@ class _LanguageSelectorDialogState extends State<LanguageSelectorDialog> {
             border: Border.all(
               color:
                   isSelected
-                      ? colorScheme.primary
-                      : colorScheme.outline.withValues(alpha: 0.3),
+                      ? AppColors.blue600
+                      : AppColors.borderGlass60Light,
               width: isSelected ? 2 : 1,
             ),
             borderRadius: BorderRadius.circular(12),
@@ -144,7 +145,7 @@ class _LanguageSelectorDialogState extends State<LanguageSelectorDialog> {
                 CustomIconWidget(
                   iconName: 'check_circle',
                   size: 5.w,
-                  color: colorScheme.primary,
+                  color: AppColors.blue600,
                 ),
             ],
           ),

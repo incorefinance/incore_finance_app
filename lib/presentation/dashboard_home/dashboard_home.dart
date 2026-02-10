@@ -8,8 +8,12 @@ import 'package:incore_finance/services/user_settings_service.dart';
 import 'package:incore_finance/services/recurring_expenses_repository.dart';
 import 'package:incore_finance/services/user_financial_baseline_repository.dart';
 import 'package:incore_finance/services/auth_guard.dart';
+import 'package:incore_finance/services/recurring_expenses_auto_poster.dart';
+import 'package:incore_finance/services/recurring_auto_poster_guard.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/app_export.dart';
+import '../../core/state/transactions_change_notifier.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/errors/app_error_classifier.dart';
 import '../../core/logging/app_logger.dart';
@@ -197,6 +201,9 @@ class _DashboardHomeState extends State<DashboardHome> {
         // Keep empty list if loading fails
       }
 
+      // Auto-post due recurring expenses (non-blocking, once per session)
+      _autoPostRecurringExpenses();
+
       // ─── Safety Buffer Calculation (reuses already-loaded data) ───────────
       final taxPercent = await _taxShieldSettingsStore.getTaxShieldPercent();
 
@@ -262,6 +269,36 @@ class _DashboardHomeState extends State<DashboardHome> {
         _isLoadingDashboard = false;
         _loadError = appError;
       });
+    }
+  }
+
+  Future<void> _autoPostRecurringExpenses() async {
+    if (!RecurringAutoPosterGuard.instance.shouldRun()) return;
+
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) {
+        RecurringAutoPosterGuard.instance.markFailed();
+        return;
+      }
+
+      final poster = RecurringExpensesAutoPoster();
+      final count = await poster.postDueRecurringExpenses(
+        userId: userId,
+        now: DateTime.now(),
+      );
+
+      RecurringAutoPosterGuard.instance.markComplete();
+
+      if (count > 0) {
+        AppLogger.i('Auto-posted $count recurring expense transactions');
+        TransactionsChangeNotifier.instance.markChanged();
+        // Reload dashboard data to reflect new transactions
+        if (mounted) _loadDashboardData();
+      }
+    } catch (e, st) {
+      AppLogger.e('Auto-posting recurring expenses failed', error: e, stackTrace: st);
+      RecurringAutoPosterGuard.instance.markFailed();
     }
   }
 

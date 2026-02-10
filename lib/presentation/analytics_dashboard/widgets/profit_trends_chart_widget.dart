@@ -35,7 +35,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
     final l10n = AppLocalizations.of(context)!;
 
     // ✅ Use your main accent instead of gold
-    final accent = AppColors.primarySoft;
+    final accent = AppColors.blue600;
 
     final xMax = (widget.trendData.length - 1).toDouble();
     const double xPadding = 0.25;

@@ -17,6 +17,7 @@ class RecurringExpense {
   final int dueDay;
   final bool isActive;
   final DateTime createdAt;
+  final DateTime? lastPostedOccurrenceDate;
 
   const RecurringExpense({
     required this.id,
@@ -26,6 +27,7 @@ class RecurringExpense {
     required this.dueDay,
     required this.isActive,
     required this.createdAt,
+    this.lastPostedOccurrenceDate,
   });
 
   /// Creates a RecurringExpense from a Supabase row map.
@@ -83,6 +85,15 @@ class RecurringExpense {
       parsedCreatedAt = DateTime.now();
     }
 
+    // Parse last_posted_occurrence_date (handles String, DateTime)
+    final rawLastPosted = map['last_posted_occurrence_date'];
+    DateTime? parsedLastPosted;
+    if (rawLastPosted is String) {
+      parsedLastPosted = DateTime.tryParse(rawLastPosted);
+    } else if (rawLastPosted is DateTime) {
+      parsedLastPosted = rawLastPosted;
+    }
+
     return RecurringExpense(
       id: map['id']?.toString() ?? '',
       userId: map['user_id']?.toString() ?? '',
@@ -91,13 +102,14 @@ class RecurringExpense {
       dueDay: parsedDueDay,
       isActive: parsedIsActive,
       createdAt: parsedCreatedAt,
+      lastPostedOccurrenceDate: parsedLastPosted,
     );
   }
 
   /// Converts this RecurringExpense to a map for Supabase insert/update.
   /// Note: id and created_at are typically handled by the database.
   Map<String, dynamic> toMap() {
-    return {
+    final map = <String, dynamic>{
       'id': id,
       'user_id': userId,
       'name': name,
@@ -106,7 +118,17 @@ class RecurringExpense {
       'is_active': isActive,
       'created_at': createdAt.toIso8601String(),
     };
+
+    if (lastPostedOccurrenceDate != null) {
+      map['last_posted_occurrence_date'] = _formatDateOnly(lastPostedOccurrenceDate!);
+    }
+
+    return map;
   }
+
+  /// Format date as YYYY-MM-DD for Supabase DATE column.
+  static String _formatDateOnly(DateTime dt) =>
+      '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
 
   /// Creates a copy with optional field overrides.
   RecurringExpense copyWith({
@@ -117,6 +139,7 @@ class RecurringExpense {
     int? dueDay,
     bool? isActive,
     DateTime? createdAt,
+    DateTime? lastPostedOccurrenceDate,
   }) {
     return RecurringExpense(
       id: id ?? this.id,
@@ -126,11 +149,12 @@ class RecurringExpense {
       dueDay: dueDay ?? this.dueDay,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
+      lastPostedOccurrenceDate: lastPostedOccurrenceDate ?? this.lastPostedOccurrenceDate,
     );
   }
 
   @override
   String toString() {
-    return 'RecurringExpense(id: $id, name: $name, amount: $amount, dueDay: $dueDay, isActive: $isActive)';
+    return 'RecurringExpense(id: $id, name: $name, amount: $amount, dueDay: $dueDay, isActive: $isActive, lastPosted: $lastPostedOccurrenceDate)';
   }
 }

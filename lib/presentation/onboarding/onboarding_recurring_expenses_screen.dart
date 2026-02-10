@@ -5,6 +5,7 @@ import '../../core/app_export.dart';
 import '../../models/recurring_expense.dart';
 import '../../services/recurring_expenses_repository.dart';
 import '../../services/user_settings_service.dart';
+import '../../theme/app_colors.dart';
 import '../../utils/number_formatter.dart';
 import '../recurring_expenses/widgets/add_edit_recurring_expense_dialog.dart';
 
@@ -80,7 +81,7 @@ class _OnboardingRecurringExpensesScreenState
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: AppColors.canvasFrostedLight,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -100,7 +101,7 @@ class _OnboardingRecurringExpensesScreenState
               Text(
                 'This helps track upcoming expenses.',
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                  color: AppColors.slate500,
                 ),
               ),
               SizedBox(height: 3.h),
@@ -126,20 +127,20 @@ class _OnboardingRecurringExpensesScreenState
             CustomIconWidget(
               iconName: 'receipt_long',
               size: 15.w,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              color: AppColors.slate400,
             ),
             SizedBox(height: 2.h),
             Text(
               'No recurring expenses yet',
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+                color: AppColors.slate500,
               ),
             ),
             SizedBox(height: 1.h),
             Text(
               'Add expenses like rent, utilities, or subscriptions',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                color: AppColors.slate400,
               ),
               textAlign: TextAlign.center,
             ),
@@ -167,7 +168,7 @@ class _OnboardingRecurringExpensesScreenState
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
         border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.2),
+          color: AppColors.borderGlass60Light,
         ),
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       ),
@@ -187,7 +188,7 @@ class _OnboardingRecurringExpensesScreenState
                 Text(
                   'Due day ${expense.dueDay}',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                    color: AppColors.slate500,
                   ),
                 ),
               ],

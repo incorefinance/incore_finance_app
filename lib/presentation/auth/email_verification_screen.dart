@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../routes/app_routes.dart';
 import '../../services/onboarding_service.dart';
+import '../../theme/app_colors.dart';
 
 /// Key for storing the last resend timestamp in SharedPreferences.
 const String _kLastResendAtKey = 'email_verification_last_resend_at';
@@ -358,7 +359,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     final userEmail = supabase.auth.currentUser?.email ?? _emailFromArgs;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: AppColors.canvasFrostedLight,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -372,7 +373,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   onPressed: _signOut,
                   child: Text(
                     'Sign out',
-                    style: TextStyle(color: colorScheme.primary),
+                    style: TextStyle(color: AppColors.blue600),
                   ),
                 ),
               ),
@@ -380,7 +381,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               Icon(
                 Icons.mark_email_unread_outlined,
                 size: 80,
-                color: colorScheme.primary,
+                color: AppColors.blue600,
               ),
               const SizedBox(height: 32),
               Text(
@@ -394,7 +395,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               Text(
                 'We sent a verification link to:',
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                  color: AppColors.slate500,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -412,7 +413,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               Text(
                 'Click the link in your email to verify your account and continue.',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                  color: AppColors.slate500,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -484,7 +485,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               Text(
                 'Did not receive the email? Check your spam folder or try resending.',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                  color: AppColors.slate400,
                 ),
                 textAlign: TextAlign.center,
               ),

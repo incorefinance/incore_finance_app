@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
+import '../../theme/app_colors.dart';
 
 /// Welcome screen - First step of the onboarding flow.
 /// Introduces the user to the setup process with a friendly message.
@@ -19,7 +20,7 @@ class OnboardingWelcomeScreen extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: AppColors.canvasFrostedLight,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -42,7 +43,7 @@ class OnboardingWelcomeScreen extends StatelessWidget {
                         child: CustomIconWidget(
                           iconName: 'rocket_launch',
                           size: 10.w,
-                          color: colorScheme.primary,
+                          color: AppColors.blue600,
                         ),
                       ),
                     ),
@@ -58,7 +59,7 @@ class OnboardingWelcomeScreen extends StatelessWidget {
                     Text(
                       'This will only take a moment.',
                       style: theme.textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                        color: AppColors.slate500,
                       ),
                       textAlign: TextAlign.center,
                     ),

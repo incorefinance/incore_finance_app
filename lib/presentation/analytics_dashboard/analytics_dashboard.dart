@@ -46,7 +46,6 @@ import 'insights/insight_data_preparer.dart';
 import '../../domain/safety_buffer/safety_buffer_snapshot.dart';
 import '../../domain/tax_shield/tax_shield_snapshot.dart';
 import '../../data/settings/tax_shield_settings_store.dart';
-import './widgets/tax_shield_bottom_sheet.dart';
 import '../../services/recurring_expenses_repository.dart';
 import '../../models/recurring_expense.dart';
 import '../../data/telemetry/local_event_store.dart';
@@ -1212,25 +1211,33 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
   /// Returns semantic background color for interpretation badge.
   Color _badgeBackground(InterpretationStatus status, ColorScheme cs) {
+    final isDark = cs.brightness == Brightness.dark;
     switch (status) {
       case InterpretationStatus.healthy:
-        return cs.primaryContainer.withValues(alpha: 0.7);
+        return isDark
+            ? AppColors.emerald900.withValues(alpha: 0.30)
+            : AppColors.emerald100;
       case InterpretationStatus.watch:
-        return Colors.amber.withValues(alpha: 0.3);
+        return isDark
+            ? AppColors.amber900.withValues(alpha: 0.30)
+            : AppColors.amber100;
       case InterpretationStatus.risk:
-        return cs.errorContainer.withValues(alpha: 0.7);
+        return isDark
+            ? AppColors.rose900.withValues(alpha: 0.30)
+            : AppColors.rose100;
     }
   }
 
   /// Returns semantic text color for interpretation badge.
   Color _badgeText(InterpretationStatus status, ColorScheme cs) {
+    final isDark = cs.brightness == Brightness.dark;
     switch (status) {
       case InterpretationStatus.healthy:
-        return cs.onPrimaryContainer;
+        return isDark ? AppColors.emerald400 : AppColors.emerald700;
       case InterpretationStatus.watch:
-        return Colors.amber.shade800;
+        return isDark ? AppColors.amber400 : AppColors.amber700;
       case InterpretationStatus.risk:
-        return cs.onErrorContainer;
+        return isDark ? AppColors.rose400 : AppColors.rose700;
     }
   }
 
@@ -1825,39 +1832,6 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Range selector
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: Align(
-                                alignment: Alignment.centerRight,
-                                child: SegmentedButton<_AnalyticsRange>(
-                                segments: [
-                                  ButtonSegment(
-                                    value: _AnalyticsRange.m3,
-                                    label: Text(l10n.threeMonths),
-                                  ),
-                                  ButtonSegment(
-                                    value: _AnalyticsRange.m6,
-                                    label: Text(l10n.sixMonths),
-                                  ),
-                                  ButtonSegment(
-                                    value: _AnalyticsRange.m12,
-                                    label: Text(l10n.twelveMonths),
-                                  ),
-                                ],
-                                selected: {_range},
-                                showSelectedIcon: false,
-                                onSelectionChanged: (value) {
-                                  setState(() {
-                                    _range = value.first;
-                                  });
-                                  _loadAnalyticsData();
-                                },
-                              ),
-                            ),
-                          ),
-                            const SizedBox(height: 24),
-
                             // Insight card (shown when insight is active and not dismissed)
                             if (_currentInsight != null &&
                                 _currentInsightDismissedUntil == null)
@@ -1928,22 +1902,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                                   Navigator.pushNamed(
                                       context, AppRoutes.recurringExpenses);
                                 },
-                                onTaxShieldTap: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    builder: (_) => TaxShieldBottomSheet(
-                                      currentPercent: _taxShieldPercent,
-                                      onSave: (newPercent) async {
-                                        await _taxShieldSettingsStore
-                                            .setTaxShieldPercent(newPercent);
-                                        if (!mounted) return;
-                                        await _loadAnalyticsData();
-                                      },
-                                    ),
-                                  );
-                                },
+                                // Tax reserve is now inline below, no tap needed
+                                onTaxShieldTap: null,
                                 onPressurePointActionsOpened: () {
                                   _localEventStore.log('pressure_point_opened');
                                 },
@@ -1976,20 +1936,92 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                               ),
                             ),
 
+                            // Inline Tax Reserve cards
+                            const SizedBox(height: 12),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: _buildTaxReserveRow(),
+                            ),
+
+                            // Inline Recurring Expenses cards
+                            const SizedBox(height: 12),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: _buildRecurringExpensesRow(),
+                            ),
+
+                            const SizedBox(height: 24),
+
                             // ========================================
                             // Section 1: Overview
                             // ========================================
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: Text(
-                                l10n.overview,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.slate500,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        l10n.overview,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.slate500,
+                                            ),
+                                      ),
+                                      SegmentedButton<_AnalyticsRange>(
+                                        segments: [
+                                          ButtonSegment(
+                                            value: _AnalyticsRange.m3,
+                                            label: Text(l10n.threeMonths),
+                                          ),
+                                          ButtonSegment(
+                                            value: _AnalyticsRange.m6,
+                                            label: Text(l10n.sixMonths),
+                                          ),
+                                          ButtonSegment(
+                                            value: _AnalyticsRange.m12,
+                                            label: Text(l10n.twelveMonths),
+                                          ),
+                                        ],
+                                        selected: {_range},
+                                        showSelectedIcon: false,
+                                        onSelectionChanged: (value) {
+                                          setState(() {
+                                            _range = value.first;
+                                          });
+                                          _loadAnalyticsData();
+                                        },
+                                        style: ButtonStyle(
+                                          backgroundColor: WidgetStateProperty.resolveWith((states) {
+                                            if (states.contains(WidgetState.selected)) {
+                                              return AppColors.blue600;
+                                            }
+                                            return Colors.transparent;
+                                          }),
+                                          foregroundColor: WidgetStateProperty.resolveWith((states) {
+                                            if (states.contains(WidgetState.selected)) {
+                                              return Colors.white;
+                                            }
+                                            return AppColors.slate500;
+                                          }),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    l10n.appliesToChartsBelow,
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.slate400,
                                     ),
+                                  ),
+                                ],
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -2170,5 +2202,348 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
   Future<void> _handleRefresh() async {
     await _loadAnalyticsData();
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Tax Reserve Inline Cards
+  // ══════════════════════════════════════════════════════════════════════════
+
+  /// Shared frosted card container for tax reserve cards
+  Widget _buildFrostedCard({
+    required Widget child,
+    EdgeInsetsGeometry? padding,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        boxShadow: AppShadows.cardLight,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+        child: Container(
+          padding: padding ?? const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceGlass80Light,
+            borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
+            border: Border.all(color: AppColors.borderGlass60Light, width: 1),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  /// Tax reserve cards displayed side by side with equal height
+  Widget _buildTaxReserveRow() {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: _buildTaxReserveCard()),
+          const SizedBox(width: 12),
+          Expanded(child: _buildTaxReserveHelperCard()),
+        ],
+      ),
+    );
+  }
+
+  /// Tax reserve card with slider
+  Widget _buildTaxReserveCard() {
+    final theme = Theme.of(context);
+    final percentInt = (_taxShieldPercent * 100).round();
+    final reservedAmount = _taxShieldSnapshot?.taxShieldReserved ?? 0.0;
+    final currency = NumberFormat.currency(
+      locale: _currencyLocale,
+      symbol: _currencySymbol,
+    );
+
+    return _buildFrostedCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tax reserve',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.slate600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$percentInt%',
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: AppColors.slate900,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${currency.format(reservedAmount)} set aside',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.slate500,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Slider
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: AppColors.blue600,
+              inactiveTrackColor: AppColors.slate400.withValues(alpha: 0.25),
+              thumbColor: Colors.white,
+              thumbShape: const RoundSliderThumbShape(
+                enabledThumbRadius: 12,
+                elevation: 2,
+                pressedElevation: 4,
+              ),
+              overlayColor: AppColors.blue600.withValues(alpha: 0.12),
+              trackHeight: 4,
+            ),
+            child: Slider(
+              value: _taxShieldPercent,
+              min: 0.0,
+              max: 1.0,
+              divisions: 100,
+              onChanged: (value) {
+                setState(() {
+                  _taxShieldPercent = value;
+                });
+              },
+              onChangeEnd: (value) async {
+                // Persist and reload only when user finishes sliding
+                await _taxShieldSettingsStore.setTaxShieldPercent(value);
+                if (!mounted) return;
+                await _loadAnalyticsData();
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Helper card with dynamic title and body text
+  Widget _buildTaxReserveHelperCard() {
+    final theme = Theme.of(context);
+    final helper = _getTaxReserveHelper();
+
+    return _buildFrostedCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            helper.title,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.blue600,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            helper.body,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.slate500,
+              height: 1.35,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Dynamic helper title and body based on tax reserve percentage
+  ({String title, String body}) _getTaxReserveHelper() {
+    final percentInt = (_taxShieldPercent * 100).round();
+
+    if (percentInt == 0) {
+      return (
+        title: 'No tax reserve',
+        body: 'Your safety buffer assumes all income is spendable. '
+            'If you pay taxes later, your buffer may look larger than what you can actually use.',
+      );
+    }
+
+    if (percentInt <= 14) {
+      return (
+        title: 'Small reserve',
+        body: 'A small reserve makes your safety buffer slightly more conservative. '
+            'Consider increasing it if you regularly owe taxes.',
+      );
+    }
+
+    if (percentInt <= 34) {
+      return (
+        title: 'Balanced',
+        body: 'This amount is excluded from spendable cash. '
+            'Your safety buffer is more realistic and safer.',
+      );
+    }
+
+    return (
+      title: 'High reserve',
+      body: 'You are setting aside a large share of income. '
+          'This increases safety but can make your spendable cash feel tighter.',
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Recurring Expenses Inline Cards
+  // ══════════════════════════════════════════════════════════════════════════
+
+  /// Recurring expenses cards with responsive layout (wide: Row, narrow: Column)
+  Widget _buildRecurringExpensesRow() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 400;
+
+        if (isWide) {
+          return IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: _buildRecurringExpensesCard()),
+                const SizedBox(width: 12),
+                Expanded(child: _buildRecurringExpensesHelperCard()),
+              ],
+            ),
+          );
+        }
+
+        return Column(
+          children: [
+            _buildRecurringExpensesCard(),
+            const SizedBox(height: 12),
+            _buildRecurringExpensesHelperCard(),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Recurring expenses card showing total monthly amount
+  Widget _buildRecurringExpensesCard() {
+    final theme = Theme.of(context);
+    final total = _activeRecurringExpenses.fold<double>(
+      0.0,
+      (sum, e) => sum + e.amount.abs(),
+    );
+    final count = _activeRecurringExpenses.length;
+    final currency = NumberFormat.currency(
+      locale: _currencyLocale,
+      symbol: _currencySymbol,
+    );
+
+    return _buildFrostedCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Monthly recurring',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.slate500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            currency.format(total),
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: AppColors.slate900,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Fixed monthly expenses',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.slate500,
+            ),
+          ),
+          Text(
+            '$count active items',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.slate400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Dynamic helper based on recurring vs income ratio
+  ({String title, String body}) _getRecurringExpensesHelper() {
+    final total = _activeRecurringExpenses.fold<double>(
+      0.0,
+      (sum, e) => sum + e.amount.abs(),
+    );
+
+    // Get latest month's income from _incomeExpensesData
+    double latestIncome = 0.0;
+    if (_incomeExpensesData.isNotEmpty) {
+      for (int i = _incomeExpensesData.length - 1; i >= 0; i--) {
+        final income =
+            (_incomeExpensesData[i]['income'] as num?)?.toDouble() ?? 0.0;
+        if (income > 0) {
+          latestIncome = income;
+          break;
+        }
+      }
+    }
+
+    if (total == 0) {
+      return (
+        title: 'No fixed costs',
+        body: 'You have no recurring expenses tracked. '
+            'This gives you maximum flexibility month to month.',
+      );
+    }
+
+    if (latestIncome > 0 && total / latestIncome > 0.6) {
+      return (
+        title: 'High fixed load',
+        body: 'A large part of your income goes to fixed costs. '
+            'This reduces flexibility in low-income months.',
+      );
+    }
+
+    if (latestIncome > 0 && total / latestIncome > 0.4) {
+      return (
+        title: 'Moderate baseline',
+        body: 'Your fixed costs form a significant baseline. '
+            'Keep an eye on adding new recurring commitments.',
+      );
+    }
+
+    return (
+      title: 'Predictable base',
+      body: 'These expenses form your fixed monthly baseline. '
+          'They are always accounted for in your safety buffer.',
+    );
+  }
+
+  /// Helper card with dynamic title and body text
+  Widget _buildRecurringExpensesHelperCard() {
+    final theme = Theme.of(context);
+    final helper = _getRecurringExpensesHelper();
+
+    return _buildFrostedCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            helper.title,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.blue600,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            helper.body,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.slate500,
+              height: 1.35,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

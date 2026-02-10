@@ -340,8 +340,9 @@
     "overview": "Overview",
     "breakdown": "Breakdown",
     "trends": "Trends",
-    "monthOverMonth": "Month over Month",
-    "comparedWithLastMonth": "Compared with last month",
+    "monthOverMonth": "This month vs last month",
+    "comparedWithLastMonth": "Calendar months",
+    "appliesToChartsBelow": "Applies to charts below",
     "percentOfExpenses": "{percent}% of expenses",
     "@percentOfExpenses": {
         "placeholders": {
