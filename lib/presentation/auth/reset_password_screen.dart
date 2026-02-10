@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../routes/app_routes.dart';
 import '../../services/password_validator.dart';
+import '../../theme/app_colors.dart';
 
 /// Screen for setting a new password after clicking a reset link.
 /// Requires a valid recovery session to be set by DeepLinkService.
@@ -139,7 +140,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: AppColors.canvasFrostedLight,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -152,7 +153,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 Icon(
                   _passwordUpdated ? Icons.check_circle_outline : Icons.lock_outline,
                   size: 80,
-                  color: _passwordUpdated ? colorScheme.primary : colorScheme.primary,
+                  color: AppColors.blue600,
                 ),
                 const SizedBox(height: 32),
                 Text(
@@ -208,7 +209,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     Text(
                       'Enter your new password below.',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                        color: AppColors.slate500,
                       ),
                       textAlign: TextAlign.center,
                     ),

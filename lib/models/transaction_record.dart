@@ -10,6 +10,8 @@ class TransactionRecord {
   final DateTime date;
   final String? paymentMethod;
   final String? client;
+  final String? recurringExpenseId;
+  final DateTime? occurrenceDate;
 
   const TransactionRecord({
     required this.id,
@@ -21,6 +23,8 @@ class TransactionRecord {
     required this.date,
     this.paymentMethod,
     this.client,
+    this.recurringExpenseId,
+    this.occurrenceDate,
   });
 
   factory TransactionRecord.fromMap(Map<String, dynamic> map) {
@@ -47,6 +51,15 @@ class TransactionRecord {
       parsedDate = DateTime.now();
     }
 
+    // Parse occurrence_date if present
+    final occDateValue = map['occurrence_date'];
+    DateTime? parsedOccurrenceDate;
+    if (occDateValue is String) {
+      parsedOccurrenceDate = DateTime.tryParse(occDateValue);
+    } else if (occDateValue is DateTime) {
+      parsedOccurrenceDate = occDateValue;
+    }
+
     return TransactionRecord(
       id: map['id']?.toString() ?? '',
       userId: map['user_id']?.toString() ?? '',
@@ -58,11 +71,13 @@ class TransactionRecord {
       paymentMethod: map['payment_method']?.toString(),
       // Tolerant on reads: if you ever had client_name in old data, it still works.
       client: (map['client'] ?? map['client'])?.toString(),
+      recurringExpenseId: map['recurring_expense_id']?.toString(),
+      occurrenceDate: parsedOccurrenceDate,
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
+    final map = <String, dynamic>{
       'id': id,
       'user_id': userId,
       'amount': amount,
@@ -74,5 +89,19 @@ class TransactionRecord {
       // IMPORTANT: this must match Supabase -> column name is `client`
       'client': client,
     };
+
+    // Only include recurring fields if set (for auto-posted transactions)
+    if (recurringExpenseId != null) {
+      map['recurring_expense_id'] = recurringExpenseId;
+    }
+    if (occurrenceDate != null) {
+      map['occurrence_date'] = _formatDateOnly(occurrenceDate!);
+    }
+
+    return map;
   }
+
+  /// Format date as YYYY-MM-DD for Supabase DATE column.
+  static String _formatDateOnly(DateTime dt) =>
+      '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
 }

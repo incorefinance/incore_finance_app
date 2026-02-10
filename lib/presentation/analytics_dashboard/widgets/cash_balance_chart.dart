@@ -146,7 +146,7 @@ class CashBalanceChart extends StatelessWidget {
                     }).toList(),
                     isCurved: true,
                     curveSmoothness: 0.25,
-                    color: AppColors.primarySoft,
+                    color: AppColors.blue600,
                     barWidth: 3,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
@@ -158,7 +158,7 @@ class CashBalanceChart extends StatelessWidget {
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
                           radius: 3,
-                          color: AppColors.primarySoft,
+                          color: AppColors.blue600,
                           strokeWidth: 1.5,
                           strokeColor: colorScheme.surface,
                         );
@@ -170,8 +170,8 @@ class CashBalanceChart extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          AppColors.primarySoft.withValues(alpha: 0.22),
-                          AppColors.primarySoft.withValues(alpha: 0.04),
+                          AppColors.blue600.withValues(alpha: 0.22),
+                          AppColors.blue600.withValues(alpha: 0.04),
                         ],
                       ),
                     ),

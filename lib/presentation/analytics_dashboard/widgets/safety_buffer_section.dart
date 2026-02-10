@@ -119,36 +119,33 @@ class _SafetyBufferSectionState extends State<SafetyBufferSection> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         border: Border.all(color: borderColor, width: 1),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 1),
-            child: Icon(
-              Icons.shield_outlined,
-              size: 18,
-              color: iconColor,
-            ),
+          Icon(
+            Icons.shield_outlined,
+            size: 48,
+            color: iconColor,
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   primaryText,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
                     color: colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   qualifiers,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -156,7 +153,6 @@ class _SafetyBufferSectionState extends State<SafetyBufferSection> {
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                _buildTaxShieldLine(context),
               ],
             ),
           ),
@@ -195,66 +191,6 @@ class _SafetyBufferSectionState extends State<SafetyBufferSection> {
         l10n.safetyBufferQualBasedOnLastMonth,
     ];
     return parts.join(' · ');
-  }
-
-  // ── Tax shield line ────────────────────────────────────────
-
-  Widget _buildTaxShieldLine(BuildContext context) {
-    if (widget.taxShield == null) return const SizedBox.shrink();
-
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final ts = widget.taxShield!;
-
-    final percent = (ts.taxShieldPercent * 100).round();
-    final String text;
-    if (ts.taxShieldReserved >= 10) {
-      final currency = NumberFormat.currency(
-        locale: widget.currencyLocale,
-        symbol: widget.currencySymbol,
-      );
-      text = l10n.safetyBufferTaxReserveIncludedWithAmount(
-        percent,
-        currency.format(ts.taxShieldReserved),
-      );
-    } else {
-      text = l10n.safetyBufferTaxReserveIncluded(percent);
-    }
-
-    final textStyle = theme.textTheme.bodySmall?.copyWith(
-      color: colorScheme.onSurfaceVariant,
-      fontWeight: FontWeight.w400,
-    );
-
-    final textWidget = Text(text, style: textStyle);
-
-    if (widget.onTaxShieldTap != null) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 2),
-        child: InkWell(
-          onTap: widget.onTaxShieldTap,
-          borderRadius: BorderRadius.circular(4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(child: textWidget),
-              const SizedBox(width: 2),
-              Icon(
-                Icons.chevron_right,
-                size: 14,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 2),
-      child: textWidget,
-    );
   }
 
   // ── Pressure point line ─────────────────────────────────────

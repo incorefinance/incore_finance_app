@@ -69,7 +69,7 @@ class ComparisonMetricsCard extends StatelessWidget {
                   label: l10n.income,
                   change: incomeChange,
                   iconName: 'attach_money',
-                  positiveIsGood: true,
+                  isIncome: true,
                 ),
               ),
               SizedBox(width: 3.w),
@@ -79,7 +79,7 @@ class ComparisonMetricsCard extends StatelessWidget {
                   label: l10n.expenses,
                   change: expenseChange,
                   iconName: 'shopping_cart',
-                  positiveIsGood: false,
+                  isIncome: false,
                 ),
               ),
             ],
@@ -94,30 +94,48 @@ class ComparisonMetricsCard extends StatelessWidget {
     required String label,
     required double change,
     required String iconName,
-    required bool positiveIsGood,
+    required bool isIncome,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
 
     final bool isIncrease = change >= 0;
 
-    // For income: increase is good.
-    // For expenses: increase is bad, decrease is good.
+    // Base colors for the tile (semantic: teal for income, rose for expense)
+    final Color baseColor = isIncome
+        ? (isDark ? AppColors.teal400 : AppColors.teal600)
+        : (isDark ? AppColors.rose400 : AppColors.rose600);
+
+    // For income: increase is good (emerald), decrease is bad (rose)
+    // For expenses: increase is bad (rose), decrease is good (emerald)
     bool isGood;
     if (change == 0) {
       isGood = true;
     } else if (isIncrease) {
-      isGood = positiveIsGood;
+      isGood = isIncome;
     } else {
-      isGood = !positiveIsGood;
+      isGood = !isIncome;
     }
 
-    final Color trendColor = isGood ? AppColors.success : AppColors.error;
+    // Text/arrow color matches good/bad context (darker than pill bg)
+    final Color trendColor = isGood
+        ? (isDark ? AppColors.emerald400 : AppColors.emerald700)
+        : (isDark ? AppColors.rose400 : AppColors.rose600);
+
+    // Subtle background glow based on good/bad context
+    final Color trendBgColor = isGood
+        ? (isDark
+            ? AppColors.emerald900.withValues(alpha: 0.10)
+            : AppColors.emerald100.withValues(alpha: 0.50))
+        : (isDark
+            ? AppColors.rose900.withValues(alpha: 0.10)
+            : AppColors.rose100.withValues(alpha: 0.50));
 
     return Container(
       padding: EdgeInsets.all(3.w),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
         border: Border.all(
           color: colorScheme.outline.withValues(alpha: 0.12),
@@ -131,12 +149,12 @@ class ComparisonMetricsCard extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(2.w),
             decoration: BoxDecoration(
-              color: trendColor.withValues(alpha: 0.12),
+              color: baseColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             ),
             child: CustomIconWidget(
               iconName: iconName,
-              color: trendColor,
+              color: baseColor,
               size: 18,
             ),
           ),
@@ -148,24 +166,31 @@ class ComparisonMetricsCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: 0.5.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isIncrease ? Icons.arrow_upward : Icons.arrow_downward,
-                size: 16,
-                color: trendColor,
-              ),
-              SizedBox(width: 1.w),
-              Text(
-                '${change.abs().toStringAsFixed(1)}%',
-                style: theme.textTheme.titleMedium?.copyWith(
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
+            decoration: BoxDecoration(
+              color: trendBgColor,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isIncrease ? Icons.arrow_upward : Icons.arrow_downward,
+                  size: 16,
                   color: trendColor,
-                  fontWeight: FontWeight.w700,
                 ),
-              ),
-            ],
+                SizedBox(width: 1.w),
+                Text(
+                  '${change.abs().toStringAsFixed(1)}%',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: trendColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

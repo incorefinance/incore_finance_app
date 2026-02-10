@@ -13,7 +13,6 @@ class AuthGuardErrorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
 
     // Read debug reason from route arguments for logging only
@@ -23,7 +22,7 @@ class AuthGuardErrorScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: AppColors.canvasFrostedLight,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -44,7 +43,7 @@ class AuthGuardErrorScreen extends StatelessWidget {
                 Text(
                   l10n?.authErrorTitle ?? 'Session Expired',
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    color: colorScheme.onSurface,
+                    color: AppColors.slate900,
                     fontWeight: FontWeight.w600,
                   ),
                   textAlign: TextAlign.center,
@@ -56,7 +55,7 @@ class AuthGuardErrorScreen extends StatelessWidget {
                   l10n?.authErrorDescription ??
                       'Your session has ended. Please log in again to continue.',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                    color: AppColors.slate500,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -70,7 +69,7 @@ class AuthGuardErrorScreen extends StatelessWidget {
                     icon: const Icon(Icons.login, size: 20),
                     label: Text(l10n?.logInAgain ?? 'Log in again'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: AppColors.blue600,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,

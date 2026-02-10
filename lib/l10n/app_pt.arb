@@ -340,8 +340,9 @@
     "overview": "Visão Geral",
     "breakdown": "Detalhe",
     "trends": "Tendências",
-    "monthOverMonth": "Mês a Mês",
-    "comparedWithLastMonth": "Comparado com o mês anterior",
+    "monthOverMonth": "Este mês vs mês anterior",
+    "comparedWithLastMonth": "Meses do calendário",
+    "appliesToChartsBelow": "Aplica-se aos gráficos abaixo",
     "percentOfExpenses": "{percent}% das despesas",
     "@percentOfExpenses": {
         "placeholders": {

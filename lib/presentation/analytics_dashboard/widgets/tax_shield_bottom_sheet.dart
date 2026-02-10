@@ -25,7 +25,7 @@ class TaxShieldBottomSheet extends StatefulWidget {
 class _TaxShieldBottomSheetState extends State<TaxShieldBottomSheet> {
   late double _selectedPercent;
 
-  static const _presets = [0.15, 0.20, 0.25, 0.30];
+  static const _presets = [0.0, 0.15, 0.25, 0.30];
 
   @override
   void initState() {
@@ -36,128 +36,143 @@ class _TaxShieldBottomSheetState extends State<TaxShieldBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+    return Dialog(
+      backgroundColor: AppColors.canvasFrostedLight,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Drag handle
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.borderSubtle,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-
-              // Title
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4.w),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    l10n.taxReserveTitle,
-                    style: theme.textTheme.titleLarge,
+      child: Padding(
+        padding: EdgeInsets.all(5.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header row with label and current value
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.taxReserveTitle,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.slate600,
                   ),
                 ),
-              ),
-
-              SizedBox(height: 1.h),
-
-              // Body text
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4.w),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    l10n.taxReserveBody,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                Text(
+                  '${(_selectedPercent * 100).round()}%',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.slate900,
                   ),
                 ),
+              ],
+            ),
+
+            SizedBox(height: 2.h),
+
+            // Slider
+            SliderTheme(
+              data: SliderThemeData(
+                activeTrackColor: AppColors.blue600,
+                inactiveTrackColor: AppColors.slate400.withValues(alpha: 0.25),
+                thumbColor: Colors.white,
+                thumbShape: const RoundSliderThumbShape(
+                  enabledThumbRadius: 12,
+                  elevation: 2,
+                  pressedElevation: 4,
+                ),
+                overlayColor: AppColors.blue600.withValues(alpha: 0.12),
+                trackHeight: 4,
               ),
+              child: Slider(
+                value: _selectedPercent,
+                min: 0.0,
+                max: 1.0,
+                divisions: 100,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedPercent = value;
+                  });
+                },
+              ),
+            ),
 
-              SizedBox(height: 2.5.h),
+            SizedBox(height: 1.h),
 
-              // Preset chips
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4.w),
-                child: Row(
-                  children: _presets.map((preset) {
-                    final isSelected = _selectedPercent == preset;
-                    final label = '${(preset * 100).round()}%';
-                    return Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          right: preset != _presets.last ? 8 : 0,
-                        ),
-                        child: _buildChip(
-                          label: label,
-                          isSelected: isSelected,
-                          onTap: () {
-                            setState(() {
-                              _selectedPercent = preset;
-                            });
-                          },
-                          theme: theme,
-                          colorScheme: colorScheme,
-                        ),
-                      ),
-                    );
-                  }).toList(),
+            // Helper text
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                l10n.taxReserveBody,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.slate500,
                 ),
               ),
+            ),
 
-              SizedBox(height: 3.h),
+            SizedBox(height: 2.5.h),
 
-              // Action buttons
-              Padding(
-                padding: EdgeInsets.fromLTRB(4.w, 0, 4.w, 2.h),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: TextButton.styleFrom(
-                          minimumSize: Size(0, 5.h),
-                        ),
-                        child: Text(l10n.cancel),
-                      ),
+            // Preset chips
+            Row(
+              children: _presets.map((preset) {
+                final isSelected = _selectedPercent == preset;
+                final label = '${(preset * 100).round()}%';
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      right: preset != _presets.last ? 8 : 0,
                     ),
-                    SizedBox(width: 3.w),
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          widget.onSave(_selectedPercent);
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: Size(0, 5.h),
-                        ),
-                        child: Text(l10n.save),
-                      ),
+                    child: _buildChip(
+                      label: label,
+                      isSelected: isSelected,
+                      onTap: () {
+                        setState(() {
+                          _selectedPercent = preset;
+                        });
+                      },
+                      theme: theme,
                     ),
-                  ],
+                  ),
+                );
+              }).toList(),
+            ),
+
+            SizedBox(height: 3.h),
+
+            // Action buttons
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      minimumSize: Size(0, 5.h),
+                    ),
+                    child: Text(l10n.cancel),
+                  ),
                 ),
-              ),
-            ],
-          ),
+                SizedBox(width: 3.w),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      widget.onSave(_selectedPercent);
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.blue600,
+                      foregroundColor: Colors.white,
+                      minimumSize: Size(0, 5.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(l10n.save),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -168,7 +183,6 @@ class _TaxShieldBottomSheetState extends State<TaxShieldBottomSheet> {
     required bool isSelected,
     required VoidCallback onTap,
     required ThemeData theme,
-    required ColorScheme colorScheme,
   }) {
     return InkWell(
       onTap: onTap,
@@ -177,23 +191,21 @@ class _TaxShieldBottomSheetState extends State<TaxShieldBottomSheet> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primarySoft.withValues(alpha: 0.12)
-              : colorScheme.surface,
+              ? AppColors.blue600
+              : AppColors.surfaceGlass80Light,
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primarySoft
-                : colorScheme.outline.withValues(alpha: 0.18),
-            width: isSelected ? 2 : 1,
-          ),
+          border: isSelected
+              ? null
+              : Border.all(
+                  color: AppColors.borderGlass60Light,
+                  width: 1,
+                ),
         ),
         child: Center(
           child: Text(
             label,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: isSelected
-                  ? AppColors.primarySoft
-                  : colorScheme.onSurface,
+              color: isSelected ? Colors.white : AppColors.slate500,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
             ),
           ),

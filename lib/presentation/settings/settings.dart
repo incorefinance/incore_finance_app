@@ -9,7 +9,6 @@ import '../../domain/entitlements/entitlement_service.dart';
 import '../../domain/entitlements/plan_type.dart';
 import '../../l10n/app_localizations.dart';
 import '../../main.dart';
-import '../../routes/app_routes.dart';
 import '../../services/onboarding_status_repository.dart';
 import '../../services/subscription/subscription_service.dart';
 import '../../services/user_settings_service.dart';

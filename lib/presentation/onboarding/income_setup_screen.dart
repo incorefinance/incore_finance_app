@@ -5,6 +5,7 @@ import '../../core/app_export.dart';
 import '../../data/profile/user_income_repository.dart';
 import '../../domain/onboarding/income_type.dart';
 import '../../l10n/app_localizations.dart';
+import '../../theme/app_colors.dart';
 
 /// Income setup screen - Part of the onboarding flow.
 /// User must select an income type before continuing (mandatory).
@@ -73,7 +74,7 @@ class _IncomeSetupScreenState extends State<IncomeSetupScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: AppColors.canvasFrostedLight,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -93,7 +94,7 @@ class _IncomeSetupScreenState extends State<IncomeSetupScreen> {
               Text(
                 l10n.incomeSetupSubtitle,
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                  color: AppColors.slate500,
                 ),
               ),
               SizedBox(height: 3.h),
@@ -187,8 +188,8 @@ class _IncomeSetupScreenState extends State<IncomeSetupScreen> {
           decoration: BoxDecoration(
             border: Border.all(
               color: isSelected
-                  ? colorScheme.primary
-                  : colorScheme.outline.withValues(alpha: 0.3),
+                  ? AppColors.blue600
+                  : AppColors.borderGlass60Light,
               width: isSelected ? 2 : 1,
             ),
             borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
@@ -199,14 +200,14 @@ class _IncomeSetupScreenState extends State<IncomeSetupScreen> {
                 width: 12.w,
                 height: 12.w,
                 decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
+                  color: AppColors.blueBg50,
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Center(
                   child: Icon(
                     icon,
                     size: 6.w,
-                    color: colorScheme.primary,
+                    color: AppColors.blue600,
                   ),
                 ),
               ),
@@ -225,7 +226,7 @@ class _IncomeSetupScreenState extends State<IncomeSetupScreen> {
                     Text(
                       description,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                        color: AppColors.slate500,
                       ),
                     ),
                   ],
@@ -235,7 +236,7 @@ class _IncomeSetupScreenState extends State<IncomeSetupScreen> {
                 CustomIconWidget(
                   iconName: 'check_circle',
                   size: 6.w,
-                  color: colorScheme.primary,
+                  color: AppColors.blue600,
                 ),
             ],
           ),
@@ -267,19 +268,19 @@ class _IncomeSetupScreenState extends State<IncomeSetupScreen> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               borderSide: BorderSide(
-                color: colorScheme.outline.withValues(alpha: 0.3),
+                color: AppColors.borderGlass60Light,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               borderSide: BorderSide(
-                color: colorScheme.outline.withValues(alpha: 0.3),
+                color: AppColors.borderGlass60Light,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               borderSide: BorderSide(
-                color: colorScheme.primary,
+                color: AppColors.blue600,
                 width: 2,
               ),
             ),

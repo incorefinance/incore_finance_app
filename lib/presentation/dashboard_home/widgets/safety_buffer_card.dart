@@ -1,6 +1,5 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../../utils/number_formatter.dart';
@@ -52,94 +51,91 @@ class SafetyBufferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+      padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
-        boxShadow: AppShadows.cardLight,
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        border: Border.all(
+          color: AppColors.borderSubtle,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.06),
+            offset: const Offset(0, 6),
+            blurRadius: 18,
+            spreadRadius: 0,
+          ),
+        ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceGlass80Light,
-              borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
-              border: Border.all(
-                color: AppColors.borderGlass60Light,
-                width: 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Title
-                Text(
-                  l10n.safetyBufferTitle,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: AppColors.slate500,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Primary value: days
-                Text(
-                  _daysText(l10n),
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    color: AppColors.slate900,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-
-                // Secondary: weeks (if days >= 7)
-                if (bufferWeeks != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    '≈ $_weeksFormatted weeks',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.slate500,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 12),
-                Divider(color: AppColors.dividerGlass60Light),
-                const SizedBox(height: 12),
-
-                // Tax line
-                Text(
-                  l10n.safetyBufferTaxReserveIncludedWithAmount(
-                    taxPercent,
-                    _formattedTaxAmount,
-                  ),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate500,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-
-                const SizedBox(height: 4),
-
-                // Qualifier line
-                Text(
-                  qualifier,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate500,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Title
+          Text(
+            l10n.safetyBufferTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ),
+          SizedBox(height: 1.4.h),
+
+          // Primary value: days
+          Text(
+            _daysText(l10n),
+            style: theme.textTheme.displaySmall?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+
+          // Secondary: weeks (if days >= 7)
+          if (bufferWeeks != null) ...[
+            SizedBox(height: 0.3.h),
+            Text(
+              '≈ $_weeksFormatted weeks',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+
+          SizedBox(height: 1.h),
+          Divider(color: AppColors.borderSubtle),
+          SizedBox(height: 1.h),
+
+          // Tax line
+          Text(
+            l10n.safetyBufferTaxReserveIncludedWithAmount(
+              taxPercent,
+              _formattedTaxAmount,
+            ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+
+          SizedBox(height: 0.5.h),
+
+          // Qualifier line
+          Text(
+            qualifier,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
       ),
     );
   }

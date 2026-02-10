@@ -87,14 +87,17 @@ abstract final class AppColors {
   /// #D16C6C
   static const Color error = Color(0xFFD16C6C);
 
-  /// Income or positive financial indicator
-  /// #4F9E8F
-  static const Color income = Color(0xFF4F9E8F);
+  /// Income financial indicator - uses teal palette
+  static const Color income = teal500;
+  static const Color incomeLight = teal600; // For dark mode text
+  static const Color incomeBg = teal50;
+  static const Color incomeBg80 = Color.fromRGBO(240, 253, 250, 0.80);
 
-  /// Expense or negative financial indicator
-  /// Distinct from error to avoid judgment
-  /// #C95F5F
-  static const Color expense = Color(0xFFC95F5F);
+  /// Expense financial indicator - uses rose palette
+  static const Color expense = rose500;
+  static const Color expenseLight = rose600; // For dark mode text
+  static const Color expenseBg = rose50;
+  static const Color expenseBg80 = Color.fromRGBO(255, 241, 242, 0.80);
 
   // ============================================================================
   // DARK THEME - Preserved values for consistency
@@ -171,19 +174,57 @@ abstract final class AppColors {
   /// Slate 400 - Disabled/inactive
   static const Color slate400 = Color(0xFF94A3B8);
 
-  // ─── Teal Accent ─────────────────────────────────────────────────────────
+  /// Slate 300 - Dark mode secondary text
+  static const Color slate300 = Color(0xFFCBD5E1);
 
+  // ─── Teal Accent (Income) ────────────────────────────────────────────────
+
+  static const Color teal50 = Color(0xFFF0FDFA);
+  static const Color teal100 = Color(0xFFCCFBF1);
+  static const Color teal400 = Color(0xFF2DD4BF);
+  static const Color teal500 = Color(0xFF14B8A6);
   static const Color teal600 = Color(0xFF0D9488);
   static const Color teal700 = Color(0xFF0F766E);
   static const Color tealBg80 = Color.fromRGBO(240, 253, 250, 0.80);
   static const Color tealBorder50 = Color.fromRGBO(204, 251, 241, 0.50);
 
-  // ─── Rose Accent ─────────────────────────────────────────────────────────
+  // ─── Rose Accent (Expense) ─────────────────────────────────────────────────
 
+  static const Color rose50 = Color(0xFFFFF1F2);
+  static const Color rose100 = Color(0xFFFFE4E6);
+  static const Color rose200 = Color(0xFFFECDD3);
+  static const Color rose400 = Color(0xFFFB7185);
+  static const Color rose500 = Color(0xFFF43F5E);
   static const Color rose600 = Color(0xFFE11D48);
   static const Color rose700 = Color(0xFFBE123C);
+  static const Color rose900 = Color(0xFF881337);
   static const Color roseBg80 = Color.fromRGBO(255, 241, 242, 0.80);
   static const Color roseBorder50 = Color.fromRGBO(255, 228, 230, 0.50);
+
+  // ─── Emerald (Healthy Badge) ───────────────────────────────────────────────
+
+  static const Color emerald100 = Color(0xFFD1FAE5);
+  static const Color emerald400 = Color(0xFF34D399);
+  static const Color emerald700 = Color(0xFF047857);
+  static const Color emerald900 = Color(0xFF064E3B);
+
+  // ─── Amber (Watch Badge) ───────────────────────────────────────────────────
+
+  static const Color amber50 = Color(0xFFFFFBEB);
+  static const Color amber100 = Color(0xFFFEF3C7);
+  static const Color amber200 = Color(0xFFFDE68A);
+  static const Color amber400 = Color(0xFFFBBF24);
+  static const Color amber500 = Color(0xFFF59E0B);
+  static const Color amber600 = Color(0xFFD97706);
+  static const Color amber700 = Color(0xFFB45309);
+  static const Color amber800 = Color(0xFF92400E);
+  static const Color amber900 = Color(0xFF78350F);
+  static const Color amber950 = Color(0xFF451A03);
+
+  // ─── Orange (Watch Card Gradient) ─────────────────────────────────────────
+
+  static const Color orange50 = Color(0xFFFFF7ED);
+  static const Color orange950 = Color(0xFF431407);
 
   // ─── Red (Negative Trend) ────────────────────────────────────────────────
 

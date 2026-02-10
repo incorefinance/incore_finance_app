@@ -12,7 +12,10 @@ import 'package:sizer/sizer.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
 import 'package:incore_finance/services/auth_guard.dart';
+import 'package:incore_finance/services/recurring_expenses_auto_poster.dart';
+import 'package:incore_finance/services/recurring_auto_poster_guard.dart';
 import 'package:incore_finance/presentation/add_transaction/add_transaction.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../core/app_export.dart';
@@ -186,6 +189,9 @@ class _TransactionsListState extends State<TransactionsList> with RouteAware {
         _allTransactions = List<TransactionRecord>.from(transactions);
         _isLoading = false;
       });
+
+      // After loading completes, trigger auto-post check
+      _checkAutoPostRecurringExpenses();
     } catch (e, st) {
       AppLogger.e('Error loading transactions', error: e, stackTrace: st);
       if (!mounted) return;
@@ -243,6 +249,35 @@ void _logFiltersChanged() {
 void _onTransactionsChanged() {
   AppLogger.d('[Transactions] Transaction change notifier triggered, reloading transactions');
   _loadTransactions();
+}
+
+Future<void> _checkAutoPostRecurringExpenses() async {
+  if (!RecurringAutoPosterGuard.instance.shouldRun()) return;
+
+  try {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      RecurringAutoPosterGuard.instance.markFailed();
+      return;
+    }
+
+    final poster = RecurringExpensesAutoPoster();
+    final count = await poster.postDueRecurringExpenses(
+      userId: userId,
+      now: DateTime.now(),
+    );
+
+    RecurringAutoPosterGuard.instance.markComplete();
+
+    if (count > 0) {
+      AppLogger.i('Auto-posted $count recurring expense transactions');
+      // Reload to show new transactions
+      if (mounted) _loadTransactions();
+    }
+  } catch (e, st) {
+    AppLogger.e('Auto-posting recurring expenses failed', error: e, stackTrace: st);
+    RecurringAutoPosterGuard.instance.markFailed();
+  }
 }
 
   List<TransactionRecord> get _filteredTransactions {
@@ -745,6 +780,7 @@ void _onTransactionsChanged() {
                 ),
               ),
             ),
+            SizedBox(height: 1.5.h),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: AppTheme.screenHorizontalPadding),
               child: SizedBox(
