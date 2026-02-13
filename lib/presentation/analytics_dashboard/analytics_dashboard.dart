@@ -34,6 +34,9 @@ import '../../domain/analytics/interpretation/interpretation_status.dart';
 import './widgets/chart_card_header.dart';
 import './widgets/insight_card.dart';
 import './widgets/safety_buffer_section.dart';
+import './widgets/protection_coverage_card.dart';
+import '../../services/protection_ledger_repository.dart';
+import '../../models/protection_snapshot.dart';
 import '../../domain/guidance/insight.dart';
 import '../../domain/guidance/insight_id.dart';
 import '../../domain/guidance/insight_severity.dart';
@@ -187,9 +190,12 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
   SafetyBufferSnapshot? _safetyBufferSnapshot;
   TaxShieldSnapshot? _taxShieldSnapshot;
+  ProtectionSnapshot? _protectionSnapshot;
   final TaxShieldSettingsStore _taxShieldSettingsStore = TaxShieldSettingsStore();
   double _taxShieldPercent = TaxShieldSettingsStore.defaultPercent;
 
+  final ProtectionLedgerRepository _protectionLedgerRepository =
+      ProtectionLedgerRepository();
   final RecurringExpensesRepository _recurringExpensesRepository =
       RecurringExpensesRepository();
   List<RecurringExpense> _activeRecurringExpenses = [];
@@ -375,6 +381,15 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
             await _recurringExpensesRepository.getActiveRecurringExpenses();
       } catch (_) {
         _activeRecurringExpenses = [];
+      }
+
+      // Fetch protection snapshot from ledger
+      try {
+        _protectionSnapshot =
+            await _protectionLedgerRepository.getProtectionSnapshot();
+      } catch (e) {
+        AppLogger.w('Failed to load protection snapshot', error: e);
+        _protectionSnapshot = null;
       }
 
       // Load income type from user profile
@@ -1887,63 +1902,72 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                                 ),
                               ),
 
-                            // Safety buffer row + pressure point line
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: SafetyBufferSection(
-                                snapshot: _safetyBufferSnapshot,
-                                taxShield: _taxShieldSnapshot,
-                                activeRecurringExpenses: _activeRecurringExpenses,
-                                currencyLocale: _currencyLocale,
-                                currencySymbol: _currencySymbol,
-                                isInsightCardVisible: _currentInsight != null &&
-                                    _currentInsightDismissedUntil == null,
-                                onReviewBillsTap: () {
-                                  Navigator.pushNamed(
-                                      context, AppRoutes.recurringExpenses);
-                                },
-                                // Tax reserve is now inline below, no tap needed
-                                onTaxShieldTap: null,
-                                onPressurePointActionsOpened: () {
-                                  _localEventStore.log('pressure_point_opened');
-                                },
-                                onPressurePointVisibilityChanged: (visible) {
-                                  if (_isPressurePointVisible != visible) {
-                                    _isPressurePointVisible = visible;
-                                    if (!visible && _checkResolvedAfterPause) {
-                                      _checkResolvedAfterPause = false;
-                                      _localEventStore
-                                          .log('pressure_point_resolved');
+                            // Protection Coverage Card (replaces legacy SafetyBufferSection)
+                            if (_protectionSnapshot != null)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                child: ProtectionCoverageCard(
+                                  taxProtected: _protectionSnapshot!.taxProtected,
+                                  safetyProtected: _protectionSnapshot!.safetyProtected,
+                                  safeToSpend: _protectionSnapshot!.safeToSpend,
+                                  avgMonthlyExpenses: _protectionSnapshot!.avgMonthlyExpenses,
+                                  monthsUsed: _protectionSnapshot!.monthsUsed,
+                                  confidence: _protectionSnapshot!.confidence,
+                                  locale: _currencyLocale,
+                                  symbol: _currencySymbol,
+                                  currencyCode: _currencyCode,
+                                ),
+                              )
+                            else
+                              // Fallback to legacy SafetyBufferSection if snapshot unavailable
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                child: SafetyBufferSection(
+                                  snapshot: _safetyBufferSnapshot,
+                                  taxShield: _taxShieldSnapshot,
+                                  activeRecurringExpenses: _activeRecurringExpenses,
+                                  currencyLocale: _currencyLocale,
+                                  currencySymbol: _currencySymbol,
+                                  isInsightCardVisible: _currentInsight != null &&
+                                      _currentInsightDismissedUntil == null,
+                                  onReviewBillsTap: () {
+                                    Navigator.pushNamed(
+                                        context, AppRoutes.recurringExpenses);
+                                  },
+                                  onTaxShieldTap: null,
+                                  onPressurePointActionsOpened: () {
+                                    _localEventStore.log('pressure_point_opened');
+                                  },
+                                  onPressurePointVisibilityChanged: (visible) {
+                                    if (_isPressurePointVisible != visible) {
+                                      _isPressurePointVisible = visible;
+                                      if (!visible && _checkResolvedAfterPause) {
+                                        _checkResolvedAfterPause = false;
+                                        _localEventStore
+                                            .log('pressure_point_resolved');
+                                      }
                                     }
-                                  }
-                                },
-                                onPauseExpenses: (expenseIds) async {
-                                  final count = expenseIds.length;
-                                  for (final id in expenseIds) {
-                                    await _recurringExpensesRepository
-                                        .deactivateRecurringExpense(id: id);
-                                  }
-                                  if (!mounted) return;
-                                  _checkResolvedAfterPause = true;
-                                  await _loadAnalyticsData();
-                                  if (!mounted) return;
-                                  await _localEventStore.log(
-                                    'pressure_point_paused_bills',
-                                    props: {'count': count},
-                                  );
-                                  _showRelief(pausedCount: count);
-                                },
+                                  },
+                                  onPauseExpenses: (expenseIds) async {
+                                    final count = expenseIds.length;
+                                    for (final id in expenseIds) {
+                                      await _recurringExpensesRepository
+                                          .deactivateRecurringExpense(id: id);
+                                    }
+                                    if (!mounted) return;
+                                    _checkResolvedAfterPause = true;
+                                    await _loadAnalyticsData();
+                                    if (!mounted) return;
+                                    await _localEventStore.log(
+                                      'pressure_point_paused_bills',
+                                      props: {'count': count},
+                                    );
+                                    _showRelief(pausedCount: count);
+                                  },
+                                ),
                               ),
-                            ),
 
-                            // Inline Tax Reserve cards
-                            const SizedBox(height: 12),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: _buildTaxReserveRow(),
-                            ),
-
-                            // Inline Recurring Expenses cards
+                            // Monthly Recurring Expenses cards
                             const SizedBox(height: 12),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -2230,157 +2254,6 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
           child: child,
         ),
       ),
-    );
-  }
-
-  /// Tax reserve cards displayed side by side with equal height
-  Widget _buildTaxReserveRow() {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: _buildTaxReserveCard()),
-          const SizedBox(width: 12),
-          Expanded(child: _buildTaxReserveHelperCard()),
-        ],
-      ),
-    );
-  }
-
-  /// Tax reserve card with slider
-  Widget _buildTaxReserveCard() {
-    final theme = Theme.of(context);
-    final percentInt = (_taxShieldPercent * 100).round();
-    final reservedAmount = _taxShieldSnapshot?.taxShieldReserved ?? 0.0;
-    final currency = NumberFormat.currency(
-      locale: _currencyLocale,
-      symbol: _currencySymbol,
-    );
-
-    return _buildFrostedCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Tax reserve',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.slate600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '$percentInt%',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppColors.slate900,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${currency.format(reservedAmount)} set aside',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.slate500,
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Slider
-          SliderTheme(
-            data: SliderThemeData(
-              activeTrackColor: AppColors.blue600,
-              inactiveTrackColor: AppColors.slate400.withValues(alpha: 0.25),
-              thumbColor: Colors.white,
-              thumbShape: const RoundSliderThumbShape(
-                enabledThumbRadius: 12,
-                elevation: 2,
-                pressedElevation: 4,
-              ),
-              overlayColor: AppColors.blue600.withValues(alpha: 0.12),
-              trackHeight: 4,
-            ),
-            child: Slider(
-              value: _taxShieldPercent,
-              min: 0.0,
-              max: 1.0,
-              divisions: 100,
-              onChanged: (value) {
-                setState(() {
-                  _taxShieldPercent = value;
-                });
-              },
-              onChangeEnd: (value) async {
-                // Persist and reload only when user finishes sliding
-                await _taxShieldSettingsStore.setTaxShieldPercent(value);
-                if (!mounted) return;
-                await _loadAnalyticsData();
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Helper card with dynamic title and body text
-  Widget _buildTaxReserveHelperCard() {
-    final theme = Theme.of(context);
-    final helper = _getTaxReserveHelper();
-
-    return _buildFrostedCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            helper.title,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.blue600,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            helper.body,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.slate500,
-              height: 1.35,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Dynamic helper title and body based on tax reserve percentage
-  ({String title, String body}) _getTaxReserveHelper() {
-    final percentInt = (_taxShieldPercent * 100).round();
-
-    if (percentInt == 0) {
-      return (
-        title: 'No tax reserve',
-        body: 'Your safety buffer assumes all income is spendable. '
-            'If you pay taxes later, your buffer may look larger than what you can actually use.',
-      );
-    }
-
-    if (percentInt <= 14) {
-      return (
-        title: 'Small reserve',
-        body: 'A small reserve makes your safety buffer slightly more conservative. '
-            'Consider increasing it if you regularly owe taxes.',
-      );
-    }
-
-    if (percentInt <= 34) {
-      return (
-        title: 'Balanced',
-        body: 'This amount is excluded from spendable cash. '
-            'Your safety buffer is more realistic and safer.',
-      );
-    }
-
-    return (
-      title: 'High reserve',
-      body: 'You are setting aside a large share of income. '
-          'This increases safety but can make your spendable cash feel tighter.',
     );
   }
 

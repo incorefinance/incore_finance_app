@@ -56,6 +56,12 @@ class _SettingsState extends State<Settings> {
   bool _notificationsEnabled = true;
   bool _diagnosticsEnabled = false;
 
+  // Financial preferences
+  double _taxPercent = 0.25;
+  double _safetyPercent = 0.10;
+  bool _taxExpanded = false;
+  bool _safetyExpanded = false;
+
   // Loading states
   bool _isRestoring = false;
 
@@ -89,6 +95,8 @@ class _SettingsState extends State<Settings> {
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final currencySettings = await _userSettingsService.getCurrencySettings();
+    final taxPercent = await _userSettingsService.getTaxShieldPercent();
+    final safetyPercent = await _userSettingsService.getSafetyBufferPercent();
 
     if (!mounted) return;
     setState(() {
@@ -99,6 +107,8 @@ class _SettingsState extends State<Settings> {
       _biometricEnabled = prefs.getBool('biometric') ?? false;
       _notificationsEnabled = prefs.getBool('notifications') ?? true;
       _diagnosticsEnabled = prefs.getBool('diagnostics') ?? false;
+      _taxPercent = taxPercent;
+      _safetyPercent = safetyPercent;
     });
   }
 
@@ -575,7 +585,60 @@ class _SettingsState extends State<Settings> {
 
               SizedBox(height: 2.h),
 
-              // Section 4: Privacy and Security
+              // Section 4: Financial Preferences
+              _SectionCard(
+                title: l10n.financialPreferencesTitle,
+                children: [
+                  _PercentSliderTile(
+                    title: l10n.taxReserveTitle,
+                    subtitle: l10n.taxReserveBody,
+                    value: _taxPercent,
+                    isExpanded: _taxExpanded,
+                    onExpandToggle: () {
+                      setState(() => _taxExpanded = !_taxExpanded);
+                    },
+                    onChanged: (value) {
+                      setState(() => _taxPercent = value);
+                    },
+                    onChangeEnd: (value) async {
+                      await _userSettingsService.setTaxShieldPercent(value);
+                      if (mounted) {
+                        SnackbarHelper.showSuccess(
+                          context,
+                          l10n.taxReserveUpdatedSnack,
+                        );
+                      }
+                    },
+                    showDivider: true,
+                  ),
+                  _PercentSliderTile(
+                    title: l10n.safetyBufferPercentLabel,
+                    subtitle: l10n.safetyBufferPercentHelper,
+                    value: _safetyPercent,
+                    isExpanded: _safetyExpanded,
+                    onExpandToggle: () {
+                      setState(() => _safetyExpanded = !_safetyExpanded);
+                    },
+                    onChanged: (value) {
+                      setState(() => _safetyPercent = value);
+                    },
+                    onChangeEnd: (value) async {
+                      await _userSettingsService.setSafetyBufferPercent(value);
+                      if (mounted) {
+                        SnackbarHelper.showSuccess(
+                          context,
+                          l10n.safetyBufferUpdatedSnack,
+                        );
+                      }
+                    },
+                    showDivider: false,
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 2.h),
+
+              // Section 5: Privacy and Security
               _SectionCard(
                 title: l10n.privacySecurity,
                 children: [
@@ -884,6 +947,182 @@ class _DiagnosticRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Expandable percent slider tile for financial preferences
+class _PercentSliderTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final double value;
+  final bool isExpanded;
+  final VoidCallback onExpandToggle;
+  final ValueChanged<double> onChanged;
+  final ValueChanged<double> onChangeEnd;
+  final bool showDivider;
+
+  const _PercentSliderTile({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.isExpanded,
+    required this.onExpandToggle,
+    required this.onChanged,
+    required this.onChangeEnd,
+    this.showDivider = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final percentDisplay = '${(value * 100).round()}%';
+
+    return Column(
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onExpandToggle,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
+              child: Row(
+                children: [
+                  Container(
+                    width: 10.w,
+                    height: 10.w,
+                    decoration: BoxDecoration(
+                      color: AppColors.blueBg50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.percent,
+                        size: 5.w,
+                        color: AppColors.blue600,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 3.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        SizedBox(height: 0.5.h),
+                        Text(
+                          subtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.blueBg50,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      percentDisplay,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: AppColors.blue600,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 2.w),
+                  AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.expand_more,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Expandable slider section
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: Padding(
+            padding: EdgeInsets.only(
+              left: 4.w,
+              right: 4.w,
+              bottom: 2.h,
+            ),
+            child: Column(
+              children: [
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: AppColors.blue600,
+                    inactiveTrackColor: AppColors.blueBg50,
+                    thumbColor: AppColors.blue600,
+                    overlayColor: AppColors.blue600.withValues(alpha: 0.12),
+                    trackHeight: 6,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 10,
+                    ),
+                  ),
+                  child: Slider(
+                    value: value,
+                    min: 0.0,
+                    max: 0.50,
+                    divisions: 50,
+                    onChanged: onChanged,
+                    onChangeEnd: onChangeEnd,
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '0%',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      '50%',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          crossFadeState: isExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 200),
+        ),
+        if (showDivider)
+          Padding(
+            padding: EdgeInsets.only(left: 17.w),
+            child: Divider(
+              height: 1,
+              thickness: 1,
+              color: colorScheme.outline.withValues(alpha: 0.2),
+            ),
+          ),
+      ],
     );
   }
 }

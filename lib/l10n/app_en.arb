@@ -642,9 +642,47 @@
         }
     },
 
+    "financialPreferencesTitle": "Financial Preferences",
+
     "taxReserveTitle": "Tax reserve",
-    "taxReserveBody": "Set aside a percentage of your income as a tax reserve. This amount is excluded from your safety buffer calculation.",
+    "taxReserveBody": "Percentage of income to set aside for taxes",
     "taxReserveUpdatedSnack": "Tax reserve updated",
+
+    "safetyBufferPercentLabel": "Safety buffer",
+    "safetyBufferPercentHelper": "Percentage of income to set aside as emergency buffer",
+    "safetyBufferUpdatedSnack": "Safety buffer updated",
+
+    "safeToSpend": "Safe to spend",
+    "safeToSpendAvailable": "{amount} available right now",
+    "@safeToSpendAvailable": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "protectionsBuildAfterIncome": "Protections build automatically after your first income.",
+    "taxReserve": "Tax reserve",
+    "balance": "Balance",
+    "safetyCoverageMonths": "{months} months",
+    "@safetyCoverageMonths": {
+        "placeholders": {
+            "months": { "type": "String" }
+        }
+    },
+    "safetyCoverageBasedOn": "Based on {amount} average monthly expenses",
+    "@safetyCoverageBasedOn": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "confidenceLow": "Confidence: Low",
+    "confidenceMedium": "Confidence: Medium",
+    "confidenceHigh": "Confidence: High",
+    "profitPercent": "{percent}% profit",
+    "@profitPercent": {
+        "placeholders": {
+            "percent": { "type": "String" }
+        }
+    },
 
     "pressurePointHeadsUp": "Heads up",
     "pressurePointDueNext7Days": "{amount} fixed bills due in the next 7 days",
@@ -669,5 +707,35 @@
             "count": {"type": "int"}
         }
     },
-    "pressureReliefDismiss": "Dismiss"
+    "pressureReliefDismiss": "Dismiss",
+
+    "protectionCoverage": "Protection coverage",
+    "protectionTotals": "Protection totals",
+    "totalProtected": "Total protected",
+    "coverageRunwayMonths": "{months} months runway",
+    "@coverageRunwayMonths": {
+        "placeholders": {
+            "months": { "type": "String" }
+        }
+    },
+    "coverageRunwayDays": "{days} days runway",
+    "@coverageRunwayDays": {
+        "placeholders": {
+            "days": { "type": "String" }
+        }
+    },
+    "coverageBasedOnMonths": "Based on {months} months of expense data",
+    "@coverageBasedOnMonths": {
+        "placeholders": {
+            "months": { "type": "int" }
+        }
+    },
+    "overspentWarning": "Overspent by {amount}",
+    "@overspentWarning": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "monthlyRecurring": "Monthly recurring",
+    "monthlyRecurringTotal": "{amount}/mo"
 }

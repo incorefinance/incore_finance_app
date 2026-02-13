@@ -21,7 +21,6 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/app_error_widget.dart';
-import './widgets/total_balance_card.dart';
 import './widgets/monthly_profit_card.dart';
 import './widgets/upcoming_bills_placeholder.dart';
 import './widgets/upcoming_bills_card.dart';
@@ -31,7 +30,11 @@ import '../../domain/safety_buffer/safety_buffer_snapshot.dart';
 import '../../domain/tax_shield/tax_shield_calculator.dart';
 import '../../domain/tax_shield/tax_shield_snapshot.dart';
 import '../../data/settings/tax_shield_settings_store.dart';
+import '../../services/protection_ledger_repository.dart';
+import '../../models/protection_snapshot.dart';
 import './widgets/safety_buffer_card.dart';
+import './widgets/safety_coverage_card.dart';
+import './widgets/dashboard_hero_carousel_card.dart';
 
 /// Dashboard Home Screen
 /// Dashboard Home responsibility:
@@ -52,6 +55,8 @@ class _DashboardHomeState extends State<DashboardHome> {
       RecurringExpensesRepository();
   final UserFinancialBaselineRepository _baselineRepository =
       UserFinancialBaselineRepository();
+  final ProtectionLedgerRepository _protectionLedgerRepository =
+      ProtectionLedgerRepository();
 
   double _cashBalance = 0.0;
   double _monthlyProfit = 0.0;
@@ -66,8 +71,10 @@ class _DashboardHomeState extends State<DashboardHome> {
 
   double _totalIncome = 0.0;
   double _totalExpense = 0.0;
+  double _currentMonthIncome = 0.0;
 
   SafetyBufferSnapshot? _safetyBufferSnapshot;
+  ProtectionSnapshot? _protectionSnapshot;
   TaxShieldSnapshot? _taxShieldSnapshot;
   double _taxShieldPercent = TaxShieldSettingsStore.defaultPercent;
   final TaxShieldSettingsStore _taxShieldSettingsStore =
@@ -235,6 +242,16 @@ class _DashboardHomeState extends State<DashboardHome> {
         monthlyFixedOutflow: monthlyFixedOutflow,
       );
 
+      // ─── Protection Snapshot (from ledger) ─────────────────────────────────
+      ProtectionSnapshot? protectionSnapshot;
+      try {
+        protectionSnapshot =
+            await _protectionLedgerRepository.getProtectionSnapshot();
+      } catch (e) {
+        AppLogger.w('Failed to load protection snapshot', error: e);
+        // Continue without snapshot - will fallback to legacy display
+      }
+
       // Guard against widget being disposed during async operations
       if (!mounted) return;
 
@@ -242,6 +259,7 @@ class _DashboardHomeState extends State<DashboardHome> {
         _cashBalance = cashBalance;
         _totalIncome = totalIncome;
         _totalExpense = totalExpense;
+        _currentMonthIncome = currentIncome;
         _monthlyProfit = currentProfit;
         _prevMonthProfit = prevProfit;
         _prevMonthHasData = prevHasData;
@@ -251,6 +269,7 @@ class _DashboardHomeState extends State<DashboardHome> {
         _safetyBufferSnapshot = safetyBuffer;
         _taxShieldSnapshot = taxShield;
         _taxShieldPercent = taxPercent;
+        _protectionSnapshot = protectionSnapshot;
         _isLoadingDashboard = false;
       });
     } catch (e, st) {
@@ -412,19 +431,32 @@ class _DashboardHomeState extends State<DashboardHome> {
                           )
                         : Column(
                         children: [
-                          // Block 1: Total Balance (primary, top)
-                          TotalBalanceCard(
-                            balance: _cashBalance,
-                            income: _totalIncome,
-                            expenses: _totalExpense,
+                          // Block 1: Hero Carousel (Safe to Spend / Total Balance)
+                          DashboardHeroCarouselCard(
+                            safeToSpend: _protectionSnapshot?.safeToSpend ?? _cashBalance,
+                            balance: _protectionSnapshot?.balance ?? _cashBalance,
+                            totalIncome: _totalIncome,
+                            totalExpense: _totalExpense,
+                            taxReserve: _protectionSnapshot?.taxProtected ?? 0,
+                            safetyBuffer: _protectionSnapshot?.safetyProtected ?? 0,
                             locale: _currencySettings.locale,
                             symbol: _currencySettings.symbol,
                             currencyCode: _currencySettings.currencyCode,
-                            onWalletPressed: null, // Future: navigate to wallet/accounts
+                            onWalletPressed: null,
+                            hasLifetimeIncome: _totalIncome > 0,
                           ),
 
-                          // Block 2: Safety Buffer
-                          if (_safetyBufferSnapshot != null &&
+                          // Block 2: Safety Coverage
+                          if (_protectionSnapshot != null)
+                            SafetyCoverageCard(
+                              safetyProtected: _protectionSnapshot!.safetyProtected,
+                              avgMonthlyExpenses: _protectionSnapshot!.avgMonthlyExpenses,
+                              confidence: _protectionSnapshot!.confidence,
+                              locale: _currencySettings.locale,
+                              symbol: _currencySettings.symbol,
+                              currencyCode: _currencySettings.currencyCode,
+                            )
+                          else if (_safetyBufferSnapshot != null &&
                               _taxShieldSnapshot != null)
                             Builder(
                               builder: (context) {
@@ -447,6 +479,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                           // Block 3: This Month Performance
                           MonthlyProfitCard(
                             profit: _monthlyProfit,
+                            currentMonthIncome: _currentMonthIncome,
                             percentageChange: _profitPercentageChange,
                             prevMonthProfit: _prevMonthProfit,
                             prevMonthHasData: _prevMonthHasData,
