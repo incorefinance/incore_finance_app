@@ -17,6 +17,8 @@ import 'package:incore_finance/domain/entitlements/plan_type.dart';
 import 'package:incore_finance/domain/usage/limit_reached_exception.dart';
 import 'package:incore_finance/domain/usage/windowed_usage_counter.dart';
 import 'package:incore_finance/services/subscription/subscription_service.dart';
+import 'protection_ledger_service.dart';
+import 'safety_drawdown_reconciler.dart';
 
 class TransactionsRepository {
   final SupabaseClient _client;
@@ -103,6 +105,25 @@ class TransactionsRepository {
       // Notify listeners that transactions have changed
       TransactionsChangeNotifier.instance.markChanged();
 
+      // === PROTECTION LEDGER WIRING ===
+      // Allocate tax/safety credits for income, or reconcile drawdowns for expenses
+      try {
+        if (type == 'income') {
+          // Parse the inserted transaction to get the ID
+          if (response != null) {
+            final insertedTx = TransactionRecord.fromMap(response);
+            await ProtectionLedgerService().allocateOnIncomeCreated(insertedTx);
+          }
+        } else if (type == 'expense') {
+          // Check for overspend after expense
+          await SafetyDrawdownReconciler().reconcileIfNeeded();
+        }
+      } catch (e) {
+        // Non-blocking: log but don't fail the transaction
+        AppLogger.w('[TransactionsRepository] Protection ledger wiring failed', error: e);
+      }
+      // === END PROTECTION LEDGER WIRING ===
+
       // 3. Telemetry only - increment usage_metrics for analytics
       try {
         await UsageMetricsRepository().increment(
@@ -153,6 +174,31 @@ class TransactionsRepository {
 
     // Notify listeners that transactions have changed
     TransactionsChangeNotifier.instance.markChanged();
+
+    // === PROTECTION LEDGER WIRING ===
+    try {
+      if (type == 'income') {
+        // Reallocate credits for updated income
+        // Build a TransactionRecord for the service
+        final updatedTx = TransactionRecord(
+          id: transactionId,
+          userId: userId,
+          amount: amount,
+          description: description,
+          category: category,
+          type: type,
+          date: date,
+          paymentMethod: paymentMethod,
+          client: client,
+        );
+        await ProtectionLedgerService().reallocateOnIncomeUpdated(updatedTx);
+      }
+      // Always reconcile after any update (income or expense changes can affect balance)
+      await SafetyDrawdownReconciler().reconcileIfNeeded();
+    } catch (e) {
+      AppLogger.w('[TransactionsRepository] Protection ledger wiring failed', error: e);
+    }
+    // === END PROTECTION LEDGER WIRING ===
   }
 
   Future<void> deleteTransaction({
@@ -166,6 +212,21 @@ class TransactionsRepository {
     print('Transaction ID: $transactionId');
     // ignore: avoid_print
     print('User ID: $userId');
+
+    // === PROTECTION LEDGER: Fetch type BEFORE delete ===
+    String? transactionType;
+    try {
+      final existing = await _client
+          .from('transactions')
+          .select('type')
+          .eq('id', transactionId)
+          .eq('user_id', userId)
+          .maybeSingle();
+      transactionType = existing?['type']?.toString();
+    } catch (e) {
+      AppLogger.w('[TransactionsRepository] Failed to fetch transaction type before delete', error: e);
+    }
+    // === END FETCH ===
 
     try {
       final response = await _client
@@ -181,6 +242,21 @@ class TransactionsRepository {
 
       // Notify listeners that transactions have changed
       TransactionsChangeNotifier.instance.markChanged();
+
+      // === PROTECTION LEDGER WIRING ===
+      try {
+        if (transactionType == 'income') {
+          final txId = int.tryParse(transactionId);
+          if (txId != null) {
+            await ProtectionLedgerService().removeAllocationsOnIncomeDeleted(txId);
+          }
+        }
+        // Always reconcile after delete (balance may have changed)
+        await SafetyDrawdownReconciler().reconcileIfNeeded();
+      } catch (e) {
+        AppLogger.w('[TransactionsRepository] Protection ledger wiring failed', error: e);
+      }
+      // === END PROTECTION LEDGER WIRING ===
 
       // Track usage metric for monetization
       try {

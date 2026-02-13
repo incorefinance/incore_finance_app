@@ -615,9 +615,47 @@
         }
     },
 
+    "financialPreferencesTitle": "Preferências Financeiras",
+
     "taxReserveTitle": "Reserva de impostos",
-    "taxReserveBody": "Reserve uma percentagem do seu rendimento para impostos. Este valor é excluído do cálculo da margem de segurança.",
+    "taxReserveBody": "Percentagem do rendimento a reservar para impostos",
     "taxReserveUpdatedSnack": "Reserva de impostos atualizada",
+
+    "safetyBufferPercentLabel": "Margem de segurança",
+    "safetyBufferPercentHelper": "Percentagem do rendimento a reservar como fundo de emergência",
+    "safetyBufferUpdatedSnack": "Margem de segurança atualizada",
+
+    "safeToSpend": "Disponível para gastar",
+    "safeToSpendAvailable": "{amount} disponível agora",
+    "@safeToSpendAvailable": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "protectionsBuildAfterIncome": "As proteções são criadas automaticamente após a primeira receita.",
+    "taxReserve": "Reserva de impostos",
+    "balance": "Saldo",
+    "safetyCoverageMonths": "{months} meses",
+    "@safetyCoverageMonths": {
+        "placeholders": {
+            "months": { "type": "String" }
+        }
+    },
+    "safetyCoverageBasedOn": "Com base em {amount} de despesas médias mensais",
+    "@safetyCoverageBasedOn": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "confidenceLow": "Confiança: Baixa",
+    "confidenceMedium": "Confiança: Média",
+    "confidenceHigh": "Confiança: Alta",
+    "profitPercent": "{percent}% de lucro",
+    "@profitPercent": {
+        "placeholders": {
+            "percent": { "type": "String" }
+        }
+    },
 
     "pressurePointHeadsUp": "Atenção",
     "pressurePointDueNext7Days": "{amount} de despesas fixas nos próximos 7 dias",
@@ -642,5 +680,35 @@
             "count": {"type": "int"}
         }
     },
-    "pressureReliefDismiss": "Fechar"
+    "pressureReliefDismiss": "Fechar",
+
+    "protectionCoverage": "Cobertura de proteção",
+    "protectionTotals": "Totais de proteção",
+    "totalProtected": "Total protegido",
+    "coverageRunwayMonths": "{months} meses de margem",
+    "@coverageRunwayMonths": {
+        "placeholders": {
+            "months": { "type": "String" }
+        }
+    },
+    "coverageRunwayDays": "{days} dias de margem",
+    "@coverageRunwayDays": {
+        "placeholders": {
+            "days": { "type": "String" }
+        }
+    },
+    "coverageBasedOnMonths": "Com base em {months} meses de despesas",
+    "@coverageBasedOnMonths": {
+        "placeholders": {
+            "months": { "type": "int" }
+        }
+    },
+    "overspentWarning": "Gasto a mais: {amount}",
+    "@overspentWarning": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "monthlyRecurring": "Recorrente mensal",
+    "monthlyRecurringTotal": "{amount}/mês"
 }

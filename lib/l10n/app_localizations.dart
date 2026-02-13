@@ -2645,6 +2645,12 @@ abstract class AppLocalizations {
   /// **'Tax reserve included: {percent}% of income (reserved {amount})'**
   String safetyBufferTaxReserveIncludedWithAmount(int percent, String amount);
 
+  /// No description provided for @financialPreferencesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial Preferences'**
+  String get financialPreferencesTitle;
+
   /// No description provided for @taxReserveTitle.
   ///
   /// In en, this message translates to:
@@ -2654,7 +2660,7 @@ abstract class AppLocalizations {
   /// No description provided for @taxReserveBody.
   ///
   /// In en, this message translates to:
-  /// **'Set aside a percentage of your income as a tax reserve. This amount is excluded from your safety buffer calculation.'**
+  /// **'Percentage of income to set aside for taxes'**
   String get taxReserveBody;
 
   /// No description provided for @taxReserveUpdatedSnack.
@@ -2662,6 +2668,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tax reserve updated'**
   String get taxReserveUpdatedSnack;
+
+  /// No description provided for @safetyBufferPercentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety buffer'**
+  String get safetyBufferPercentLabel;
+
+  /// No description provided for @safetyBufferPercentHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentage of income to set aside as emergency buffer'**
+  String get safetyBufferPercentHelper;
+
+  /// No description provided for @safetyBufferUpdatedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety buffer updated'**
+  String get safetyBufferUpdatedSnack;
+
+  /// No description provided for @safeToSpend.
+  ///
+  /// In en, this message translates to:
+  /// **'Safe to spend'**
+  String get safeToSpend;
+
+  /// No description provided for @safeToSpendAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} available right now'**
+  String safeToSpendAvailable(String amount);
+
+  /// No description provided for @protectionsBuildAfterIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Protections build automatically after your first income.'**
+  String get protectionsBuildAfterIncome;
+
+  /// No description provided for @taxReserve.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax reserve'**
+  String get taxReserve;
+
+  /// No description provided for @balance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get balance;
+
+  /// No description provided for @safetyCoverageMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{months} months'**
+  String safetyCoverageMonths(String months);
+
+  /// No description provided for @safetyCoverageBasedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on {amount} average monthly expenses'**
+  String safetyCoverageBasedOn(String amount);
+
+  /// No description provided for @confidenceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence: Low'**
+  String get confidenceLow;
+
+  /// No description provided for @confidenceMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence: Medium'**
+  String get confidenceMedium;
+
+  /// No description provided for @confidenceHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence: High'**
+  String get confidenceHigh;
+
+  /// No description provided for @profitPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% profit'**
+  String profitPercent(String percent);
 
   /// No description provided for @pressurePointHeadsUp.
   ///
@@ -2746,6 +2836,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dismiss'**
   String get pressureReliefDismiss;
+
+  /// No description provided for @protectionCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Protection coverage'**
+  String get protectionCoverage;
+
+  /// No description provided for @protectionTotals.
+  ///
+  /// In en, this message translates to:
+  /// **'Protection totals'**
+  String get protectionTotals;
+
+  /// No description provided for @totalProtected.
+  ///
+  /// In en, this message translates to:
+  /// **'Total protected'**
+  String get totalProtected;
+
+  /// No description provided for @coverageRunwayMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{months} months runway'**
+  String coverageRunwayMonths(String months);
+
+  /// No description provided for @coverageRunwayDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days runway'**
+  String coverageRunwayDays(String days);
+
+  /// No description provided for @coverageBasedOnMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on {months} months of expense data'**
+  String coverageBasedOnMonths(int months);
+
+  /// No description provided for @overspentWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Overspent by {amount}'**
+  String overspentWarning(String amount);
+
+  /// No description provided for @monthlyRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly recurring'**
+  String get monthlyRecurring;
+
+  /// No description provided for @monthlyRecurringTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount}/mo'**
+  String monthlyRecurringTotal(Object amount);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

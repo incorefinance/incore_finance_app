@@ -1350,13 +1350,66 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get financialPreferencesTitle => 'Financial Preferences';
+
+  @override
   String get taxReserveTitle => 'Tax reserve';
 
   @override
-  String get taxReserveBody => 'Set aside a percentage of your income as a tax reserve. This amount is excluded from your safety buffer calculation.';
+  String get taxReserveBody => 'Percentage of income to set aside for taxes';
 
   @override
   String get taxReserveUpdatedSnack => 'Tax reserve updated';
+
+  @override
+  String get safetyBufferPercentLabel => 'Safety buffer';
+
+  @override
+  String get safetyBufferPercentHelper => 'Percentage of income to set aside as emergency buffer';
+
+  @override
+  String get safetyBufferUpdatedSnack => 'Safety buffer updated';
+
+  @override
+  String get safeToSpend => 'Safe to spend';
+
+  @override
+  String safeToSpendAvailable(String amount) {
+    return '$amount available right now';
+  }
+
+  @override
+  String get protectionsBuildAfterIncome => 'Protections build automatically after your first income.';
+
+  @override
+  String get taxReserve => 'Tax reserve';
+
+  @override
+  String get balance => 'Balance';
+
+  @override
+  String safetyCoverageMonths(String months) {
+    return '$months months';
+  }
+
+  @override
+  String safetyCoverageBasedOn(String amount) {
+    return 'Based on $amount average monthly expenses';
+  }
+
+  @override
+  String get confidenceLow => 'Confidence: Low';
+
+  @override
+  String get confidenceMedium => 'Confidence: Medium';
+
+  @override
+  String get confidenceHigh => 'Confidence: High';
+
+  @override
+  String profitPercent(String percent) {
+    return '$percent% profit';
+  }
 
   @override
   String get pressurePointHeadsUp => 'Heads up';
@@ -1403,4 +1456,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pressureReliefDismiss => 'Dismiss';
+
+  @override
+  String get protectionCoverage => 'Protection coverage';
+
+  @override
+  String get protectionTotals => 'Protection totals';
+
+  @override
+  String get totalProtected => 'Total protected';
+
+  @override
+  String coverageRunwayMonths(String months) {
+    return '$months months runway';
+  }
+
+  @override
+  String coverageRunwayDays(String days) {
+    return '$days days runway';
+  }
+
+  @override
+  String coverageBasedOnMonths(int months) {
+    return 'Based on $months months of expense data';
+  }
+
+  @override
+  String overspentWarning(String amount) {
+    return 'Overspent by $amount';
+  }
+
+  @override
+  String get monthlyRecurring => 'Monthly recurring';
+
+  @override
+  String monthlyRecurringTotal(Object amount) {
+    return '$amount/mo';
+  }
 }

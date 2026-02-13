@@ -10,6 +10,7 @@ import '../../../theme/app_theme.dart';
 
 class MonthlyProfitCard extends StatelessWidget {
   final double profit;
+  final double currentMonthIncome;
   final double percentageChange;
   final double prevMonthProfit;
   final bool prevMonthHasData;
@@ -21,6 +22,7 @@ class MonthlyProfitCard extends StatelessWidget {
   const MonthlyProfitCard({
     super.key,
     required this.profit,
+    required this.currentMonthIncome,
     required this.percentageChange,
     required this.prevMonthProfit,
     required this.prevMonthHasData,
@@ -139,6 +141,19 @@ class MonthlyProfitCard extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
+                // Profit percentage (only when income > 0)
+                if (currentMonthIncome > 0) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.profitPercent(
+                      ((profit / currentMonthIncome) * 100).toStringAsFixed(1),
+                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.slate400,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
