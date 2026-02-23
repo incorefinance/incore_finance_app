@@ -280,6 +280,70 @@ class ProtectionLedgerRepository {
   }
 
   // =========================================================================
+  // MONTHLY SERIES (for sparkline visualization)
+  // =========================================================================
+
+  /// Fetch monthly protection series for sparkline visualization.
+  ///
+  /// Returns last N months of data grouped by month and allocation type.
+  /// Each point contains net amount (credits minus debits) for that month.
+  ///
+  /// SQL RPC to add in Supabase SQL editor:
+  /// ```sql
+  /// CREATE OR REPLACE FUNCTION public.get_protection_monthly_series(
+  ///   p_months INT DEFAULT 6
+  /// )
+  /// RETURNS TABLE (
+  ///   month_key TEXT,
+  ///   allocation_type TEXT,
+  ///   net_amount NUMERIC
+  /// )
+  /// LANGUAGE sql
+  /// SECURITY INVOKER
+  /// AS $$
+  ///   SELECT
+  ///     TO_CHAR(effective_at, 'YYYY-MM') AS month_key,
+  ///     allocation_type,
+  ///     SUM(CASE WHEN direction = 'credit' THEN amount ELSE -amount END) AS net_amount
+  ///   FROM protection_ledger
+  ///   WHERE user_id = auth.uid()
+  ///     AND effective_at >= DATE_TRUNC('month', CURRENT_DATE) - (p_months - 1) * INTERVAL '1 month'
+  ///   GROUP BY TO_CHAR(effective_at, 'YYYY-MM'), allocation_type
+  ///   ORDER BY month_key ASC, allocation_type ASC;
+  /// $$;
+  /// ```
+  ///
+  /// Returns empty list if RPC not available or user not authenticated.
+  Future<List<Map<String, dynamic>>> getProtectionMonthlySeries({
+    int months = 6,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) {
+      AppLogger.w('[ProtectionLedger] Cannot get monthly series: No authenticated user.');
+      return [];
+    }
+
+    try {
+      final response = await _client.rpc(
+        'get_protection_monthly_series',
+        params: {'p_months': months},
+      );
+
+      if (response == null) return [];
+
+      if (response is List) {
+        return response.cast<Map<String, dynamic>>();
+      }
+
+      return [];
+    } catch (e) {
+      // RPC might not exist yet, return empty gracefully
+      AppLogger.w('[ProtectionLedger] get_protection_monthly_series RPC failed', error: e);
+      return [];
+    }
+  }
+
+  // =========================================================================
   // IDEMPOTENCY HELPERS
   // =========================================================================
 

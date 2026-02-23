@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
 
 /// Done screen - Final step of the onboarding flow.
 /// Confirms setup completion and directs user to the dashboard.
@@ -19,7 +19,7 @@ class OnboardingDoneScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -35,14 +35,14 @@ class OnboardingDoneScreen extends StatelessWidget {
                       width: 20.w,
                       height: 20.w,
                       decoration: BoxDecoration(
-                        color: AppColors.blueBg50,
+                        color: context.blue50,
                         borderRadius: BorderRadius.circular(AppTheme.radiusXLarge),
                       ),
                       child: Center(
                         child: CustomIconWidget(
                           iconName: 'check_circle',
                           size: 10.w,
-                          color: AppColors.blue600,
+                          color: context.blue600,
                         ),
                       ),
                     ),
@@ -58,7 +58,7 @@ class OnboardingDoneScreen extends StatelessWidget {
                     Text(
                       'You can update your starting balance in Settings. Manage recurring expenses from the Dashboard.',
                       style: theme.textTheme.bodyLarge?.copyWith(
-                        color: AppColors.slate500,
+                        color: context.slate500,
                       ),
                       textAlign: TextAlign.center,
                     ),

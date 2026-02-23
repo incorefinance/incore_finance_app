@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
 import '../../../utils/number_formatter.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../theme/app_theme.dart';
 
 class MonthlyProfitCard extends StatelessWidget {
@@ -90,10 +90,10 @@ class MonthlyProfitCard extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.surfaceGlass80Light,
+              color: context.surfaceGlass80,
               borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
               border: Border.all(
-                color: AppColors.borderGlass60Light,
+                color: context.borderGlass60,
                 width: 1,
               ),
             ),
@@ -111,7 +111,7 @@ class MonthlyProfitCard extends StatelessWidget {
                         Text(
                           l10n.profit,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: AppColors.slate500,
+                            color: context.slate500,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -119,7 +119,7 @@ class MonthlyProfitCard extends StatelessWidget {
                         Text(
                           l10n.thisMonth,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.slate400,
+                            color: context.slate400,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -137,7 +137,7 @@ class MonthlyProfitCard extends StatelessWidget {
                 Text(
                   formatted,
                   style: theme.textTheme.displaySmall?.copyWith(
-                    color: AppColors.slate900,
+                    color: context.slate900,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -149,7 +149,7 @@ class MonthlyProfitCard extends StatelessWidget {
                       ((profit / currentMonthIncome) * 100).toStringAsFixed(1),
                     ),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.slate400,
+                      color: context.slate400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -178,15 +178,15 @@ class _TrendChip extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     final String directionText = isUp ? l10n.up : l10n.down;
-    final chipColor = isUp ? AppColors.teal600 : AppColors.red600;
+    final chipColor = isUp ? context.teal600 : context.red600;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isUp ? AppColors.tealBg80 : AppColors.redBg80,
+        color: isUp ? context.tealBg80 : context.redBg80,
         borderRadius: BorderRadius.circular(100),
         border: Border.all(
-          color: isUp ? AppColors.tealBorder50 : AppColors.roseBorder50,
+          color: isUp ? context.tealBorder50 : context.roseBorder50,
           width: 1,
         ),
       ),

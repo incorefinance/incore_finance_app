@@ -3,7 +3,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
 import '../../services/user_settings_service.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
 
 /// Currency selection screen - Second step of the onboarding flow.
 /// User must select a currency before continuing (mandatory).
@@ -59,7 +59,7 @@ class _OnboardingCurrencyScreenState extends State<OnboardingCurrencyScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -79,7 +79,7 @@ class _OnboardingCurrencyScreenState extends State<OnboardingCurrencyScreen> {
               Text(
                 'This will be used for all amounts in the app.',
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: AppColors.slate500,
+                  color: context.slate500,
                 ),
               ),
               SizedBox(height: 3.h),
@@ -146,8 +146,8 @@ class _OnboardingCurrencyScreenState extends State<OnboardingCurrencyScreen> {
           decoration: BoxDecoration(
             border: Border.all(
               color: isSelected
-                  ? AppColors.blue600
-                  : AppColors.borderGlass60Light,
+                  ? context.blue600
+                  : context.borderGlass60,
               width: isSelected ? 2 : 1,
             ),
             borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
@@ -158,14 +158,14 @@ class _OnboardingCurrencyScreenState extends State<OnboardingCurrencyScreen> {
                 width: 12.w,
                 height: 12.w,
                 decoration: BoxDecoration(
-                  color: AppColors.blueBg50,
+                  color: context.blue50,
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Center(
                   child: Text(
                     currency['symbol']!,
                     style: theme.textTheme.titleLarge?.copyWith(
-                      color: AppColors.blue600,
+                      color: context.blue600,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -186,7 +186,7 @@ class _OnboardingCurrencyScreenState extends State<OnboardingCurrencyScreen> {
                     Text(
                       currency['name']!,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.slate500,
+                        color: context.slate500,
                       ),
                     ),
                   ],
@@ -196,7 +196,7 @@ class _OnboardingCurrencyScreenState extends State<OnboardingCurrencyScreen> {
                 CustomIconWidget(
                   iconName: 'check_circle',
                   size: 6.w,
-                  color: AppColors.blue600,
+                  color: context.blue600,
                 ),
             ],
           ),

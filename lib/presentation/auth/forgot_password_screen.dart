@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../routes/app_routes.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
 
 /// Screen for requesting a password reset email.
 /// Does not reveal whether the email exists in the system.
@@ -89,7 +89,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -103,10 +103,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   alignment: Alignment.centerLeft,
                   child: TextButton.icon(
                     onPressed: _goBack,
-                    icon: Icon(Icons.arrow_back, color: AppColors.blue600),
+                    icon: Icon(Icons.arrow_back, color: context.blue600),
                     label: Text(
                       'Back',
-                      style: TextStyle(color: AppColors.blue600),
+                      style: TextStyle(color: context.blue600),
                     ),
                   ),
                 ),
@@ -114,7 +114,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Icon(
                   Icons.lock_reset_outlined,
                   size: 80,
-                  color: AppColors.blue600,
+                  color: context.blue600,
                 ),
                 const SizedBox(height: 32),
                 Text(
@@ -128,7 +128,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Text(
                   'Enter your email address and we will send you a link to reset your password.',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.slate500,
+                    color: context.slate500,
                   ),
                   textAlign: TextAlign.center,
                 ),

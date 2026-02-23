@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import '../../../services/password_validator.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../theme/app_theme.dart';
 
 /// Password strength indicator widget showing:
@@ -45,7 +45,7 @@ class PasswordStrengthIndicator extends StatelessWidget {
           Text(
             'Password requirements:',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.slate500,
+              color: context.slate500,
               fontWeight: FontWeight.w500,
               fontSize: 10.sp,
             ),
@@ -65,7 +65,7 @@ class PasswordStrengthIndicator extends StatelessWidget {
                 child: Text(
                   'At least ${PasswordValidator.minLength} characters (${password.length}/${PasswordValidator.minLength})',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: meetsPolicy ? AppColors.slate900 : Color(0xFFE53935),
+                    color: meetsPolicy ? context.slate900 : Color(0xFFE53935),
                     fontWeight: meetsPolicy ? FontWeight.w500 : FontWeight.w400,
                     fontSize: 10.sp,
                   ),
@@ -107,7 +107,7 @@ class PasswordStrengthIndicator extends StatelessWidget {
             Text(
               strengthResult.feedback!,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.slate400,
+                color: context.slate400,
                 fontStyle: FontStyle.italic,
                 fontSize: 9.sp,
               ),

@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/number_formatter.dart';
 
@@ -71,10 +71,10 @@ class TotalBalanceCard extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.surfaceGlass80Light,
+              color: context.surfaceGlass80,
               borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
               border: Border.all(
-                color: AppColors.borderGlass60Light,
+                color: context.borderGlass60,
                 width: 1,
               ),
             ),
@@ -89,12 +89,12 @@ class TotalBalanceCard extends StatelessWidget {
                     Text(
                       l10n.totalBalance,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: AppColors.slate500,
+                        color: context.slate500,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     // Always render wallet icon; only interactive if callback provided
-                    _buildWalletIcon(),
+                    _buildWalletIcon(context),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -102,7 +102,7 @@ class TotalBalanceCard extends StatelessWidget {
                 Text(
                   displayBalance,
                   style: theme.textTheme.displaySmall?.copyWith(
-                    color: AppColors.slate900,
+                    color: context.slate900,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -111,7 +111,7 @@ class TotalBalanceCard extends StatelessWidget {
                 Text(
                   currencyCode,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate400,
+                    color: context.slate400,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -124,9 +124,9 @@ class TotalBalanceCard extends StatelessWidget {
                       child: _BalancePill(
                         label: l10n.income,
                         amount: formattedIncome,
-                        backgroundColor: AppColors.tealBg80,
-                        borderColor: AppColors.tealBorder50,
-                        textColor: AppColors.teal600,
+                        backgroundColor: context.tealBg80,
+                        borderColor: context.tealBorder50,
+                        textColor: context.teal600,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -135,9 +135,9 @@ class TotalBalanceCard extends StatelessWidget {
                       child: _BalancePill(
                         label: l10n.expense,
                         amount: formattedExpenses,
-                        backgroundColor: AppColors.roseBg80,
-                        borderColor: AppColors.roseBorder50,
-                        textColor: AppColors.rose600,
+                        backgroundColor: context.roseBg80,
+                        borderColor: context.roseBorder50,
+                        textColor: context.rose600,
                       ),
                     ),
                   ],
@@ -151,18 +151,18 @@ class TotalBalanceCard extends StatelessWidget {
   }
 
   /// Wallet icon - always rendered; interactive only if callback provided.
-  Widget _buildWalletIcon() {
+  Widget _buildWalletIcon(BuildContext context) {
     final iconContainer = Container(
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        color: AppColors.blueBg50,
+        color: context.blue50,
         borderRadius: BorderRadius.circular(AppTheme.radiusIconBox),
       ),
       child: Icon(
         Icons.account_balance_wallet_outlined,
         size: 24,
-        color: AppColors.blue600,
+        color: context.blue600,
       ),
     );
 

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
 import '../../../utils/number_formatter.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../theme/app_theme.dart';
 
 /// Cash Position Card - Primary block showing current cash balance.
@@ -52,10 +52,10 @@ class CashPositionCard extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.surfaceGlass80Light,
+              color: context.surfaceGlass80,
               borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
               border: Border.all(
-                color: AppColors.borderGlass60Light,
+                color: context.borderGlass60,
                 width: 1,
               ),
             ),
@@ -66,7 +66,7 @@ class CashPositionCard extends StatelessWidget {
                 Text(
                   l10n.cashBalance,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: AppColors.slate500,
+                    color: context.slate500,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -74,7 +74,7 @@ class CashPositionCard extends StatelessWidget {
                 Text(
                   displayValue,
                   style: theme.textTheme.displaySmall?.copyWith(
-                    color: AppColors.slate900,
+                    color: context.slate900,
                     fontWeight: FontWeight.w800,
                   ),
                 ),

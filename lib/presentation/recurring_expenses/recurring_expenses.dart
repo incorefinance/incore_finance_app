@@ -10,6 +10,7 @@ import '../../services/auth_guard.dart';
 import '../../services/recurring_expenses_repository.dart';
 import '../../services/user_settings_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../widgets/app_error_widget.dart';
@@ -199,13 +200,13 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       appBar: AppBar(
         title: Text(l10n.recurringExpenses),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: AppColors.canvasFrostedLight,
-        foregroundColor: AppColors.slate900,
+        backgroundColor: context.canvasFrosted,
+        foregroundColor: context.slate900,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -214,7 +215,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(
-                color: AppColors.blue600,
+                color: context.blue600,
               ),
             )
           : _loadError != null
@@ -228,7 +229,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
                   : _buildExpensesList(context),
       floatingActionButton: FloatingActionButton(
         onPressed: _handleAddExpense,
-        backgroundColor: AppColors.blue600,
+        backgroundColor: context.blue600,
         child: const Icon(Icons.add),
       ),
     );
@@ -246,13 +247,13 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
             Icon(
               Icons.calendar_today_outlined,
               size: 60,
-              color: AppColors.slate400.withValues(alpha: 0.5),
+              color: context.slate400.withValues(alpha: 0.5),
             ),
             SizedBox(height: 2.h),
             Text(
               l10n.noRecurringExpenses,
               style: theme.textTheme.titleLarge?.copyWith(
-                color: AppColors.slate900,
+                color: context.slate900,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -261,14 +262,14 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
               l10n.addRecurringExpensesHint,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.slate500,
+                color: context.slate500,
               ),
             ),
             SizedBox(height: 3.h),
             ElevatedButton(
               onPressed: _handleAddExpense,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.blue600,
+                backgroundColor: context.blue600,
                 padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.2.h),
               ),
               child: Text(
@@ -288,7 +289,7 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
   Widget _buildExpensesList(BuildContext context) {
     return RefreshIndicator(
       onRefresh: _loadRecurringExpenses,
-      color: AppColors.blue600,
+      color: context.blue600,
       child: ListView.builder(
         padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 4.w),
         itemCount: _expenses.length,

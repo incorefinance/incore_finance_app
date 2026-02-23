@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../routes/app_routes.dart';
 import '../../../services/password_validator.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import 'password_strength_indicator.dart';
 
 /// Minimal email/password auth form for sign in and sign up.
@@ -172,15 +172,15 @@ class _AuthFormState extends State<AuthForm> {
                 labelText: 'Email',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                  borderSide: BorderSide(color: context.borderGlass60),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                  borderSide: BorderSide(color: context.borderGlass60),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.blue600, width: 2),
+                  borderSide: BorderSide(color: context.blue600, width: 2),
                 ),
               ),
               validator: (value) {
@@ -205,7 +205,7 @@ class _AuthFormState extends State<AuthForm> {
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    color: AppColors.slate400,
+                    color: context.slate400,
                   ),
                   onPressed: () {
                     setState(() {
@@ -215,15 +215,15 @@ class _AuthFormState extends State<AuthForm> {
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                  borderSide: BorderSide(color: context.borderGlass60),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                  borderSide: BorderSide(color: context.borderGlass60),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.blue600, width: 2),
+                  borderSide: BorderSide(color: context.blue600, width: 2),
                 ),
               ),
               validator: (value) {
@@ -263,13 +263,13 @@ class _AuthFormState extends State<AuthForm> {
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.blueBg50,
+                  color: context.blue50,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   _messageText!,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.blue600,
+                    color: context.blue600,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -297,9 +297,9 @@ class _AuthFormState extends State<AuthForm> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _handleSubmit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.blue600,
+                  backgroundColor: context.blue600,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: AppColors.blue600.withValues(alpha: 0.5),
+                  disabledBackgroundColor: context.blue600.withValues(alpha: 0.5),
                 ),
                 child: _isLoading
                     ? const SizedBox(

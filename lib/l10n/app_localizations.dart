@@ -197,6 +197,12 @@ abstract class AppLocalizations {
   /// **'Total Balance'**
   String get totalBalance;
 
+  /// No description provided for @currentTotalBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Current total balance'**
+  String get currentTotalBalance;
+
   /// No description provided for @last30Days.
   ///
   /// In en, this message translates to:
@@ -2717,11 +2723,41 @@ abstract class AppLocalizations {
   /// **'Balance'**
   String get balance;
 
-  /// No description provided for @safetyCoverageMonths.
+  /// No description provided for @safetyCoverageDays.
   ///
   /// In en, this message translates to:
-  /// **'{months} months'**
-  String safetyCoverageMonths(String months);
+  /// **'{days} days covered'**
+  String safetyCoverageDays(int days);
+
+  /// No description provided for @safetyCoverageMonthOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'1 month covered'**
+  String get safetyCoverageMonthOnly;
+
+  /// No description provided for @safetyCoverageMonthsOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{months} months covered'**
+  String safetyCoverageMonthsOnly(int months);
+
+  /// No description provided for @safetyCoverageMonthDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{months} month {days} days covered'**
+  String safetyCoverageMonthDays(int months, int days);
+
+  /// No description provided for @safetyCoverageMonthsDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{months} months {days} days covered'**
+  String safetyCoverageMonthsDays(int months, int days);
+
+  /// No description provided for @safetyCoverageExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'If your income stopped today, this buffer would cover your average expenses for this period.'**
+  String get safetyCoverageExplanation;
 
   /// No description provided for @safetyCoverageBasedOn.
   ///
@@ -2879,6 +2915,132 @@ abstract class AppLocalizations {
   /// **'Overspent by {amount}'**
   String overspentWarning(String amount);
 
+  /// No description provided for @protectionBasedOnIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on income received'**
+  String get protectionBasedOnIncome;
+
+  /// No description provided for @protectionCurrentRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Current rate: {percent}%'**
+  String protectionCurrentRate(int percent);
+
+  /// No description provided for @protectionCoversAboutDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Covers about {days} days'**
+  String protectionCoversAboutDays(int days);
+
+  /// No description provided for @protectionCoversAboutMonthsDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Covers about {months} months and {days} days'**
+  String protectionCoversAboutMonthsDays(int months, int days);
+
+  /// No description provided for @protectionKeepTrackingExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep tracking expenses to estimate coverage'**
+  String get protectionKeepTrackingExpenses;
+
+  /// No description provided for @protectionBasedOnExpenseMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on {count} months of expense data'**
+  String protectionBasedOnExpenseMonths(int count);
+
+  /// No description provided for @protectionConfidenceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence: Low'**
+  String get protectionConfidenceLow;
+
+  /// No description provided for @protectionConfidenceMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence: Medium'**
+  String get protectionConfidenceMedium;
+
+  /// No description provided for @protectionConfidenceHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence: High'**
+  String get protectionConfidenceHigh;
+
+  /// No description provided for @protectionNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No history yet'**
+  String get protectionNoHistory;
+
+  /// No description provided for @toggleMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get toggleMonthly;
+
+  /// No description provided for @toggleTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get toggleTotal;
+
+  /// No description provided for @sparklineMonthlyChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly change'**
+  String get sparklineMonthlyChange;
+
+  /// No description provided for @sparklineTotalOverTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Total over time'**
+  String get sparklineTotalOverTime;
+
+  /// No description provided for @safetyBufferBuildsWithIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Builds with income and decreases when you overspend'**
+  String get safetyBufferBuildsWithIncome;
+
+  /// No description provided for @safetyBufferBalanceOverTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Your buffer balance over time'**
+  String get safetyBufferBalanceOverTime;
+
+  /// No description provided for @safetyBufferCoverageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage:'**
+  String get safetyBufferCoverageLabel;
+
+  /// No description provided for @coverageApproxDays.
+  ///
+  /// In en, this message translates to:
+  /// **'~{days} days'**
+  String coverageApproxDays(int days);
+
+  /// No description provided for @coverageMonthsOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{months} months'**
+  String coverageMonthsOnly(int months);
+
+  /// No description provided for @coverageOneMonthDays.
+  ///
+  /// In en, this message translates to:
+  /// **'1 month and {days} days'**
+  String coverageOneMonthDays(int days);
+
+  /// No description provided for @coverageMonthsDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{months} months and {days} days'**
+  String coverageMonthsDays(int months, int days);
+
   /// No description provided for @monthlyRecurring.
   ///
   /// In en, this message translates to:
@@ -2890,6 +3052,354 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{amount}/mo'**
   String monthlyRecurringTotal(Object amount);
+
+  /// No description provided for @monthlyBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Budget'**
+  String get monthlyBudget;
+
+  /// No description provided for @monthlyBudgetSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Budget (suggested)'**
+  String get monthlyBudgetSuggested;
+
+  /// No description provided for @weeklyBudgetAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount}/week'**
+  String weeklyBudgetAmount(String amount);
+
+  /// No description provided for @budgetReserves.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserves'**
+  String get budgetReserves;
+
+  /// No description provided for @budgetBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills'**
+  String get budgetBills;
+
+  /// No description provided for @budgetBasedOnMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on {count} months'**
+  String budgetBasedOnMonths(int count);
+
+  /// No description provided for @budgetKeepTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep tracking income to see your budget'**
+  String get budgetKeepTracking;
+
+  /// No description provided for @budgetOnTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'On track'**
+  String get budgetOnTrack;
+
+  /// No description provided for @budgetSlightlyOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Slightly over budget'**
+  String get budgetSlightlyOver;
+
+  /// No description provided for @budgetOverspend.
+  ///
+  /// In en, this message translates to:
+  /// **'Over budget'**
+  String get budgetOverspend;
+
+  /// No description provided for @budgetConfidenceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low confidence'**
+  String get budgetConfidenceLow;
+
+  /// No description provided for @budgetConfidenceMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium confidence'**
+  String get budgetConfidenceMedium;
+
+  /// No description provided for @budgetConfidenceHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High confidence'**
+  String get budgetConfidenceHigh;
+
+  /// No description provided for @budgetVolatilityWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Income is highly variable'**
+  String get budgetVolatilityWarning;
+
+  /// No description provided for @budgetTightWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget is tight after reserves'**
+  String get budgetTightWarning;
+
+  /// No description provided for @insightBudgetOverspendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Over budget'**
+  String get insightBudgetOverspendTitle;
+
+  /// No description provided for @insightBudgetOverspendBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve spent more than planned for this point in the month. Consider slowing down.'**
+  String get insightBudgetOverspendBody;
+
+  /// No description provided for @insightBudgetPacingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending pace is high'**
+  String get insightBudgetPacingTitle;
+
+  /// No description provided for @insightBudgetPacingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'At this rate, you may exceed your monthly budget. Review recent expenses.'**
+  String get insightBudgetPacingBody;
+
+  /// No description provided for @insightTightBudgetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget is tight'**
+  String get insightTightBudgetTitle;
+
+  /// No description provided for @insightTightBudgetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'After reserves, less than 20% of your income is available to spend.'**
+  String get insightTightBudgetBody;
+
+  /// No description provided for @insightVolatileIncomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Income varies a lot'**
+  String get insightVolatileIncomeTitle;
+
+  /// No description provided for @insightVolatileIncomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your income changes significantly month to month. The budget uses a conservative estimate.'**
+  String get insightVolatileIncomeBody;
+
+  /// No description provided for @taxProtected.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax reserve'**
+  String get taxProtected;
+
+  /// No description provided for @safetyProtected.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety buffer'**
+  String get safetyProtected;
+
+  /// No description provided for @suggestedTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested tax'**
+  String get suggestedTax;
+
+  /// No description provided for @suggestedSafety.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested safety'**
+  String get suggestedSafety;
+
+  /// No description provided for @suggestedWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested'**
+  String get suggestedWeekly;
+
+  /// No description provided for @recurringBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring bills'**
+  String get recurringBills;
+
+  /// No description provided for @protectedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} protected'**
+  String protectedAmount(String amount);
+
+  /// No description provided for @amountsAlreadySetAside.
+  ///
+  /// In en, this message translates to:
+  /// **'These amounts are already set aside'**
+  String get amountsAlreadySetAside;
+
+  /// No description provided for @suggestedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested: {amount}'**
+  String suggestedAmount(String amount);
+
+  /// No description provided for @budgetBillsExceedIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Your bills exceed available income'**
+  String get budgetBillsExceedIncome;
+
+  /// No description provided for @stableWeeklyBudgetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stable Weekly Budget'**
+  String get stableWeeklyBudgetTitle;
+
+  /// No description provided for @weeklyBudgetAmountPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount}/week'**
+  String weeklyBudgetAmountPerWeek(String amount);
+
+  /// No description provided for @basedOnMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on {count} months'**
+  String basedOnMonths(int count);
+
+  /// No description provided for @budgetKeepTrackingStable.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep tracking income to unlock a stable budget'**
+  String get budgetKeepTrackingStable;
+
+  /// No description provided for @smoothedIncomeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoothed income'**
+  String get smoothedIncomeLabel;
+
+  /// No description provided for @volatilityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Volatility'**
+  String get volatilityLabel;
+
+  /// No description provided for @confidenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence'**
+  String get confidenceLabel;
+
+  /// No description provided for @levelLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get levelLow;
+
+  /// No description provided for @levelMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get levelMedium;
+
+  /// No description provided for @levelHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get levelHigh;
+
+  /// No description provided for @pacingOnTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'On track'**
+  String get pacingOnTrack;
+
+  /// No description provided for @pacingSlightlyOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Slightly over pace'**
+  String get pacingSlightlyOver;
+
+  /// No description provided for @pacingOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Over pace'**
+  String get pacingOver;
+
+  /// No description provided for @weeklySpendingGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly spending guide'**
+  String get weeklySpendingGuide;
+
+  /// No description provided for @perWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'/week'**
+  String get perWeek;
+
+  /// No description provided for @biometricUnlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App Locked'**
+  String get biometricUnlockTitle;
+
+  /// No description provided for @biometricUnlockSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {biometricType} to unlock'**
+  String biometricUnlockSubtitle(String biometricType);
+
+  /// No description provided for @biometricUnlockButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get biometricUnlockButton;
+
+  /// No description provided for @biometricAuthenticating.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticating...'**
+  String get biometricAuthenticating;
+
+  /// No description provided for @biometricAuthFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication failed. Try again.'**
+  String get biometricAuthFailed;
+
+  /// No description provided for @biometricLockedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again later.'**
+  String get biometricLockedOut;
+
+  /// No description provided for @biometricVerifyToEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify biometrics to enable'**
+  String get biometricVerifyToEnable;
+
+  /// No description provided for @biometricVerificationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification failed. Please try again.'**
+  String get biometricVerificationFailed;
+
+  /// No description provided for @biometricFaceId.
+  ///
+  /// In en, this message translates to:
+  /// **'Face ID'**
+  String get biometricFaceId;
+
+  /// No description provided for @biometricFingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'fingerprint'**
+  String get biometricFingerprint;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

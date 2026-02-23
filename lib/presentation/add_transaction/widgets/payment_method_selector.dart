@@ -4,7 +4,7 @@ import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
 import 'package:incore_finance/models/payment_method.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../utils/payment_localizer.dart';
 
 /// Widget for selecting payment method
@@ -53,7 +53,7 @@ class PaymentMethodSelector extends StatelessWidget {
         Text(
           l10n.paymentMethod,
           style: theme.textTheme.labelMedium?.copyWith(
-            color: AppColors.slate500,
+            color: context.slate500,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -74,13 +74,13 @@ class PaymentMethodSelector extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 1.4.h),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.blueBg50
-                      : AppColors.surfaceGlass80Light,
+                      ? context.blue50
+                      : context.surfaceGlass80,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
-                        ? AppColors.blue600.withValues(alpha: 0.25)
-                        : AppColors.borderGlass60Light,
+                        ? context.blue600.withValues(alpha: 0.25)
+                        : context.borderGlass60,
                     width: 1,
                   ),
                 ),
@@ -93,20 +93,20 @@ class PaymentMethodSelector extends StatelessWidget {
                       height: 40,
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.blueBg50
-                            : AppColors.surfaceGlass80Light,
+                            ? context.blue50
+                            : context.surfaceGlass80,
                         borderRadius: BorderRadius.circular(AppTheme.radiusIconBox),
                         border: isSelected
                             ? null
                             : Border.all(
-                                color: AppColors.borderGlass60Light,
+                                color: context.borderGlass60,
                                 width: 1,
                               ),
                       ),
                       child: Center(
                         child: CustomIconWidget(
                           iconName: _iconFor(method),
-                          color: isSelected ? AppColors.blue600 : AppColors.slate400,
+                          color: isSelected ? context.blue600 : context.slate400,
                           size: 20,
                         ),
                       ),
@@ -121,7 +121,7 @@ class PaymentMethodSelector extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: isSelected ? AppColors.blue600 : AppColors.slate500,
+                          color: isSelected ? context.blue600 : context.slate500,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                         ),
                       ),

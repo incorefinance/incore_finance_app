@@ -4,7 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../../core/app_export.dart';
 import '../../../utils/number_formatter.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../theme/app_theme.dart';
 
 class SafetyBufferCard extends StatelessWidget {
@@ -59,20 +59,12 @@ class SafetyBufferCard extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: context.surfaceGlass80,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         border: Border.all(
-          color: AppColors.borderSubtle,
+          color: context.borderGlass60,
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.06),
-            offset: const Offset(0, 6),
-            blurRadius: 18,
-            spreadRadius: 0,
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,7 +102,7 @@ class SafetyBufferCard extends StatelessWidget {
           ],
 
           SizedBox(height: 1.h),
-          Divider(color: AppColors.borderSubtle),
+          Divider(color: context.borderSubtle),
           SizedBox(height: 1.h),
 
           // Tax line

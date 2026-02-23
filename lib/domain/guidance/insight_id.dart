@@ -11,4 +11,16 @@ enum InsightId {
 
   /// Expenses have spiked compared to prior period.
   expenseSpike,
+
+  /// Current month spending exceeds budget allocation (>150% of expected).
+  budgetOverspend,
+
+  /// Spending is trending over budget allocation (120%+ of expected).
+  budgetPacing,
+
+  /// Income has high volatility (coefficient of variation > 0.4).
+  volatileIncome,
+
+  /// Budget is tight after reserves (<20% of income spendable).
+  tightBudget,
 }

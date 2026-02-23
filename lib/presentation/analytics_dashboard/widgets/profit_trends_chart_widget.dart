@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
 
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../utils/number_formatter.dart';
 import 'chart_constants.dart';
 
@@ -35,7 +35,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
     final l10n = AppLocalizations.of(context)!;
 
     // ✅ Use your main accent instead of gold
-    final accent = AppColors.blue600;
+    final accent = context.blue600;
 
     final xMax = (widget.trendData.length - 1).toDouble();
     const double xPadding = 0.25;
@@ -65,7 +65,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
                   return LineTooltipItem(
                     '$month\n${l10n.profit}: $formattedProfit',
                     theme.textTheme.bodySmall!.copyWith(
-                      color: AppColors.surface,
+                      color: context.surface,
                       fontWeight: FontWeight.w600,
                     ),
                   );
@@ -89,7 +89,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
                         radius: 1.2.w,
                         color: accent,
                         strokeWidth: 1.5,
-                        strokeColor: AppColors.surface,
+                        strokeColor: context.surface,
                       );
                     },
                   ),
@@ -103,7 +103,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
             horizontalInterval: _getNiceYAxisInterval(),
             getDrawingHorizontalLine: (value) {
               return FlLine(
-                color: AppColors.borderSubtle.withValues(
+                color: context.borderSubtle.withValues(
                     alpha: AnalyticsChartConstants.gridLineAlpha),
                 strokeWidth: 1,
               );
@@ -182,7 +182,7 @@ class _ProfitTrendsChartWidgetState extends State<ProfitTrendsChartWidget> {
                     radius: 1.0.w,
                     color: accent,
                     strokeWidth: 1.5,
-                    strokeColor: AppColors.surface,
+                    strokeColor: context.surface,
                   );
                 },
               ),

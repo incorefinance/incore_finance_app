@@ -5,7 +5,7 @@ import 'package:incore_finance/l10n/app_localizations.dart';
 import '../../../core/app_export.dart';
 import '../../../models/payment_method.dart';
 import '../../../models/transaction_category.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../utils/category_localizer.dart';
 import '../../../utils/payment_localizer.dart';
 import '../transactions_list.dart' show TransactionTypeFilter;
@@ -151,13 +151,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               padding: EdgeInsets.symmetric(vertical: 1.4.h),
               decoration: BoxDecoration(
                 color: isSelected && !isDisabled
-                    ? AppColors.blueBg50
-                    : AppColors.surfaceGlass80Light,
+                    ? context.blue50
+                    : context.surfaceGlass80,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isSelected && !isDisabled
-                      ? AppColors.blue600.withValues(alpha: 0.25)
-                      : AppColors.borderGlass60Light,
+                      ? context.blue600.withValues(alpha: 0.25)
+                      : context.borderGlass60,
                   width: 1,
                 ),
               ),
@@ -169,14 +169,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     height: 40,
                     decoration: BoxDecoration(
                       color: isSelected && !isDisabled
-                          ? AppColors.blueBg50
-                          : AppColors.surfaceGlass80Light,
+                          ? context.blue50
+                          : context.surfaceGlass80,
                       borderRadius:
                           BorderRadius.circular(AppTheme.radiusIconBox),
                       border: isSelected && !isDisabled
                           ? null
                           : Border.all(
-                              color: AppColors.borderGlass60Light,
+                              color: context.borderGlass60,
                               width: 1,
                             ),
                     ),
@@ -184,10 +184,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       child: CustomIconWidget(
                         iconName: iconName,
                         color: isDisabled
-                            ? AppColors.slate400
+                            ? context.slate400
                             : (isSelected
-                                ? AppColors.blue600
-                                : AppColors.slate400),
+                                ? context.blue600
+                                : context.slate400),
                         size: 20,
                       ),
                     ),
@@ -202,10 +202,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: isDisabled
-                            ? AppColors.slate400
+                            ? context.slate400
                             : (isSelected
-                                ? AppColors.blue600
-                                : AppColors.slate500),
+                                ? context.blue600
+                                : context.slate500),
                         fontWeight:
                             isSelected && !isDisabled ? FontWeight.w600 : FontWeight.w400,
                       ),
@@ -234,20 +234,20 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppColors.blueBg50
-                : AppColors.surfaceGlass80Light,
+                ? context.blue50
+                : context.surfaceGlass80,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
-                  ? AppColors.blue600.withValues(alpha: 0.25)
-                  : AppColors.borderGlass60Light,
+                  ? context.blue600.withValues(alpha: 0.25)
+                  : context.borderGlass60,
               width: 1,
             ),
           ),
           child: Text(
             label,
             style: theme.textTheme.labelMedium?.copyWith(
-              color: isSelected ? AppColors.blue600 : AppColors.slate500,
+              color: isSelected ? context.blue600 : context.slate500,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
@@ -266,22 +266,22 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
       if (isSelected) {
         if (type == TransactionTypeFilter.income) {
-          bgColor = AppColors.tealBg80;
-          borderColor = AppColors.tealBorder50;
-          textColor = AppColors.teal700;
+          bgColor = context.tealBg80;
+          borderColor = context.tealBorder50;
+          textColor = context.teal700;
         } else if (type == TransactionTypeFilter.expense) {
-          bgColor = AppColors.roseBg80;
-          borderColor = AppColors.roseBorder50;
-          textColor = AppColors.rose700;
+          bgColor = context.roseBg80;
+          borderColor = context.roseBorder50;
+          textColor = context.rose700;
         } else {
-          bgColor = AppColors.blueBg50;
-          borderColor = AppColors.blue600.withValues(alpha: 0.25);
-          textColor = AppColors.blue600;
+          bgColor = context.blue50;
+          borderColor = context.blue600.withValues(alpha: 0.25);
+          textColor = context.blue600;
         }
       } else {
         bgColor = Colors.transparent;
         borderColor = Colors.transparent;
-        textColor = AppColors.slate500;
+        textColor = context.slate500;
       }
 
       return Expanded(
@@ -319,10 +319,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       return Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: AppColors.surfaceGlass80Light,
+          color: context.surfaceGlass80,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: AppColors.borderGlass60Light,
+            color: context.borderGlass60,
             width: 1,
           ),
         ),
@@ -343,7 +343,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           Text(
             title,
             style: theme.textTheme.titleSmall?.copyWith(
-              color: AppColors.slate500,
+              color: context.slate500,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -392,7 +392,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.canvasFrostedLight,
+        color: context.canvasFrosted,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
@@ -414,7 +414,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   height: 4,
                   margin: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.slate400,
+                    color: context.slate400,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -428,7 +428,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       Text(
                         l10n.filterTransactions,
                         style: theme.textTheme.titleLarge?.copyWith(
-                          color: AppColors.slate900,
+                          color: context.slate900,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -437,7 +437,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         child: Text(
                           l10n.clearAll,
                           style: theme.textTheme.labelLarge?.copyWith(
-                            color: AppColors.rose600,
+                            color: context.rose600,
                           ),
                         ),
                       ),
@@ -446,7 +446,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 ),
 
                 SizedBox(height: 1.h),
-                Divider(color: AppColors.dividerGlass60Light),
+                Divider(color: context.dividerGlass60),
 
                 Flexible(
                   child: SingleChildScrollView(
@@ -461,7 +461,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         Text(
                           l10n.transactionType,
                           style: theme.textTheme.labelMedium?.copyWith(
-                            color: AppColors.slate500,
+                            color: context.slate500,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -474,7 +474,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         Text(
                           l10n.dateRange,
                           style: theme.textTheme.labelMedium?.copyWith(
-                            color: AppColors.slate500,
+                            color: context.slate500,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -497,7 +497,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         Text(
                           l10n.category,
                           style: theme.textTheme.labelMedium?.copyWith(
-                            color: AppColors.slate500,
+                            color: context.slate500,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -516,7 +516,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         Text(
                           l10n.paymentMethod,
                           style: theme.textTheme.labelMedium?.copyWith(
-                            color: AppColors.slate500,
+                            color: context.slate500,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -529,7 +529,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   ),
                 ),
 
-                Divider(color: AppColors.dividerGlass60Light),
+                Divider(color: context.dividerGlass60),
 
                 // Apply button
                 Padding(
@@ -543,7 +543,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         // Parent handles pop
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.blue600,
+                        backgroundColor: context.blue600,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),

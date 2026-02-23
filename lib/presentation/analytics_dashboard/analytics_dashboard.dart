@@ -26,6 +26,7 @@ import 'package:incore_finance/models/transaction_category.dart';
 import 'package:incore_finance/core/state/transactions_change_notifier.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
 import '../../domain/analytics/interpreters/income_vs_expenses_interpreter.dart';
 import '../../domain/analytics/interpreters/cash_balance_trend_interpreter.dart';
 import '../../domain/analytics/interpreters/profit_trend_interpreter.dart';
@@ -37,6 +38,7 @@ import './widgets/safety_buffer_section.dart';
 import './widgets/protection_coverage_card.dart';
 import '../../services/protection_ledger_repository.dart';
 import '../../models/protection_snapshot.dart';
+import '../../models/protection_monthly_point.dart';
 import '../../domain/guidance/insight.dart';
 import '../../domain/guidance/insight_id.dart';
 import '../../domain/guidance/insight_severity.dart';
@@ -191,6 +193,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
   SafetyBufferSnapshot? _safetyBufferSnapshot;
   TaxShieldSnapshot? _taxShieldSnapshot;
   ProtectionSnapshot? _protectionSnapshot;
+  List<ProtectionMonthlyPoint> _protectionMonthlySeries = [];
   final TaxShieldSettingsStore _taxShieldSettingsStore = TaxShieldSettingsStore();
   double _taxShieldPercent = TaxShieldSettingsStore.defaultPercent;
 
@@ -390,6 +393,18 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
       } catch (e) {
         AppLogger.w('Failed to load protection snapshot', error: e);
         _protectionSnapshot = null;
+      }
+
+      // Fetch protection monthly series for sparklines
+      try {
+        final seriesData =
+            await _protectionLedgerRepository.getProtectionMonthlySeries(months: 6);
+        _protectionMonthlySeries = seriesData
+            .map((m) => ProtectionMonthlyPoint.fromMap(m))
+            .toList();
+      } catch (e) {
+        AppLogger.w('Failed to load protection monthly series', error: e);
+        _protectionMonthlySeries = [];
       }
 
       // Load income type from user profile
@@ -662,6 +677,14 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
         return 14;
       case InsightId.expenseSpike:
         return 14;
+      case InsightId.budgetOverspend:
+        return 7;
+      case InsightId.budgetPacing:
+        return 7;
+      case InsightId.volatileIncome:
+        return 30;
+      case InsightId.tightBudget:
+        return 30;
     }
   }
 
@@ -676,6 +699,14 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
         return l10n.insightMissingIncomeTitle;
       case InsightId.expenseSpike:
         return l10n.insightExpenseSpikeTitle;
+      case InsightId.budgetOverspend:
+        return l10n.insightBudgetOverspendTitle;
+      case InsightId.budgetPacing:
+        return l10n.insightBudgetPacingTitle;
+      case InsightId.volatileIncome:
+        return l10n.insightVolatileIncomeTitle;
+      case InsightId.tightBudget:
+        return l10n.insightTightBudgetTitle;
     }
   }
 
@@ -719,6 +750,14 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
             ? DateFormat.MMM(_dateLocale).format(_expenseSpikePriorMonthStart!)
             : '';
         return l10n.insightExpenseSpikeBody(recentMonth, priorMonth);
+      case InsightId.budgetOverspend:
+        return l10n.insightBudgetOverspendBody;
+      case InsightId.budgetPacing:
+        return l10n.insightBudgetPacingBody;
+      case InsightId.volatileIncome:
+        return l10n.insightVolatileIncomeBody;
+      case InsightId.tightBudget:
+        return l10n.insightTightBudgetBody;
     }
   }
 
@@ -931,6 +970,13 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
         return [
           l10n.insightDetailDowntrendStreak(streak),
         ];
+
+      case InsightId.budgetOverspend:
+      case InsightId.budgetPacing:
+      case InsightId.volatileIncome:
+      case InsightId.tightBudget:
+        // Budget insights don't have additional detail lines yet
+        return null;
     }
   }
 
@@ -1143,10 +1189,10 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
               : null,
           padding: EdgeInsets.all(4.w),
           decoration: BoxDecoration(
-            color: AppColors.surfaceGlass80Light,
+            color: context.surfaceGlass80,
             borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
             border: Border.all(
-              color: AppColors.borderGlass60Light,
+              color: context.borderGlass60,
               width: 1,
             ),
           ),
@@ -1729,10 +1775,10 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
         child: Container(
           padding: EdgeInsets.all(4.w),
           decoration: BoxDecoration(
-            color: AppColors.surfaceGlass80Light,
+            color: context.surfaceGlass80,
             borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
             border: Border.all(
-              color: AppColors.borderGlass60Light,
+              color: context.borderGlass60,
               width: 1,
             ),
           ),
@@ -1818,7 +1864,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       appBar: null,
       body: SafeArea(
         bottom: false,
@@ -1826,7 +1872,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
           onRefresh: _handleRefresh,
           color: Theme.of(context).colorScheme.primary,
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(child: CircularProgressIndicator(color: context.blue600))
               : _loadError != null
                   ? AppErrorWidget(
                       error: _loadError!,
@@ -1909,13 +1955,15 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                                 child: ProtectionCoverageCard(
                                   taxProtected: _protectionSnapshot!.taxProtected,
                                   safetyProtected: _protectionSnapshot!.safetyProtected,
-                                  safeToSpend: _protectionSnapshot!.safeToSpend,
                                   avgMonthlyExpenses: _protectionSnapshot!.avgMonthlyExpenses,
                                   monthsUsed: _protectionSnapshot!.monthsUsed,
                                   confidence: _protectionSnapshot!.confidence,
                                   locale: _currencyLocale,
                                   symbol: _currencySymbol,
                                   currencyCode: _currencyCode,
+                                  taxPercent: (_taxShieldPercent * 100).round(),
+                                  monthlySeries: _protectionMonthlySeries,
+                                  monthsCount: 6,
                                 ),
                               )
                             else
@@ -1995,7 +2043,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                                             .titleMedium
                                             ?.copyWith(
                                               fontWeight: FontWeight.w700,
-                                              color: AppColors.slate500,
+                                              color: context.slate500,
                                             ),
                                       ),
                                       SegmentedButton<_AnalyticsRange>(
@@ -2024,7 +2072,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                                         style: ButtonStyle(
                                           backgroundColor: WidgetStateProperty.resolveWith((states) {
                                             if (states.contains(WidgetState.selected)) {
-                                              return AppColors.blue600;
+                                              return context.blue600;
                                             }
                                             return Colors.transparent;
                                           }),
@@ -2032,7 +2080,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                                             if (states.contains(WidgetState.selected)) {
                                               return Colors.white;
                                             }
-                                            return AppColors.slate500;
+                                            return context.slate500;
                                           }),
                                         ),
                                       ),
@@ -2042,7 +2090,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                                   Text(
                                     l10n.appliesToChartsBelow,
                                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppColors.slate400,
+                                      color: context.slate400,
                                     ),
                                   ),
                                 ],
@@ -2096,7 +2144,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                                     .titleMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.slate500,
+                                      color: context.slate500,
                                     ),
                               ),
                             ),
@@ -2160,7 +2208,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
                                     .titleMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.slate500,
+                                      color: context.slate500,
                                     ),
                               ),
                             ),
@@ -2247,9 +2295,9 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
         child: Container(
           padding: padding ?? const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surfaceGlass80Light,
+            color: context.surfaceGlass80,
             borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
-            border: Border.all(color: AppColors.borderGlass60Light, width: 1),
+            border: Border.all(color: context.borderGlass60, width: 1),
           ),
           child: child,
         ),
@@ -2280,7 +2328,9 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
           );
         }
 
+        // On narrow screens, stack vertically with full width
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildRecurringExpensesCard(),
             const SizedBox(height: 12),
@@ -2311,7 +2361,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
           Text(
             'Monthly recurring',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.slate500,
+              color: context.slate500,
             ),
           ),
           const SizedBox(height: 8),
@@ -2319,20 +2369,20 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
             currency.format(total),
             style: theme.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.w700,
-              color: AppColors.slate900,
+              color: context.slate900,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'Fixed monthly expenses',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.slate500,
+              color: context.slate500,
             ),
           ),
           Text(
             '$count active items',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.slate400,
+              color: context.slate400,
             ),
           ),
         ],
@@ -2403,7 +2453,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
           Text(
             helper.title,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.blue600,
+              color: context.blue600,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -2411,7 +2461,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
           Text(
             helper.body,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.slate500,
+              color: context.slate500,
               height: 1.35,
             ),
           ),

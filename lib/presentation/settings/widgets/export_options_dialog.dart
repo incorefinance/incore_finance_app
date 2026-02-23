@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../widgets/custom_icon_widget.dart';
 
 /// Dialog for selecting export format
@@ -39,7 +39,7 @@ class ExportOptionsDialog extends StatelessWidget {
             Text(
               'Choose export format',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.slate500,
+                color: context.slate500,
               ),
             ),
             SizedBox(height: 3.h),
@@ -105,7 +105,7 @@ class ExportOptionsDialog extends StatelessWidget {
           padding: EdgeInsets.all(3.w),
           decoration: BoxDecoration(
             border: Border.all(
-              color: AppColors.borderGlass60Light,
+              color: context.borderGlass60,
             ),
             borderRadius: BorderRadius.circular(12),
           ),
@@ -115,14 +115,14 @@ class ExportOptionsDialog extends StatelessWidget {
                 width: 12.w,
                 height: 12.w,
                 decoration: BoxDecoration(
-                  color: AppColors.blueBg50,
+                  color: context.blue50,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
                   child: CustomIconWidget(
                     iconName: iconName,
                     size: 6.w,
-                    color: AppColors.blue600,
+                    color: context.blue600,
                   ),
                 ),
               ),
@@ -141,7 +141,7 @@ class ExportOptionsDialog extends StatelessWidget {
                     Text(
                       subtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.slate500,
+                        color: context.slate500,
                       ),
                     ),
                   ],
@@ -150,7 +150,7 @@ class ExportOptionsDialog extends StatelessWidget {
               CustomIconWidget(
                 iconName: 'arrow_forward_ios',
                 size: 4.w,
-                color: AppColors.slate400,
+                color: context.slate400,
               ),
             ],
           ),

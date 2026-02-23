@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 
 /// Toggle widget for switching between Income and Expense
 class TransactionTypeToggle extends StatelessWidget {
@@ -21,10 +21,10 @@ class TransactionTypeToggle extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.surfaceGlass80Light,
+        color: context.surfaceGlass80,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.borderGlass60Light,
+          color: context.borderGlass60,
           width: 1,
         ),
       ),
@@ -36,7 +36,7 @@ class TransactionTypeToggle extends StatelessWidget {
               label: 'Income',
               icon: 'arrow_downward',
               isSelected: isIncome,
-              color: AppColors.income,
+              color: context.teal600,
               onTap: () {
                 HapticFeedback.selectionClick();
                 onToggle(true);
@@ -50,7 +50,7 @@ class TransactionTypeToggle extends StatelessWidget {
               label: 'Expense',
               icon: 'arrow_upward',
               isSelected: !isIncome,
-              color: AppColors.expense,
+              color: context.rose600,
               onTap: () {
                 HapticFeedback.selectionClick();
                 onToggle(false);
@@ -73,12 +73,12 @@ class TransactionTypeToggle extends StatelessWidget {
     final theme = Theme.of(context);
 
     // Determine income vs expense from the color param (no new params)
-    final isIncomeType = color == AppColors.income;
+    final isIncomeType = color == context.teal600;
 
     // Selected colors based on type
-    final selectedBgColor = isIncomeType ? AppColors.tealBg80 : AppColors.roseBg80;
-    final selectedBorderColor = isIncomeType ? AppColors.tealBorder50 : AppColors.roseBorder50;
-    final selectedTextColor = isIncomeType ? AppColors.teal700 : AppColors.rose700;
+    final selectedBgColor = isIncomeType ? context.tealBg80 : context.roseBg80;
+    final selectedBorderColor = isIncomeType ? context.tealBorder50 : context.roseBorder50;
+    final selectedTextColor = isIncomeType ? context.teal700 : context.rose700;
 
     return Material(
       color: Colors.transparent,
@@ -100,14 +100,14 @@ class TransactionTypeToggle extends StatelessWidget {
               // KEEP existing icon - no changes to icon name or presence
               CustomIconWidget(
                 iconName: icon,
-                color: isSelected ? selectedTextColor : AppColors.slate500,
+                color: isSelected ? selectedTextColor : context.slate500,
                 size: 18,
               ),
               const SizedBox(width: 4),
               Text(
                 label,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: isSelected ? selectedTextColor : AppColors.slate500,
+                  color: isSelected ? selectedTextColor : context.slate500,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),

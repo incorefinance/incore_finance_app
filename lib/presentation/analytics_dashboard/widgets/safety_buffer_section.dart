@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:incore_finance/l10n/app_localizations.dart';
 import '../../../core/app_export.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../domain/safety_buffer/safety_buffer_snapshot.dart';
 import '../../../domain/tax_shield/tax_shield_snapshot.dart';
 import '../../../models/recurring_expense.dart';
@@ -103,7 +103,7 @@ class _SafetyBufferSectionState extends State<SafetyBufferSection> {
     // Amber only when bufferDays is a concrete number < 45.
     // null ("Not enough data") stays neutral.
     final isAmber = days != null && days < 45;
-    const amber = AppColors.warning;
+    final amber = context.warning;
 
     final bgColor = isAmber
         ? amber.withValues(alpha: 0.08)
@@ -220,7 +220,7 @@ class _SafetyBufferSectionState extends State<SafetyBufferSection> {
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    const amber = AppColors.warning;
+    final amber = context.warning;
 
     return Container(
       width: double.infinity,

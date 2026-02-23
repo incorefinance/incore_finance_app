@@ -3,7 +3,7 @@ import 'package:sizer/sizer.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 
 /// Month-over-month comparison metrics card
 /// Displays income and expenses comparison against last month in side-by-side tiles
@@ -104,8 +104,8 @@ class ComparisonMetricsCard extends StatelessWidget {
 
     // Base colors for the tile (semantic: teal for income, rose for expense)
     final Color baseColor = isIncome
-        ? (isDark ? AppColors.teal400 : AppColors.teal600)
-        : (isDark ? AppColors.rose400 : AppColors.rose600);
+        ? (isDark ? context.teal400 : context.teal600)
+        : (isDark ? context.rose400 : context.rose600);
 
     // For income: increase is good (emerald), decrease is bad (rose)
     // For expenses: increase is bad (rose), decrease is good (emerald)
@@ -120,17 +120,17 @@ class ComparisonMetricsCard extends StatelessWidget {
 
     // Text/arrow color matches good/bad context (darker than pill bg)
     final Color trendColor = isGood
-        ? (isDark ? AppColors.emerald400 : AppColors.emerald700)
-        : (isDark ? AppColors.rose400 : AppColors.rose600);
+        ? (isDark ? context.emerald400 : context.emerald700)
+        : (isDark ? context.rose400 : context.rose600);
 
     // Subtle background glow based on good/bad context
     final Color trendBgColor = isGood
         ? (isDark
-            ? AppColors.emerald900.withValues(alpha: 0.10)
-            : AppColors.emerald100.withValues(alpha: 0.50))
+            ? context.emerald900.withValues(alpha: 0.10)
+            : context.emerald100.withValues(alpha: 0.50))
         : (isDark
-            ? AppColors.rose900.withValues(alpha: 0.10)
-            : AppColors.rose100.withValues(alpha: 0.50));
+            ? context.rose900.withValues(alpha: 0.10)
+            : context.rose100.withValues(alpha: 0.50));
 
     return Container(
       padding: EdgeInsets.all(3.w),

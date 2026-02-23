@@ -3,7 +3,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../../utils/number_formatter.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 
 /// Widget for quick transaction templates
 class QuickTemplatesWidget extends StatelessWidget {
@@ -76,7 +76,7 @@ class QuickTemplatesWidget extends StatelessWidget {
         Text(
           'Quick Templates',
           style: theme.textTheme.labelMedium?.copyWith(
-            color: AppColors.slate500,
+            color: context.slate500,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -93,9 +93,9 @@ class QuickTemplatesWidget extends StatelessWidget {
             final isSelected = selectedTemplate == description;
 
             // Colors based on income/expense type
-            final accentColor = isIncome ? AppColors.teal600 : AppColors.rose600;
-            final accentBgColor = isIncome ? AppColors.tealBg80 : AppColors.roseBg80;
-            final accentBorderColor = isIncome ? AppColors.tealBorder50 : AppColors.roseBorder50;
+            final accentColor = isIncome ? context.teal600 : context.rose600;
+            final accentBgColor = isIncome ? context.tealBg80 : context.roseBg80;
+            final accentBorderColor = isIncome ? context.tealBorder50 : context.roseBorder50;
 
             return InkWell(
               onTap: () => onTemplateSelected(
@@ -110,12 +110,12 @@ class QuickTemplatesWidget extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? accentBgColor
-                      : AppColors.surfaceGlass80Light,
+                      : context.surfaceGlass80,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
                         ? accentBorderColor
-                        : AppColors.borderGlass60Light,
+                        : context.borderGlass60,
                     width: 1,
                   ),
                 ),
@@ -154,7 +154,7 @@ class QuickTemplatesWidget extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: isSelected ? accentColor : AppColors.slate900,
+                          color: isSelected ? accentColor : context.slate900,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -164,7 +164,7 @@ class QuickTemplatesWidget extends StatelessWidget {
                     Text(
                       formatted,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: isSelected ? accentColor : AppColors.slate500,
+                        color: isSelected ? accentColor : context.slate500,
                       ),
                     ),
                   ],

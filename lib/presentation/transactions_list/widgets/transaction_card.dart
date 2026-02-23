@@ -5,7 +5,7 @@ import 'package:incore_finance/models/payment_method.dart';
 import 'package:incore_finance/models/transaction_category.dart';
 import 'package:incore_finance/models/transaction_record.dart';
 import 'package:incore_finance/services/user_settings_service.dart';
-import 'package:incore_finance/theme/app_colors.dart';
+import 'package:incore_finance/theme/app_colors_ext.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
 import 'package:sizer/sizer.dart';
 
@@ -113,10 +113,10 @@ class _TransactionCardState extends State<TransactionCard> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.surfaceGlass80Light,
+              color: context.surfaceGlass80,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: AppColors.borderGlass60Light,
+                color: context.borderGlass60,
                 width: 1,
               ),
             ),
@@ -127,13 +127,13 @@ class _TransactionCardState extends State<TransactionCard> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.blueBg50,
+              color: context.blue50,
               borderRadius: BorderRadius.circular(AppTheme.radiusIconBox),
             ),
             child: Center(
               child: CustomIconWidget(
                 iconName: categoryIcon,
-                color: AppColors.blue600,
+                color: context.blue600,
                 size: 20,
               ),
             ),
@@ -153,7 +153,7 @@ class _TransactionCardState extends State<TransactionCard> {
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.slate900,
+                    color: context.slate900,
                   ),
                 ),
                 SizedBox(height: 0.4.h),
@@ -167,7 +167,7 @@ class _TransactionCardState extends State<TransactionCard> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.slate500,
+                          color: context.slate500,
                         ),
                       ),
                     ),
@@ -180,13 +180,13 @@ class _TransactionCardState extends State<TransactionCard> {
                     Icon(
                       Icons.payment,
                       size: 16,
-                      color: AppColors.slate400,
+                      color: context.slate400,
                     ),
                     SizedBox(width: 1.5.w),
                     Text(
                       paymentLabel,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.slate400,
+                        color: context.slate400,
                       ),
                     ),
                   ],
@@ -205,7 +205,7 @@ class _TransactionCardState extends State<TransactionCard> {
                 formattedAmount,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: isExpense ? AppColors.rose700 : AppColors.teal700,
+                  color: isExpense ? context.rose700 : context.teal700,
                 ),
               ),
               SizedBox(height: 0.6.h),
@@ -234,7 +234,7 @@ class _TransactionCardState extends State<TransactionCard> {
                   ],
                 icon: Icon(
                   Icons.more_horiz,
-                  color: AppColors.slate400,
+                  color: this.context.slate400,
                 ),
               ),
             ],

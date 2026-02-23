@@ -251,11 +251,58 @@ abstract final class AppColors {
   /// FAB shadow
   static const Color shadowFabLight = Color.fromRGBO(0, 0, 0, 0.25);
 
-  // ─── Frosted Glass (Dark Mode - for future use) ──────────────────────────
+  // ─── Frosted Glass (Dark Mode) ─────────────────────────────────────────────
 
   static const Color canvasFrostedDark = Color(0xFF0F172A);
   static const Color surfaceGlass80Dark = Color.fromRGBO(15, 23, 42, 0.80);
   static const Color surfaceGlass90Dark = Color.fromRGBO(15, 23, 42, 0.90);
   static const Color borderGlass60Dark = Color.fromRGBO(30, 41, 59, 0.60);
   static const Color dividerGlass60Dark = Color.fromRGBO(51, 65, 85, 0.60);
+
+  // ─── Dark Mode Color Tokens ────────────────────────────────────────────────
+
+  // Blue (Primary/Active States) - Dark Mode
+  static const Color blue50Dark = Color.fromRGBO(23, 37, 84, 0.2);       // blue-950/20
+  static const Color blue100Dark = Color.fromRGBO(30, 58, 138, 0.3);    // blue-900/30
+  static const Color blue300Dark = Color(0xFF1D4ED8);                    // blue-700
+  static const Color blue600Dark = Color(0xFF60A5FA);                    // blue-400 (active tabs, links)
+  static const Color blue700Dark = Color(0xFF93C5FD);                    // blue-300 (hover)
+
+  // Teal (Income) - Dark Mode
+  static const Color teal50Dark = Color.fromRGBO(17, 94, 89, 0.3);      // teal-900/30
+  static const Color teal100Dark = Color.fromRGBO(51, 65, 85, 0.8);     // slate-700/80
+  static const Color teal200Dark = Color(0xFF0F766E);                    // teal-700 (borders)
+  static const Color teal600Dark = Color(0xFF2DD4BF);                    // teal-400 (income text)
+  static const Color teal700Dark = Color(0xFF2DD4BF);                    // teal-400 (bold text)
+
+  // Rose (Expenses) - Dark Mode
+  static const Color rose50Dark = Color.fromRGBO(136, 19, 55, 0.3);     // rose-900/30
+  static const Color rose100Dark = Color.fromRGBO(51, 65, 85, 0.8);     // slate-700/80
+  static const Color rose200Dark = Color(0xFFBE123C);                    // rose-700 (borders)
+  static const Color rose600Dark = Color(0xFFFB7185);                    // rose-400 (expense text)
+  static const Color rose700Dark = Color(0xFFFB7185);                    // rose-400 (bold text)
+
+  // Red (Negative Trends) - Dark Mode
+  static const Color red50Dark = Color.fromRGBO(127, 29, 29, 0.3);      // red-900/30
+  static const Color red600Dark = Color(0xFFF87171);                     // red-400
+
+  // Slate (Neutral UI) - Dark Mode
+  static const Color slate50Dark = Color(0xFF1E293B);                    // slate-800 (card bg)
+  static const Color slate100Dark = Color(0xFF1E293B);                   // slate-800 (button bg)
+  static const Color slate200Dark = Color(0xFF334155);                   // slate-700 (borders)
+  static const Color slate300Dark = Color(0xFF475569);                   // slate-600 (inactive dots)
+  static const Color slate400Dark = Color(0xFF64748B);                   // slate-500 (secondary text)
+  static const Color slate500Dark = Color(0xFF94A3B8);                   // slate-400 (tertiary text)
+  static const Color slate600Dark = Color(0xFF94A3B8);                   // slate-400 (body text)
+  static const Color slate700Dark = Color(0xFFCBD5E1);                   // slate-300 (headings)
+  static const Color slate800Dark = Color(0xFF334155);                   // slate-700 (tooltips)
+  static const Color slate900Dark = Color(0xFFFFFFFF);                   // white (primary text)
+
+  // Amber (Warnings) - Dark Mode
+  static const Color amber100Dark = Color.fromRGBO(120, 53, 15, 0.3);   // amber-900/30
+  static const Color amber700Dark = Color(0xFFFBBF24);                   // amber-400
+
+  // Emerald (Success) - Dark Mode
+  static const Color emerald100Dark = Color.fromRGBO(6, 78, 59, 0.3);   // emerald-900/30
+  static const Color emerald700Dark = Color(0xFF34D399);                 // emerald-400
 }

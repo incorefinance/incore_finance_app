@@ -60,6 +60,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalBalance => 'Total Balance';
 
   @override
+  String get currentTotalBalance => 'Current total balance';
+
+  @override
   String get last30Days => 'Last 30 Days';
 
   @override
@@ -1388,9 +1391,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balance => 'Balance';
 
   @override
-  String safetyCoverageMonths(String months) {
-    return '$months months';
+  String safetyCoverageDays(int days) {
+    return '$days days covered';
   }
+
+  @override
+  String get safetyCoverageMonthOnly => '1 month covered';
+
+  @override
+  String safetyCoverageMonthsOnly(int months) {
+    return '$months months covered';
+  }
+
+  @override
+  String safetyCoverageMonthDays(int months, int days) {
+    return '$months month $days days covered';
+  }
+
+  @override
+  String safetyCoverageMonthsDays(int months, int days) {
+    return '$months months $days days covered';
+  }
+
+  @override
+  String get safetyCoverageExplanation => 'If your income stopped today, this buffer would cover your average expenses for this period.';
 
   @override
   String safetyCoverageBasedOn(String amount) {
@@ -1487,10 +1511,277 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get protectionBasedOnIncome => 'Based on income received';
+
+  @override
+  String protectionCurrentRate(int percent) {
+    return 'Current rate: $percent%';
+  }
+
+  @override
+  String protectionCoversAboutDays(int days) {
+    return 'Covers about $days days';
+  }
+
+  @override
+  String protectionCoversAboutMonthsDays(int months, int days) {
+    return 'Covers about $months months and $days days';
+  }
+
+  @override
+  String get protectionKeepTrackingExpenses => 'Keep tracking expenses to estimate coverage';
+
+  @override
+  String protectionBasedOnExpenseMonths(int count) {
+    return 'Based on $count months of expense data';
+  }
+
+  @override
+  String get protectionConfidenceLow => 'Confidence: Low';
+
+  @override
+  String get protectionConfidenceMedium => 'Confidence: Medium';
+
+  @override
+  String get protectionConfidenceHigh => 'Confidence: High';
+
+  @override
+  String get protectionNoHistory => 'No history yet';
+
+  @override
+  String get toggleMonthly => 'Monthly';
+
+  @override
+  String get toggleTotal => 'Total';
+
+  @override
+  String get sparklineMonthlyChange => 'Monthly change';
+
+  @override
+  String get sparklineTotalOverTime => 'Total over time';
+
+  @override
+  String get safetyBufferBuildsWithIncome => 'Builds with income and decreases when you overspend';
+
+  @override
+  String get safetyBufferBalanceOverTime => 'Your buffer balance over time';
+
+  @override
+  String get safetyBufferCoverageLabel => 'Coverage:';
+
+  @override
+  String coverageApproxDays(int days) {
+    return '~$days days';
+  }
+
+  @override
+  String coverageMonthsOnly(int months) {
+    return '$months months';
+  }
+
+  @override
+  String coverageOneMonthDays(int days) {
+    return '1 month and $days days';
+  }
+
+  @override
+  String coverageMonthsDays(int months, int days) {
+    return '$months months and $days days';
+  }
+
+  @override
   String get monthlyRecurring => 'Monthly recurring';
 
   @override
   String monthlyRecurringTotal(Object amount) {
     return '$amount/mo';
   }
+
+  @override
+  String get monthlyBudget => 'Monthly Budget';
+
+  @override
+  String get monthlyBudgetSuggested => 'Monthly Budget (suggested)';
+
+  @override
+  String weeklyBudgetAmount(String amount) {
+    return '$amount/week';
+  }
+
+  @override
+  String get budgetReserves => 'Reserves';
+
+  @override
+  String get budgetBills => 'Bills';
+
+  @override
+  String budgetBasedOnMonths(int count) {
+    return 'Based on $count months';
+  }
+
+  @override
+  String get budgetKeepTracking => 'Keep tracking income to see your budget';
+
+  @override
+  String get budgetOnTrack => 'On track';
+
+  @override
+  String get budgetSlightlyOver => 'Slightly over budget';
+
+  @override
+  String get budgetOverspend => 'Over budget';
+
+  @override
+  String get budgetConfidenceLow => 'Low confidence';
+
+  @override
+  String get budgetConfidenceMedium => 'Medium confidence';
+
+  @override
+  String get budgetConfidenceHigh => 'High confidence';
+
+  @override
+  String get budgetVolatilityWarning => 'Income is highly variable';
+
+  @override
+  String get budgetTightWarning => 'Budget is tight after reserves';
+
+  @override
+  String get insightBudgetOverspendTitle => 'Over budget';
+
+  @override
+  String get insightBudgetOverspendBody => 'You\'ve spent more than planned for this point in the month. Consider slowing down.';
+
+  @override
+  String get insightBudgetPacingTitle => 'Spending pace is high';
+
+  @override
+  String get insightBudgetPacingBody => 'At this rate, you may exceed your monthly budget. Review recent expenses.';
+
+  @override
+  String get insightTightBudgetTitle => 'Budget is tight';
+
+  @override
+  String get insightTightBudgetBody => 'After reserves, less than 20% of your income is available to spend.';
+
+  @override
+  String get insightVolatileIncomeTitle => 'Income varies a lot';
+
+  @override
+  String get insightVolatileIncomeBody => 'Your income changes significantly month to month. The budget uses a conservative estimate.';
+
+  @override
+  String get taxProtected => 'Tax reserve';
+
+  @override
+  String get safetyProtected => 'Safety buffer';
+
+  @override
+  String get suggestedTax => 'Suggested tax';
+
+  @override
+  String get suggestedSafety => 'Suggested safety';
+
+  @override
+  String get suggestedWeekly => 'Suggested';
+
+  @override
+  String get recurringBills => 'Recurring bills';
+
+  @override
+  String protectedAmount(String amount) {
+    return '$amount protected';
+  }
+
+  @override
+  String get amountsAlreadySetAside => 'These amounts are already set aside';
+
+  @override
+  String suggestedAmount(String amount) {
+    return 'Suggested: $amount';
+  }
+
+  @override
+  String get budgetBillsExceedIncome => 'Your bills exceed available income';
+
+  @override
+  String get stableWeeklyBudgetTitle => 'Stable Weekly Budget';
+
+  @override
+  String weeklyBudgetAmountPerWeek(String amount) {
+    return '$amount/week';
+  }
+
+  @override
+  String basedOnMonths(int count) {
+    return 'Based on $count months';
+  }
+
+  @override
+  String get budgetKeepTrackingStable => 'Keep tracking income to unlock a stable budget';
+
+  @override
+  String get smoothedIncomeLabel => 'Smoothed income';
+
+  @override
+  String get volatilityLabel => 'Volatility';
+
+  @override
+  String get confidenceLabel => 'Confidence';
+
+  @override
+  String get levelLow => 'Low';
+
+  @override
+  String get levelMedium => 'Medium';
+
+  @override
+  String get levelHigh => 'High';
+
+  @override
+  String get pacingOnTrack => 'On track';
+
+  @override
+  String get pacingSlightlyOver => 'Slightly over pace';
+
+  @override
+  String get pacingOver => 'Over pace';
+
+  @override
+  String get weeklySpendingGuide => 'Weekly spending guide';
+
+  @override
+  String get perWeek => '/week';
+
+  @override
+  String get biometricUnlockTitle => 'App Locked';
+
+  @override
+  String biometricUnlockSubtitle(String biometricType) {
+    return 'Use $biometricType to unlock';
+  }
+
+  @override
+  String get biometricUnlockButton => 'Unlock';
+
+  @override
+  String get biometricAuthenticating => 'Authenticating...';
+
+  @override
+  String get biometricAuthFailed => 'Authentication failed. Try again.';
+
+  @override
+  String get biometricLockedOut => 'Too many attempts. Try again later.';
+
+  @override
+  String get biometricVerifyToEnable => 'Verify biometrics to enable';
+
+  @override
+  String get biometricVerificationFailed => 'Verification failed. Please try again.';
+
+  @override
+  String get biometricFaceId => 'Face ID';
+
+  @override
+  String get biometricFingerprint => 'fingerprint';
 }

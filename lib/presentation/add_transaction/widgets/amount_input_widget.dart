@@ -4,7 +4,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../../theme/app_theme.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 
 /// Widget for amount input with currency formatting
 class AmountInputWidget extends StatefulWidget {
@@ -78,10 +78,10 @@ class _AmountInputWidgetState extends State<AmountInputWidget> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceGlass80Light,
+        color: context.surfaceGlass80,
         borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
         border: Border.all(
-          color: AppColors.borderGlass60Light,
+          color: context.borderGlass60,
           width: 1,
         ),
       ),
@@ -91,7 +91,7 @@ class _AmountInputWidgetState extends State<AmountInputWidget> {
           Text(
             'Amount',
             style: theme.textTheme.labelMedium?.copyWith(
-              color: AppColors.slate500,
+              color: context.slate500,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -102,7 +102,7 @@ class _AmountInputWidgetState extends State<AmountInputWidget> {
             inputFormatters: [_formatter],
             style: theme.textTheme.displaySmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: widget.isIncome ? AppColors.teal700 : AppColors.rose700,
+              color: widget.isIncome ? context.teal700 : context.rose700,
             ),
             decoration: InputDecoration(
               border: InputBorder.none,
@@ -111,7 +111,7 @@ class _AmountInputWidgetState extends State<AmountInputWidget> {
               hintText: '${widget.currencySymbol}0.00',
               hintStyle: theme.textTheme.displaySmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.slate400,
+                color: context.slate400,
               ),
               contentPadding: EdgeInsets.zero,
             ),

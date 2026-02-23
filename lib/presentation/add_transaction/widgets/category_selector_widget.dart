@@ -4,7 +4,7 @@ import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
 import '../../../models/transaction_category.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../utils/category_localizer.dart';
 
 /// Widget for selecting transaction category
@@ -40,7 +40,7 @@ class CategorySelectorWidget extends StatelessWidget {
         Text(
           l10n.category,
           style: theme.textTheme.labelMedium?.copyWith(
-            color: AppColors.slate500,
+            color: context.slate500,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -60,13 +60,13 @@ class CategorySelectorWidget extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 1.4.h),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.blueBg50
-                      : AppColors.surfaceGlass80Light,
+                      ? context.blue50
+                      : context.surfaceGlass80,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
-                        ? AppColors.blue600.withValues(alpha: 0.25)
-                        : AppColors.borderGlass60Light,
+                        ? context.blue600.withValues(alpha: 0.25)
+                        : context.borderGlass60,
                     width: 1,
                   ),
                 ),
@@ -79,20 +79,20 @@ class CategorySelectorWidget extends StatelessWidget {
                       height: 40,
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.blueBg50
-                            : AppColors.surfaceGlass80Light,
+                            ? context.blue50
+                            : context.surfaceGlass80,
                         borderRadius: BorderRadius.circular(AppTheme.radiusIconBox),
                         border: isSelected
                             ? null
                             : Border.all(
-                                color: AppColors.borderGlass60Light,
+                                color: context.borderGlass60,
                                 width: 1,
                               ),
                       ),
                       child: Center(
                         child: CustomIconWidget(
                           iconName: cat.iconName,
-                          color: isSelected ? AppColors.blue600 : AppColors.slate400,
+                          color: isSelected ? context.blue600 : context.slate400,
                           size: 20,
                         ),
                       ),
@@ -107,7 +107,7 @@ class CategorySelectorWidget extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: isSelected ? AppColors.blue600 : AppColors.slate500,
+                          color: isSelected ? context.blue600 : context.slate500,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                         ),
                       ),

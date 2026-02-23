@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 
 /// Date range selector widget
 class DateRangeSelectorWidget extends StatelessWidget {
@@ -41,13 +41,13 @@ class DateRangeSelectorWidget extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.primary
-                    : AppColors.borderSubtle.withValues(alpha: 0.15),
+                    ? context.primary
+                    : context.borderSubtle.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                 border: Border.all(
                   color: isSelected
-                      ? AppColors.primary
-                      : AppColors.borderSubtle.withValues(alpha: 0.3),
+                      ? context.primary
+                      : context.borderSubtle.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -56,8 +56,8 @@ class DateRangeSelectorWidget extends StatelessWidget {
                   range,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: isSelected
-                        ? AppColors.surface
-                        : AppColors.textPrimary,
+                        ? context.surface
+                        : context.textPrimary,
                     fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
                     fontSize: 11.sp,
                   ),

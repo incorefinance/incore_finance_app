@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../routes/app_routes.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
 
 /// Screen displayed when the app detects an unrecoverable auth state.
 /// Provides a clear path back to login without exposing technical details.
@@ -22,7 +22,7 @@ class AuthGuardErrorScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -35,7 +35,7 @@ class AuthGuardErrorScreen extends StatelessWidget {
                 Icon(
                   Icons.lock_outline,
                   size: 64,
-                  color: AppColors.error,
+                  color: context.red600,
                 ),
                 const SizedBox(height: 24),
 
@@ -43,7 +43,7 @@ class AuthGuardErrorScreen extends StatelessWidget {
                 Text(
                   l10n?.authErrorTitle ?? 'Session Expired',
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    color: AppColors.slate900,
+                    color: context.slate900,
                     fontWeight: FontWeight.w600,
                   ),
                   textAlign: TextAlign.center,
@@ -55,7 +55,7 @@ class AuthGuardErrorScreen extends StatelessWidget {
                   l10n?.authErrorDescription ??
                       'Your session has ended. Please log in again to continue.',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.slate500,
+                    color: context.slate500,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -69,7 +69,7 @@ class AuthGuardErrorScreen extends StatelessWidget {
                     icon: const Icon(Icons.login, size: 20),
                     label: Text(l10n?.logInAgain ?? 'Log in again'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.blue600,
+                      backgroundColor: context.blue600,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,

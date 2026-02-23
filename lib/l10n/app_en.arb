@@ -17,6 +17,7 @@
     "topExpenses": "Top Expenses",
     "cashBalance": "Cash Balance",
     "totalBalance": "Total Balance",
+    "currentTotalBalance": "Current total balance",
     "last30Days": "Last 30 Days",
     "comparisonTitle": "This Month vs Last Month",
     "income": "Income",
@@ -662,12 +663,34 @@
     "protectionsBuildAfterIncome": "Protections build automatically after your first income.",
     "taxReserve": "Tax reserve",
     "balance": "Balance",
-    "safetyCoverageMonths": "{months} months",
-    "@safetyCoverageMonths": {
+    "safetyCoverageDays": "{days} days covered",
+    "@safetyCoverageDays": {
         "placeholders": {
-            "months": { "type": "String" }
+            "days": { "type": "int" }
         }
     },
+    "safetyCoverageMonthOnly": "1 month covered",
+    "safetyCoverageMonthsOnly": "{months} months covered",
+    "@safetyCoverageMonthsOnly": {
+        "placeholders": {
+            "months": { "type": "int" }
+        }
+    },
+    "safetyCoverageMonthDays": "{months} month {days} days covered",
+    "@safetyCoverageMonthDays": {
+        "placeholders": {
+            "months": { "type": "int" },
+            "days": { "type": "int" }
+        }
+    },
+    "safetyCoverageMonthsDays": "{months} months {days} days covered",
+    "@safetyCoverageMonthsDays": {
+        "placeholders": {
+            "months": { "type": "int" },
+            "days": { "type": "int" }
+        }
+    },
+    "safetyCoverageExplanation": "If your income stopped today, this buffer would cover your average expenses for this period.",
     "safetyCoverageBasedOn": "Based on {amount} average monthly expenses",
     "@safetyCoverageBasedOn": {
         "placeholders": {
@@ -736,6 +759,170 @@
             "amount": { "type": "String" }
         }
     },
+
+    "protectionBasedOnIncome": "Based on income received",
+    "protectionCurrentRate": "Current rate: {percent}%",
+    "@protectionCurrentRate": {
+        "placeholders": {
+            "percent": { "type": "int" }
+        }
+    },
+    "protectionCoversAboutDays": "Covers about {days} days",
+    "@protectionCoversAboutDays": {
+        "placeholders": {
+            "days": { "type": "int" }
+        }
+    },
+    "protectionCoversAboutMonthsDays": "Covers about {months} months and {days} days",
+    "@protectionCoversAboutMonthsDays": {
+        "placeholders": {
+            "months": { "type": "int" },
+            "days": { "type": "int" }
+        }
+    },
+    "protectionKeepTrackingExpenses": "Keep tracking expenses to estimate coverage",
+    "protectionBasedOnExpenseMonths": "Based on {count} months of expense data",
+    "@protectionBasedOnExpenseMonths": {
+        "placeholders": {
+            "count": { "type": "int" }
+        }
+    },
+    "protectionConfidenceLow": "Confidence: Low",
+    "protectionConfidenceMedium": "Confidence: Medium",
+    "protectionConfidenceHigh": "Confidence: High",
+    "protectionNoHistory": "No history yet",
+
+    "toggleMonthly": "Monthly",
+    "toggleTotal": "Total",
+    "sparklineMonthlyChange": "Monthly change",
+    "sparklineTotalOverTime": "Total over time",
+    "safetyBufferBuildsWithIncome": "Builds with income and decreases when you overspend",
+    "safetyBufferBalanceOverTime": "Your buffer balance over time",
+    "safetyBufferCoverageLabel": "Coverage:",
+    "coverageApproxDays": "~{days} days",
+    "@coverageApproxDays": {
+        "placeholders": {
+            "days": { "type": "int" }
+        }
+    },
+    "coverageMonthsOnly": "{months} months",
+    "@coverageMonthsOnly": {
+        "placeholders": {
+            "months": { "type": "int" }
+        }
+    },
+    "coverageOneMonthDays": "1 month and {days} days",
+    "@coverageOneMonthDays": {
+        "placeholders": {
+            "days": { "type": "int" }
+        }
+    },
+    "coverageMonthsDays": "{months} months and {days} days",
+    "@coverageMonthsDays": {
+        "placeholders": {
+            "months": { "type": "int" },
+            "days": { "type": "int" }
+        }
+    },
+
     "monthlyRecurring": "Monthly recurring",
-    "monthlyRecurringTotal": "{amount}/mo"
+    "monthlyRecurringTotal": "{amount}/mo",
+
+    "monthlyBudget": "Monthly Budget",
+    "monthlyBudgetSuggested": "Monthly Budget (suggested)",
+    "weeklyBudgetAmount": "{amount}/week",
+    "@weeklyBudgetAmount": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "budgetReserves": "Reserves",
+    "budgetBills": "Bills",
+    "budgetBasedOnMonths": "Based on {count} months",
+    "@budgetBasedOnMonths": {
+        "placeholders": {
+            "count": { "type": "int" }
+        }
+    },
+    "budgetKeepTracking": "Keep tracking income to see your budget",
+    "budgetOnTrack": "On track",
+    "budgetSlightlyOver": "Slightly over budget",
+    "budgetOverspend": "Over budget",
+    "budgetConfidenceLow": "Low confidence",
+    "budgetConfidenceMedium": "Medium confidence",
+    "budgetConfidenceHigh": "High confidence",
+    "budgetVolatilityWarning": "Income is highly variable",
+    "budgetTightWarning": "Budget is tight after reserves",
+
+    "insightBudgetOverspendTitle": "Over budget",
+    "insightBudgetOverspendBody": "You've spent more than planned for this point in the month. Consider slowing down.",
+    "insightBudgetPacingTitle": "Spending pace is high",
+    "insightBudgetPacingBody": "At this rate, you may exceed your monthly budget. Review recent expenses.",
+    "insightTightBudgetTitle": "Budget is tight",
+    "insightTightBudgetBody": "After reserves, less than 20% of your income is available to spend.",
+    "insightVolatileIncomeTitle": "Income varies a lot",
+    "insightVolatileIncomeBody": "Your income changes significantly month to month. The budget uses a conservative estimate.",
+
+    "taxProtected": "Tax reserve",
+    "safetyProtected": "Safety buffer",
+    "suggestedTax": "Suggested tax",
+    "suggestedSafety": "Suggested safety",
+    "suggestedWeekly": "Suggested",
+    "recurringBills": "Recurring bills",
+    "protectedAmount": "{amount} protected",
+    "@protectedAmount": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "amountsAlreadySetAside": "These amounts are already set aside",
+    "suggestedAmount": "Suggested: {amount}",
+    "@suggestedAmount": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "budgetBillsExceedIncome": "Your bills exceed available income",
+
+    "stableWeeklyBudgetTitle": "Stable Weekly Budget",
+    "weeklyBudgetAmountPerWeek": "{amount}/week",
+    "@weeklyBudgetAmountPerWeek": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "basedOnMonths": "Based on {count} months",
+    "@basedOnMonths": {
+        "placeholders": {
+            "count": { "type": "int" }
+        }
+    },
+    "budgetKeepTrackingStable": "Keep tracking income to unlock a stable budget",
+    "smoothedIncomeLabel": "Smoothed income",
+    "volatilityLabel": "Volatility",
+    "confidenceLabel": "Confidence",
+    "levelLow": "Low",
+    "levelMedium": "Medium",
+    "levelHigh": "High",
+    "pacingOnTrack": "On track",
+    "pacingSlightlyOver": "Slightly over pace",
+    "pacingOver": "Over pace",
+    "weeklySpendingGuide": "Weekly spending guide",
+    "perWeek": "/week",
+
+    "biometricUnlockTitle": "App Locked",
+    "biometricUnlockSubtitle": "Use {biometricType} to unlock",
+    "@biometricUnlockSubtitle": {
+        "placeholders": {
+            "biometricType": { "type": "String" }
+        }
+    },
+    "biometricUnlockButton": "Unlock",
+    "biometricAuthenticating": "Authenticating...",
+    "biometricAuthFailed": "Authentication failed. Try again.",
+    "biometricLockedOut": "Too many attempts. Try again later.",
+    "biometricVerifyToEnable": "Verify biometrics to enable",
+    "biometricVerificationFailed": "Verification failed. Please try again.",
+    "biometricFaceId": "Face ID",
+    "biometricFingerprint": "fingerprint"
 }

@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
 import 'package:incore_finance/l10n/app_localizations.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../models/recurring_expense.dart';
 
 /// Bottom sheet offering one-tap mitigation actions for pressure point alerts.
@@ -99,7 +99,7 @@ class _PressurePointActionsSheetState extends State<PressurePointActionsSheet> {
                 height: 4,
                 margin: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.borderSubtle,
+                  color: context.borderSubtle,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

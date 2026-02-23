@@ -17,6 +17,7 @@
     "topExpenses": "Principais Despesas",
     "cashBalance": "Saldo Disponível",
     "totalBalance": "Saldo Total",
+    "currentTotalBalance": "Saldo total atual",
     "last30Days": "Últimos 30 Dias",
     "comparisonTitle": "Este Mês vs Mês Anterior",
     "income": "Receita",
@@ -635,12 +636,34 @@
     "protectionsBuildAfterIncome": "As proteções são criadas automaticamente após a primeira receita.",
     "taxReserve": "Reserva de impostos",
     "balance": "Saldo",
-    "safetyCoverageMonths": "{months} meses",
-    "@safetyCoverageMonths": {
+    "safetyCoverageDays": "{days} dias cobertos",
+    "@safetyCoverageDays": {
         "placeholders": {
-            "months": { "type": "String" }
+            "days": { "type": "int" }
         }
     },
+    "safetyCoverageMonthOnly": "1 mês coberto",
+    "safetyCoverageMonthsOnly": "{months} meses cobertos",
+    "@safetyCoverageMonthsOnly": {
+        "placeholders": {
+            "months": { "type": "int" }
+        }
+    },
+    "safetyCoverageMonthDays": "{months} mês {days} dias cobertos",
+    "@safetyCoverageMonthDays": {
+        "placeholders": {
+            "months": { "type": "int" },
+            "days": { "type": "int" }
+        }
+    },
+    "safetyCoverageMonthsDays": "{months} meses {days} dias cobertos",
+    "@safetyCoverageMonthsDays": {
+        "placeholders": {
+            "months": { "type": "int" },
+            "days": { "type": "int" }
+        }
+    },
+    "safetyCoverageExplanation": "Se os seus rendimentos parassem hoje, esta reserva cobriria as suas despesas médias durante este período.",
     "safetyCoverageBasedOn": "Com base em {amount} de despesas médias mensais",
     "@safetyCoverageBasedOn": {
         "placeholders": {
@@ -709,6 +732,170 @@
             "amount": { "type": "String" }
         }
     },
+
+    "protectionBasedOnIncome": "Com base no rendimento registado",
+    "protectionCurrentRate": "Percentagem atual: {percent}%",
+    "@protectionCurrentRate": {
+        "placeholders": {
+            "percent": { "type": "int" }
+        }
+    },
+    "protectionCoversAboutDays": "Cobre cerca de {days} dias",
+    "@protectionCoversAboutDays": {
+        "placeholders": {
+            "days": { "type": "int" }
+        }
+    },
+    "protectionCoversAboutMonthsDays": "Cobre cerca de {months} meses e {days} dias",
+    "@protectionCoversAboutMonthsDays": {
+        "placeholders": {
+            "months": { "type": "int" },
+            "days": { "type": "int" }
+        }
+    },
+    "protectionKeepTrackingExpenses": "Continue a registar despesas para estimar a cobertura",
+    "protectionBasedOnExpenseMonths": "Com base em {count} meses de despesas",
+    "@protectionBasedOnExpenseMonths": {
+        "placeholders": {
+            "count": { "type": "int" }
+        }
+    },
+    "protectionConfidenceLow": "Confiança: Baixa",
+    "protectionConfidenceMedium": "Confiança: Média",
+    "protectionConfidenceHigh": "Confiança: Alta",
+    "protectionNoHistory": "Sem histórico",
+
+    "toggleMonthly": "Mensal",
+    "toggleTotal": "Total",
+    "sparklineMonthlyChange": "Variação mensal",
+    "sparklineTotalOverTime": "Total ao longo do tempo",
+    "safetyBufferBuildsWithIncome": "Aumenta com rendimentos e diminui quando gasta acima do disponível",
+    "safetyBufferBalanceOverTime": "O saldo da sua margem de segurança ao longo do tempo",
+    "safetyBufferCoverageLabel": "Cobertura:",
+    "coverageApproxDays": "~{days} dias",
+    "@coverageApproxDays": {
+        "placeholders": {
+            "days": { "type": "int" }
+        }
+    },
+    "coverageMonthsOnly": "{months} meses",
+    "@coverageMonthsOnly": {
+        "placeholders": {
+            "months": { "type": "int" }
+        }
+    },
+    "coverageOneMonthDays": "1 mês e {days} dias",
+    "@coverageOneMonthDays": {
+        "placeholders": {
+            "days": { "type": "int" }
+        }
+    },
+    "coverageMonthsDays": "{months} meses e {days} dias",
+    "@coverageMonthsDays": {
+        "placeholders": {
+            "months": { "type": "int" },
+            "days": { "type": "int" }
+        }
+    },
+
     "monthlyRecurring": "Recorrente mensal",
-    "monthlyRecurringTotal": "{amount}/mês"
+    "monthlyRecurringTotal": "{amount}/mês",
+
+    "monthlyBudget": "Orçamento Mensal",
+    "monthlyBudgetSuggested": "Orçamento Mensal (sugestão)",
+    "weeklyBudgetAmount": "{amount}/semana",
+    "@weeklyBudgetAmount": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "budgetReserves": "Reservas",
+    "budgetBills": "Contas",
+    "budgetBasedOnMonths": "Baseado em {count} meses",
+    "@budgetBasedOnMonths": {
+        "placeholders": {
+            "count": { "type": "int" }
+        }
+    },
+    "budgetKeepTracking": "Continue a registar rendimentos para ver o seu orçamento",
+    "budgetOnTrack": "Dentro do orçamento",
+    "budgetSlightlyOver": "Ligeiramente acima",
+    "budgetOverspend": "Acima do orçamento",
+    "budgetConfidenceLow": "Confiança baixa",
+    "budgetConfidenceMedium": "Confiança média",
+    "budgetConfidenceHigh": "Confiança alta",
+    "budgetVolatilityWarning": "Rendimento muito variável",
+    "budgetTightWarning": "Orçamento apertado após reservas",
+
+    "insightBudgetOverspendTitle": "Acima do orçamento",
+    "insightBudgetOverspendBody": "Gastou mais do que o planeado para este ponto do mês. Considere abrandar.",
+    "insightBudgetPacingTitle": "Ritmo de gastos elevado",
+    "insightBudgetPacingBody": "A este ritmo, pode ultrapassar o orçamento mensal. Reveja as despesas recentes.",
+    "insightTightBudgetTitle": "Orçamento apertado",
+    "insightTightBudgetBody": "Após reservas, menos de 20% do seu rendimento está disponível para gastar.",
+    "insightVolatileIncomeTitle": "Rendimento muito variável",
+    "insightVolatileIncomeBody": "O seu rendimento muda significativamente de mês para mês. O orçamento usa uma estimativa conservadora.",
+
+    "taxProtected": "Reserva de impostos",
+    "safetyProtected": "Margem de segurança",
+    "suggestedTax": "Impostos sugeridos",
+    "suggestedSafety": "Segurança sugerida",
+    "suggestedWeekly": "Sugestão",
+    "recurringBills": "Despesas recorrentes",
+    "protectedAmount": "{amount} protegido",
+    "@protectedAmount": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "amountsAlreadySetAside": "Valores já protegidos do seu saldo",
+    "suggestedAmount": "Sugestão: {amount}",
+    "@suggestedAmount": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "budgetBillsExceedIncome": "As suas contas excedem o rendimento disponível",
+
+    "stableWeeklyBudgetTitle": "Orçamento semanal estável",
+    "weeklyBudgetAmountPerWeek": "{amount}/semana",
+    "@weeklyBudgetAmountPerWeek": {
+        "placeholders": {
+            "amount": { "type": "String" }
+        }
+    },
+    "basedOnMonths": "Com base em {count} meses",
+    "@basedOnMonths": {
+        "placeholders": {
+            "count": { "type": "int" }
+        }
+    },
+    "budgetKeepTrackingStable": "Continue a registar rendimentos para desbloquear um orçamento estável",
+    "smoothedIncomeLabel": "Rendimento suavizado",
+    "volatilityLabel": "Volatilidade",
+    "confidenceLabel": "Confiança",
+    "levelLow": "Baixa",
+    "levelMedium": "Média",
+    "levelHigh": "Alta",
+    "pacingOnTrack": "Dentro do orçamento",
+    "pacingSlightlyOver": "Ligeiramente acima do ritmo",
+    "pacingOver": "Acima do ritmo",
+    "weeklySpendingGuide": "Guia de despesas semanais",
+    "perWeek": "/semana",
+
+    "biometricUnlockTitle": "App Bloqueada",
+    "biometricUnlockSubtitle": "Use {biometricType} para desbloquear",
+    "@biometricUnlockSubtitle": {
+        "placeholders": {
+            "biometricType": { "type": "String" }
+        }
+    },
+    "biometricUnlockButton": "Desbloquear",
+    "biometricAuthenticating": "A autenticar...",
+    "biometricAuthFailed": "Autenticação falhou. Tente novamente.",
+    "biometricLockedOut": "Demasiadas tentativas. Tente mais tarde.",
+    "biometricVerifyToEnable": "Verifique biometria para ativar",
+    "biometricVerificationFailed": "Verificação falhou. Tente novamente.",
+    "biometricFaceId": "Face ID",
+    "biometricFingerprint": "impressão digital"
 }

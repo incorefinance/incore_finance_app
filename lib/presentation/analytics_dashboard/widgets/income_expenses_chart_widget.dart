@@ -5,7 +5,7 @@ import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
 import '../../../theme/app_theme.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../utils/number_formatter.dart';
 import 'chart_constants.dart';
 
@@ -65,7 +65,7 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
                 return BarTooltipItem(
                   '$month\n$type: $formattedValue',
                   theme.textTheme.bodySmall!.copyWith(
-                    color: AppColors.surface,
+                    color: context.surface,
                     fontWeight: FontWeight.w600,
                   ),
                 );
@@ -143,7 +143,7 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
             horizontalInterval: _getNiceYAxisInterval(),
             getDrawingHorizontalLine: (value) {
               return FlLine(
-                color: AppColors.borderSubtle.withValues(
+                color: context.borderSubtle.withValues(
                     alpha: AnalyticsChartConstants.gridLineAlpha),
                 strokeWidth: 1,
               );
@@ -234,7 +234,7 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
       // Make bars fully solid (no alpha) to avoid washed out look.
       // Use a subtle outline only for the touched group.
       final BorderSide touchOutline = BorderSide(
-        color: AppColors.textPrimary.withValues(alpha: 0.12),
+        color: context.textPrimary.withValues(alpha: 0.12),
         width: 1,
       );
 
@@ -244,14 +244,14 @@ class _IncomeExpensesChartWidgetState extends State<IncomeExpensesChartWidget> {
         barRods: [
           BarChartRodData(
             toY: (data['income'] as num).toDouble(),
-            color: AppColors.income,
+            color: context.income,
             width: rodWidth,
             borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             borderSide: isTouched ? touchOutline : BorderSide.none,
           ),
           BarChartRodData(
             toY: (data['expenses'] as num).toDouble(),
-            color: AppColors.expense,
+            color: context.expense,
             width: rodWidth,
             borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             borderSide: isTouched ? touchOutline : BorderSide.none,

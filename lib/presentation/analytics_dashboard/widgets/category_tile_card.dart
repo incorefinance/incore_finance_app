@@ -3,7 +3,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 import '../../../utils/number_formatter.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 
 /// Generalized category tile card for income/expense breakdown.
 /// Based on ExpenseCategoryCard but works for both income and expenses.
@@ -75,13 +75,13 @@ class CategoryTileCard extends StatelessWidget {
             padding: EdgeInsets.all(2.w),
             decoration: BoxDecoration(
               color: isOthersCard
-                  ? AppColors.borderSubtle.withValues(alpha: 0.6)
+                  ? context.borderSubtle.withValues(alpha: 0.6)
                   : accentColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             ),
             child: CustomIconWidget(
               iconName: categoryIcon,
-              color: isOthersCard ? AppColors.textSecondary : accentColor,
+              color: isOthersCard ? context.textSecondary : accentColor,
               size: 22,
             ),
           ),
@@ -116,7 +116,7 @@ class CategoryTileCard extends StatelessWidget {
           Text(
             percentLabel,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: AppColors.textSecondary,
+              color: context.textSecondary,
             ),
           ),
         ],

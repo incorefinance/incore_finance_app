@@ -9,7 +9,7 @@ import 'package:sizer/sizer.dart';
 import '../../domain/entitlements/plan_type.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/subscription/subscription_service.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
 import '../../utils/snackbar_helper.dart';
 
 /// Subscription management screen showing current plan status.
@@ -92,13 +92,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       appBar: AppBar(
         title: Text(l10n.subscription),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: AppColors.canvasFrostedLight,
-        foregroundColor: AppColors.slate900,
+        backgroundColor: context.canvasFrosted,
+        foregroundColor: context.slate900,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -113,7 +113,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                       side: BorderSide(
-                        color: AppColors.borderGlass60Light,
+                        color: context.borderGlass60,
                       ),
                     ),
                     child: Padding(
@@ -124,8 +124,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: _currentPlan == PlanType.premium
-                                  ? AppColors.blueBg50
-                                  : AppColors.surfaceGlass80Light,
+                                  ? context.blue50
+                                  : context.surfaceGlass80,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -134,8 +134,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                   : Icons.account_circle_outlined,
                               size: 48,
                               color: _currentPlan == PlanType.premium
-                                  ? AppColors.blue600
-                                  : AppColors.slate400,
+                                  ? context.blue600
+                                  : context.slate400,
                             ),
                           ),
                           SizedBox(height: 2.h),
@@ -154,7 +154,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                 : l10n.freeDescription,
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.slate500,
+                              color: context.slate500,
                             ),
                           ),
                         ],
@@ -188,7 +188,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       icon: const Icon(Icons.rocket_launch_outlined),
                       label: Text(l10n.upgradeToPremium),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.blue600,
+                        backgroundColor: context.blue600,
                         foregroundColor: Colors.white,
                         padding: EdgeInsets.symmetric(vertical: 1.5.h),
                         shape: RoundedRectangleBorder(
@@ -208,7 +208,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             height: 16,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: AppColors.blue600,
+                              color: context.blue600,
                             ),
                           )
                         : const Icon(Icons.refresh),
@@ -235,7 +235,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: AppColors.borderGlass60Light,
+          color: context.borderGlass60,
         ),
       ),
       child: Padding(
@@ -258,13 +258,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.blueBg50,
+                        color: context.blue50,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         feature.$1,
                         size: 20,
-                        color: AppColors.blue600,
+                        color: context.blue600,
                       ),
                     ),
                     SizedBox(width: 3.w),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 
 /// Financial ratio card widget
 class FinancialRatioCardWidget extends StatelessWidget {
@@ -37,7 +37,7 @@ class FinancialRatioCardWidget extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowLight,
+            color: context.shadowCard,
             offset: const Offset(0, 2),
             blurRadius: 8,
             spreadRadius: 0,
@@ -72,7 +72,7 @@ class FinancialRatioCardWidget extends StatelessWidget {
                 message: description,
                 child: CustomIconWidget(
                   iconName: 'info_outline',
-                  color: AppColors.textSecondary,
+                  color: context.textSecondary,
                   size: 20,
                 ),
               ),
@@ -90,7 +90,7 @@ class FinancialRatioCardWidget extends StatelessWidget {
           Text(
             description,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.textSecondary,
+              color: context.textSecondary,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

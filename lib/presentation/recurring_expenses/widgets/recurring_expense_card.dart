@@ -5,6 +5,7 @@ import 'package:incore_finance/l10n/app_localizations.dart';
 import '../../../core/app_export.dart';
 import '../../../models/recurring_expense.dart';
 import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../utils/number_formatter.dart';
 
 /// Recurring Expense Card - Displays a single recurring expense item
@@ -48,10 +49,10 @@ class RecurringExpenseCard extends StatelessWidget {
       child: Container(
         margin: EdgeInsets.only(bottom: 1.2.h),
         decoration: BoxDecoration(
-          color: AppColors.surfaceGlass80Light,
+          color: context.surfaceGlass80,
           borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
           border: Border.all(
-            color: AppColors.borderGlass60Light,
+            color: context.borderGlass60,
             width: 1,
           ),
           boxShadow: AppShadows.cardLight,
@@ -73,7 +74,7 @@ class RecurringExpenseCard extends StatelessWidget {
                         Text(
                           expense.name,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: AppColors.slate900,
+                            color: context.slate900,
                             fontWeight: FontWeight.w600,
                           ),
                           maxLines: 1,
@@ -83,7 +84,7 @@ class RecurringExpenseCard extends StatelessWidget {
                         Text(
                           l10n.dueOnDayOfMonth(expense.dueDay),
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.slate500,
+                            color: context.slate500,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -94,7 +95,7 @@ class RecurringExpenseCard extends StatelessWidget {
                   Text(
                     formatted,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: AppColors.slate900,
+                      color: context.slate900,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -114,7 +115,7 @@ class RecurringExpenseCard extends StatelessWidget {
                           icon: Icons.edit_outlined,
                           label: l10n.edit,
                           onPressed: onEdit,
-                          color: AppColors.blue600,
+                          color: context.blue600,
                         ),
                         // Toggle active/inactive button
                         _ActionButton(
@@ -145,14 +146,14 @@ class RecurringExpenseCard extends StatelessWidget {
                     padding:
                         EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.4.h),
                     decoration: BoxDecoration(
-                      color: AppColors.slate400.withValues(alpha: 0.15),
+                      color: context.slate400.withValues(alpha: 0.15),
                       borderRadius:
                           BorderRadius.circular(AppTheme.radiusSmall),
                     ),
                     child: Text(
                       l10n.inactive,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.slate500,
+                        color: context.slate500,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

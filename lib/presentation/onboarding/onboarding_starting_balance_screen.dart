@@ -4,7 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../core/app_export.dart';
 import '../../services/user_settings_service.dart';
 import '../../services/user_financial_baseline_repository.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
 import '../../utils/number_formatter.dart';
 
 /// Starting balance screen - Third step of the onboarding flow.
@@ -108,7 +108,7 @@ class _OnboardingStartingBalanceScreenState
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -128,7 +128,7 @@ class _OnboardingStartingBalanceScreenState
               Text(
                 'This helps show an accurate cash position. You can skip this and add it later.',
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: AppColors.slate500,
+                  color: context.slate500,
                 ),
               ),
               SizedBox(height: 4.h),
@@ -148,7 +148,7 @@ class _OnboardingStartingBalanceScreenState
                         prefixText: '$_currencySymbol ',
                         prefixStyle: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: AppColors.slate500,
+                          color: context.slate500,
                         ),
                         hintText: '0.00',
                         border: OutlineInputBorder(
@@ -166,7 +166,7 @@ class _OnboardingStartingBalanceScreenState
                     ? 'Negative balance (you owe money)'
                     : 'Positive balance (you have money)',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.slate400,
+                  color: context.slate400,
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -211,7 +211,7 @@ class _OnboardingStartingBalanceScreenState
   Widget _buildSignToggle(ThemeData theme, ColorScheme colorScheme) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.borderGlass60Light),
+        border: Border.all(color: context.borderGlass60),
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       ),
       child: Row(
@@ -255,7 +255,7 @@ class _OnboardingStartingBalanceScreenState
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.8.h),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.blueBg50 : Colors.transparent,
+          color: isSelected ? context.blue50 : Colors.transparent,
           borderRadius: BorderRadius.horizontal(
             left:
                 isLeft ? Radius.circular(AppTheme.radiusMedium - 1) : Radius.zero,
@@ -268,7 +268,7 @@ class _OnboardingStartingBalanceScreenState
           label,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
-            color: isSelected ? AppColors.blue600 : AppColors.slate500,
+            color: isSelected ? context.blue600 : context.slate500,
           ),
         ),
       ),

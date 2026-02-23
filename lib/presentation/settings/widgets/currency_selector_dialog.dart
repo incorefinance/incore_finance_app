@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../widgets/custom_icon_widget.dart';
 
 /// Dialog for selecting primary currency
@@ -118,8 +118,8 @@ class _CurrencySelectorDialogState extends State<CurrencySelectorDialog> {
           decoration: BoxDecoration(
             border: Border.all(
               color: isSelected
-                  ? AppColors.blue600
-                  : AppColors.borderGlass60Light,
+                  ? context.blue600
+                  : context.borderGlass60,
               width: isSelected ? 2 : 1,
             ),
             borderRadius: BorderRadius.circular(12),
@@ -130,14 +130,14 @@ class _CurrencySelectorDialogState extends State<CurrencySelectorDialog> {
                 width: 10.w,
                 height: 10.w,
                 decoration: BoxDecoration(
-                  color: AppColors.blueBg50,
+                  color: context.blue50,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
                   child: Text(
                     currency['symbol']!,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: AppColors.blue600,
+                      color: context.blue600,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -158,7 +158,7 @@ class _CurrencySelectorDialogState extends State<CurrencySelectorDialog> {
                     Text(
                       currency['name']!,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.slate500,
+                        color: context.slate500,
                       ),
                     ),
                   ],
@@ -168,7 +168,7 @@ class _CurrencySelectorDialogState extends State<CurrencySelectorDialog> {
                 CustomIconWidget(
                   iconName: 'check_circle',
                   size: 5.w,
-                  color: AppColors.blue600,
+                  color: context.blue600,
                 ),
             ],
           ),

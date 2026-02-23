@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/number_formatter.dart';
 
@@ -99,10 +99,10 @@ class SafeToSpendCard extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.surfaceGlass80Light,
+              color: context.surfaceGlass80,
               borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
               border: Border.all(
-                color: AppColors.borderGlass60Light,
+                color: context.borderGlass60,
                 width: 1,
               ),
             ),
@@ -117,11 +117,11 @@ class SafeToSpendCard extends StatelessWidget {
                     Text(
                       l10n.safeToSpend,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: AppColors.slate500,
+                        color: context.slate500,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    _buildWalletIcon(),
+                    _buildWalletIcon(context),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -130,7 +130,7 @@ class SafeToSpendCard extends StatelessWidget {
                 Text(
                   displaySafeToSpend,
                   style: theme.textTheme.displaySmall?.copyWith(
-                    color: AppColors.slate900,
+                    color: context.slate900,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -140,7 +140,7 @@ class SafeToSpendCard extends StatelessWidget {
                 Text(
                   '${l10n.balance} $displayBalance',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.slate400,
+                    color: context.slate400,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -153,9 +153,9 @@ class SafeToSpendCard extends StatelessWidget {
                       child: _MetricTile(
                         label: l10n.income,
                         amount: formattedIncome,
-                        backgroundColor: AppColors.tealBg80,
-                        borderColor: AppColors.tealBorder50,
-                        textColor: AppColors.teal600,
+                        backgroundColor: context.tealBg80,
+                        borderColor: context.tealBorder50,
+                        textColor: context.teal600,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -163,9 +163,9 @@ class SafeToSpendCard extends StatelessWidget {
                       child: _MetricTile(
                         label: l10n.expense,
                         amount: formattedExpenses,
-                        backgroundColor: AppColors.roseBg80,
-                        borderColor: AppColors.roseBorder50,
-                        textColor: AppColors.rose600,
+                        backgroundColor: context.roseBg80,
+                        borderColor: context.roseBorder50,
+                        textColor: context.rose600,
                       ),
                     ),
                   ],
@@ -177,9 +177,9 @@ class SafeToSpendCard extends StatelessWidget {
                       child: _MetricTile(
                         label: l10n.taxReserve,
                         amount: formattedTax,
-                        backgroundColor: AppColors.amber50,
-                        borderColor: AppColors.amber200,
-                        textColor: AppColors.amber700,
+                        backgroundColor: context.amber50,
+                        borderColor: context.amber200,
+                        textColor: context.amber700,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -187,9 +187,9 @@ class SafeToSpendCard extends StatelessWidget {
                       child: _MetricTile(
                         label: l10n.safetyBufferTitle,
                         amount: formattedSafety,
-                        backgroundColor: AppColors.blueBg50,
-                        borderColor: AppColors.borderSubtle,
-                        textColor: AppColors.blue600,
+                        backgroundColor: context.blue50,
+                        borderColor: context.borderSubtle,
+                        textColor: context.blue600,
                       ),
                     ),
                   ],
@@ -202,18 +202,18 @@ class SafeToSpendCard extends StatelessWidget {
     );
   }
 
-  Widget _buildWalletIcon() {
+  Widget _buildWalletIcon(BuildContext context) {
     final iconContainer = Container(
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        color: AppColors.blueBg50,
+        color: context.blue50,
         borderRadius: BorderRadius.circular(AppTheme.radiusIconBox),
       ),
       child: Icon(
         Icons.account_balance_wallet_outlined,
         size: 24,
-        color: AppColors.blue600,
+        color: context.blue600,
       ),
     );
 

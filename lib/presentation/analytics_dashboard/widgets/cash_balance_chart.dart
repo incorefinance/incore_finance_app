@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../utils/number_formatter.dart';
 import 'chart_constants.dart';
 
@@ -128,7 +128,7 @@ class CashBalanceChart extends StatelessWidget {
                         return LineTooltipItem(
                           '${DateFormat('MMM d', uiLocale).format(date)}\n$formattedAmount',
                           theme.textTheme.bodySmall!.copyWith(
-                            color: AppColors.surface,
+                            color: context.surface,
                             fontWeight: FontWeight.w600,
                           ),
                         );
@@ -146,7 +146,7 @@ class CashBalanceChart extends StatelessWidget {
                     }).toList(),
                     isCurved: true,
                     curveSmoothness: 0.25,
-                    color: AppColors.blue600,
+                    color: context.blue600,
                     barWidth: 3,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
@@ -158,7 +158,7 @@ class CashBalanceChart extends StatelessWidget {
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
                           radius: 3,
-                          color: AppColors.blue600,
+                          color: context.blue600,
                           strokeWidth: 1.5,
                           strokeColor: colorScheme.surface,
                         );
@@ -170,8 +170,8 @@ class CashBalanceChart extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          AppColors.blue600.withValues(alpha: 0.22),
-                          AppColors.blue600.withValues(alpha: 0.04),
+                          context.blue600.withValues(alpha: 0.22),
+                          context.blue600.withValues(alpha: 0.04),
                         ],
                       ),
                     ),

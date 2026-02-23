@@ -3,7 +3,7 @@ import 'package:sizer/sizer.dart';
 
 import 'package:incore_finance/l10n/app_localizations.dart';
 import '../../../core/app_export.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 
 /// Bottom sheet for adjusting the tax shield percentage.
 ///
@@ -39,7 +39,7 @@ class _TaxShieldBottomSheetState extends State<TaxShieldBottomSheet> {
     final l10n = AppLocalizations.of(context)!;
 
     return Dialog(
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
@@ -55,14 +55,14 @@ class _TaxShieldBottomSheetState extends State<TaxShieldBottomSheet> {
                 Text(
                   l10n.taxReserveTitle,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.slate600,
+                    color: context.slate600,
                   ),
                 ),
                 Text(
                   '${(_selectedPercent * 100).round()}%',
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.slate900,
+                    color: context.slate900,
                   ),
                 ),
               ],
@@ -73,15 +73,15 @@ class _TaxShieldBottomSheetState extends State<TaxShieldBottomSheet> {
             // Slider
             SliderTheme(
               data: SliderThemeData(
-                activeTrackColor: AppColors.blue600,
-                inactiveTrackColor: AppColors.slate400.withValues(alpha: 0.25),
+                activeTrackColor: context.blue600,
+                inactiveTrackColor: context.slate400.withValues(alpha: 0.25),
                 thumbColor: Colors.white,
                 thumbShape: const RoundSliderThumbShape(
                   enabledThumbRadius: 12,
                   elevation: 2,
                   pressedElevation: 4,
                 ),
-                overlayColor: AppColors.blue600.withValues(alpha: 0.12),
+                overlayColor: context.blue600.withValues(alpha: 0.12),
                 trackHeight: 4,
               ),
               child: Slider(
@@ -105,7 +105,7 @@ class _TaxShieldBottomSheetState extends State<TaxShieldBottomSheet> {
               child: Text(
                 l10n.taxReserveBody,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.slate500,
+                  color: context.slate500,
                 ),
               ),
             ),
@@ -160,7 +160,7 @@ class _TaxShieldBottomSheetState extends State<TaxShieldBottomSheet> {
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.blue600,
+                      backgroundColor: context.blue600,
                       foregroundColor: Colors.white,
                       minimumSize: Size(0, 5.h),
                       shape: RoundedRectangleBorder(
@@ -191,13 +191,13 @@ class _TaxShieldBottomSheetState extends State<TaxShieldBottomSheet> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.blue600
-              : AppColors.surfaceGlass80Light,
+              ? context.blue600
+              : context.surfaceGlass80,
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           border: isSelected
               ? null
               : Border.all(
-                  color: AppColors.borderGlass60Light,
+                  color: context.borderGlass60,
                   width: 1,
                 ),
         ),
@@ -205,7 +205,7 @@ class _TaxShieldBottomSheetState extends State<TaxShieldBottomSheet> {
           child: Text(
             label,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: isSelected ? Colors.white : AppColors.slate500,
+              color: isSelected ? Colors.white : context.slate500,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
             ),
           ),

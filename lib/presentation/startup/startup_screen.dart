@@ -7,7 +7,7 @@ import 'package:superwallkit_flutter/superwallkit_flutter.dart';
 import '../../services/onboarding_service.dart';
 import '../../services/auth_guard.dart';
 import '../../routes/app_routes.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
 import '../auth/widgets/auth_form.dart';
 
 /// Startup screen that waits for auth state and routes based on onboarding status.
@@ -210,7 +210,7 @@ class _StartupScreenState extends State<StartupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       body: SafeArea(
         child: _showAuthForm
             ? const AuthForm()

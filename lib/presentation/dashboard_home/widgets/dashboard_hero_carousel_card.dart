@@ -2,14 +2,16 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../../domain/budgeting/smoothed_budget_snapshot.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/number_formatter.dart';
 
-/// Dashboard Hero Carousel Card - Revolut-style swipeable hero with two pages.
+/// Dashboard Hero Carousel Card - Revolut-style swipeable hero with three pages.
 /// Page 0 (default): Safe to Spend with Tax reserve + Safety buffer pills
 /// Page 1: Total Balance with Income + Expenses pills
+/// Page 2: Monthly Budget with Reserves + Bills pills
 class DashboardHeroCarouselCard extends StatefulWidget {
   final double safeToSpend;
   final double balance;
@@ -26,6 +28,16 @@ class DashboardHeroCarouselCard extends StatefulWidget {
   /// When false, shows helper text explaining protections build from income.
   final bool hasLifetimeIncome;
 
+  /// Optional smoothed budget snapshot for the third page.
+  /// If null, the budget page shows "keep tracking" message.
+  final SmoothedBudgetSnapshot? budgetSnapshot;
+
+  /// Current month income for Page 2 (monthly context).
+  final double currentMonthIncome;
+
+  /// Current month expenses for Page 2 (monthly context).
+  final double currentMonthExpense;
+
   const DashboardHeroCarouselCard({
     super.key,
     required this.safeToSpend,
@@ -39,6 +51,9 @@ class DashboardHeroCarouselCard extends StatefulWidget {
     required this.currencyCode,
     this.onWalletPressed,
     this.hasLifetimeIncome = true,
+    this.budgetSnapshot,
+    this.currentMonthIncome = 0.0,
+    this.currentMonthExpense = 0.0,
   });
 
   @override
@@ -89,10 +104,10 @@ class _DashboardHeroCarouselCardState extends State<DashboardHeroCarouselCard> {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.surfaceGlass80Light,
+              color: context.surfaceGlass80,
               borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
               border: Border.all(
-                color: AppColors.borderGlass60Light,
+                color: context.borderGlass60,
                 width: 1,
               ),
             ),
@@ -101,7 +116,7 @@ class _DashboardHeroCarouselCardState extends State<DashboardHeroCarouselCard> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
-                  height: widget.hasLifetimeIncome ? 210 : 240,
+                  height: 236,
                   child: ScrollConfiguration(
                     behavior: ScrollConfiguration.of(context).copyWith(
                       dragDevices: {
@@ -130,9 +145,17 @@ class _DashboardHeroCarouselCardState extends State<DashboardHeroCarouselCard> {
                         ),
                         _TotalBalancePage(
                           balance: widget.balance,
-                          totalIncome: widget.totalIncome,
-                          totalExpense: widget.totalExpense,
+                          monthlyIncome: widget.currentMonthIncome,
+                          monthlyExpense: widget.currentMonthExpense,
                           currencyCode: widget.currencyCode,
+                          formatMoney: _formatMoney,
+                          onWalletPressed: widget.onWalletPressed,
+                          theme: theme,
+                        ),
+                        _StableWeeklyBudgetPage(
+                          budgetSnapshot: widget.budgetSnapshot,
+                          currentMonthSpending: widget.currentMonthExpense,
+                          dayOfMonth: DateTime.now().day,
                           formatMoney: _formatMoney,
                           onWalletPressed: widget.onWalletPressed,
                           theme: theme,
@@ -144,7 +167,7 @@ class _DashboardHeroCarouselCardState extends State<DashboardHeroCarouselCard> {
                 const SizedBox(height: 12),
                 _DotsIndicator(
                   currentIndex: _currentIndex,
-                  count: 2,
+                  count: 3,
                 ),
               ],
             ),
@@ -193,9 +216,9 @@ class _SafeToSpendPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Safe to spend',
+                l10n.safeToSpend,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.slate500,
+                  color: context.slate500,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -206,7 +229,7 @@ class _SafeToSpendPage extends StatelessWidget {
           Text(
             displayAmount,
             style: theme.textTheme.displaySmall?.copyWith(
-              color: AppColors.slate900,
+              color: context.slate900,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -214,7 +237,7 @@ class _SafeToSpendPage extends StatelessWidget {
           Text(
             currencyCode,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.slate400,
+              color: context.slate400,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -223,50 +246,50 @@ class _SafeToSpendPage extends StatelessWidget {
             children: [
               Expanded(
                 child: _PillTile(
-                  label: 'Tax reserve',
+                  label: l10n.taxProtected,
                   value: formatMoney(taxReserve),
                   icon: Icons.shield_outlined,
-                  backgroundColor: AppColors.amber50,
-                  borderColor: AppColors.amber200,
-                  textColor: AppColors.amber700,
+                  backgroundColor: context.amber50,
+                  borderColor: context.amber200,
+                  textColor: context.amber700,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _PillTile(
-                  label: 'Safety buffer',
+                  label: l10n.safetyProtected,
                   value: formatMoney(safetyBuffer),
                   icon: Icons.savings_outlined,
-                  backgroundColor: AppColors.blueBg50,
-                  borderColor: AppColors.borderSubtle,
-                  textColor: AppColors.blue600,
+                  backgroundColor: context.blue50,
+                  borderColor: context.borderSubtle,
+                  textColor: context.blue600,
                 ),
               ),
             ],
           ),
-          // Helper line: only show when no lifetime income
-          if (!hasLifetimeIncome) ...[
-            const SizedBox(height: 12),
-            Text(
-              l10n.protectionsBuildAfterIncome,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.slate400,
-                fontWeight: FontWeight.w400,
-                fontStyle: FontStyle.italic,
-              ),
+          // Helper line explaining these amounts are set aside
+          const SizedBox(height: 10),
+          Text(
+            hasLifetimeIncome
+                ? l10n.amountsAlreadySetAside
+                : l10n.protectionsBuildAfterIncome,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: context.slate400,
+              fontWeight: FontWeight.w400,
+              fontStyle: FontStyle.italic,
             ),
-          ],
+          ),
         ],
       ),
     );
   }
 }
 
-/// Page 1: Total Balance
+/// Page 1: Total Balance (with monthly income/expense context)
 class _TotalBalancePage extends StatelessWidget {
   final double balance;
-  final double totalIncome;
-  final double totalExpense;
+  final double monthlyIncome;
+  final double monthlyExpense;
   final String currencyCode;
   final String Function(double) formatMoney;
   final VoidCallback? onWalletPressed;
@@ -274,8 +297,8 @@ class _TotalBalancePage extends StatelessWidget {
 
   const _TotalBalancePage({
     required this.balance,
-    required this.totalIncome,
-    required this.totalExpense,
+    required this.monthlyIncome,
+    required this.monthlyExpense,
     required this.currencyCode,
     required this.formatMoney,
     required this.onWalletPressed,
@@ -284,6 +307,7 @@ class _TotalBalancePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final displayAmount =
         balance < 0 ? '- ${formatMoney(balance)}' : formatMoney(balance);
 
@@ -292,63 +316,350 @@ class _TotalBalancePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Title row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Total Balance',
+                l10n.totalBalance,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.slate500,
+                  color: context.slate500,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               _WalletIcon(onPressed: onWalletPressed),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
+          // Hero: Balance amount
           Text(
             displayAmount,
             style: theme.textTheme.displaySmall?.copyWith(
-              color: AppColors.slate900,
+              color: context.slate900,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
+          // Sublabel explaining scope
           Text(
-            currencyCode,
+            l10n.currentTotalBalance,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.slate400,
+              color: context.slate400,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
+          // Section label for monthly context
+          Text(
+            l10n.thisMonth,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: context.slate400,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Pills: Income & Expenses (monthly)
           Row(
             children: [
               Expanded(
                 child: _PillTile(
-                  label: 'Income',
-                  value: formatMoney(totalIncome),
+                  label: l10n.income,
+                  value: formatMoney(monthlyIncome),
                   icon: Icons.trending_up,
-                  backgroundColor: AppColors.tealBg80,
-                  borderColor: AppColors.tealBorder50,
-                  textColor: AppColors.teal600,
+                  backgroundColor: context.tealBg80,
+                  borderColor: context.tealBorder50,
+                  textColor: context.teal600,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _PillTile(
-                  label: 'Expenses',
-                  value: formatMoney(totalExpense),
+                  label: l10n.expenses,
+                  value: formatMoney(monthlyExpense),
                   icon: Icons.trending_down,
-                  backgroundColor: AppColors.roseBg80,
-                  borderColor: AppColors.roseBorder50,
-                  textColor: AppColors.rose600,
+                  backgroundColor: context.roseBg80,
+                  borderColor: context.roseBorder50,
+                  textColor: context.rose600,
                 ),
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Page 2: Stable Weekly Budget
+class _StableWeeklyBudgetPage extends StatelessWidget {
+  final SmoothedBudgetSnapshot? budgetSnapshot;
+  final double currentMonthSpending;
+  final int dayOfMonth;
+  final String Function(double) formatMoney;
+  final VoidCallback? onWalletPressed;
+  final ThemeData theme;
+
+  const _StableWeeklyBudgetPage({
+    required this.budgetSnapshot,
+    required this.currentMonthSpending,
+    required this.dayOfMonth,
+    required this.formatMoney,
+    required this.onWalletPressed,
+    required this.theme,
+  });
+
+  String _volatilityLevel(double cv, AppLocalizations l10n) {
+    if (cv < 0.20) return l10n.levelLow;
+    if (cv <= 0.40) return l10n.levelMedium;
+    return l10n.levelHigh;
+  }
+
+  String _confidenceLevel(BudgetConfidence confidence, AppLocalizations l10n) {
+    switch (confidence) {
+      case BudgetConfidence.low:
+        return l10n.levelLow;
+      case BudgetConfidence.medium:
+        return l10n.levelMedium;
+      case BudgetConfidence.high:
+        return l10n.levelHigh;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    // If no budget data or not enough data, show "keep tracking" message
+    if (budgetSnapshot == null ||
+        !budgetSnapshot!.hasEnoughData ||
+        budgetSnapshot!.weeklySpendable <= 0) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.stableWeeklyBudgetTitle,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: context.slate500,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                _WalletIcon(onPressed: onWalletPressed),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '—',
+              style: theme.textTheme.displaySmall?.copyWith(
+                color: context.slate900,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.budgetKeepTrackingStable,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: context.slate400,
+                fontWeight: FontWeight.w400,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final budget = budgetSnapshot!;
+
+    // Pacing calculation
+    final expectedSpent = budget.dailySpendable * dayOfMonth;
+    final ratio = expectedSpent > 0 ? currentMonthSpending / expectedSpent : 0.0;
+    final progressValue = (ratio / 1.5).clamp(0.0, 1.0);
+
+    // Determine pacing status
+    final bool isOnTrack = ratio <= 1.0;
+    final bool isSlightlyOver = ratio > 1.0 && ratio <= 1.2;
+
+    Color pacingColor;
+    String? pacingText; // null when on track (no label shown)
+    if (isOnTrack) {
+      pacingColor = context.teal600.withValues(alpha: 0.6);
+      pacingText = null; // Don't show label when on track
+    } else if (isSlightlyOver) {
+      pacingColor = context.amber600.withValues(alpha: 0.7);
+      pacingText = l10n.pacingSlightlyOver;
+    } else {
+      pacingColor = context.rose600; // Full opacity for over pace
+      pacingText = l10n.pacingOver;
+    }
+
+    // Inline detail values
+    final smoothedIncomeText = formatMoney(budget.smoothedMonthlyIncome);
+    final volatilityText = _volatilityLevel(budget.incomeVolatility, l10n);
+    final confidenceText = _confidenceLevel(budget.confidence, l10n);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.stableWeeklyBudgetTitle,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: context.slate500,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              _WalletIcon(onPressed: onWalletPressed),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Hero: Weekly amount with smaller /week suffix
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                formatMoney(budget.weeklySpendable),
+                style: theme.textTheme.displaySmall?.copyWith(
+                  color: context.slate900,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                l10n.perWeek,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: context.slate400,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          // Subtitle: Based on X months
+          Text(
+            l10n.basedOnMonths(budget.monthsOfIncomeData),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: context.slate400,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Inline detail row (replaces boxed chips)
+          _buildInlineDetailsRow(
+            context: context,
+            smoothedIncome: smoothedIncomeText,
+            volatility: volatilityText,
+            confidence: confidenceText,
+            l10n: l10n,
+          ),
+          const SizedBox(height: 20),
+          // Weekly spending guide
+          _buildSpendingGuide(
+            context: context,
+            l10n: l10n,
+            progressValue: progressValue,
+            pacingColor: pacingColor,
+            pacingText: pacingText,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds the inline details row with bullet separators.
+  /// Uses Wrap to handle narrow screens gracefully.
+  Widget _buildInlineDetailsRow({
+    required BuildContext context,
+    required String smoothedIncome,
+    required String volatility,
+    required String confidence,
+    required AppLocalizations l10n,
+  }) {
+    final textStyle = theme.textTheme.bodySmall?.copyWith(
+      color: context.slate400,
+      fontWeight: FontWeight.w400,
+      fontSize: 12,
+    );
+
+    final bulletStyle = theme.textTheme.bodySmall?.copyWith(
+      color: context.slate300,
+      fontWeight: FontWeight.w400,
+      fontSize: 12,
+    );
+
+    return Wrap(
+      spacing: 0,
+      runSpacing: 4,
+      children: [
+        Text('${l10n.smoothedIncomeLabel} $smoothedIncome', style: textStyle),
+        Text(' • ', style: bulletStyle),
+        Text('${l10n.volatilityLabel} $volatility', style: textStyle),
+        Text(' • ', style: bulletStyle),
+        Text('${l10n.confidenceLabel} $confidence', style: textStyle),
+      ],
+    );
+  }
+
+  /// Builds the weekly spending guide with progress bar.
+  /// Only shows status text when not on track.
+  Widget _buildSpendingGuide({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required double progressValue,
+    required Color pacingColor,
+    required String? pacingText,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Label
+        Text(
+          l10n.weeklySpendingGuide,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: context.slate400,
+            fontWeight: FontWeight.w500,
+            fontSize: 11,
+          ),
+        ),
+        const SizedBox(height: 6),
+        // Progress bar (thin, rounded)
+        ClipRRect(
+          borderRadius: BorderRadius.circular(3),
+          child: LinearProgressIndicator(
+            value: progressValue,
+            minHeight: 5,
+            backgroundColor: context.slate200,
+            valueColor: AlwaysStoppedAnimation<Color>(pacingColor),
+          ),
+        ),
+        // Status text (only when not on track)
+        if (pacingText != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            pacingText,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: pacingColor,
+              fontWeight: FontWeight.w500,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -365,13 +676,13 @@ class _WalletIcon extends StatelessWidget {
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        color: AppColors.blueBg50,
+        color: context.blue50,
         borderRadius: BorderRadius.circular(AppTheme.radiusIconBox),
       ),
-      child: const Icon(
+      child: Icon(
         Icons.account_balance_wallet_outlined,
         size: 24,
-        color: AppColors.blue600,
+        color: context.blue600,
       ),
     );
 
@@ -474,7 +785,7 @@ class _DotsIndicator extends StatelessWidget {
           width: isActive ? 18 : 6,
           height: 6,
           decoration: BoxDecoration(
-            color: isActive ? AppColors.blue600 : AppColors.slate300,
+            color: isActive ? context.blue600 : context.slate300,
             borderRadius: BorderRadius.circular(99),
           ),
         );

@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/app_colors_ext.dart';
 import '../theme/app_theme.dart';
 
 /// Clearance height for scrollable content to avoid being hidden behind the floating nav bar.
@@ -74,8 +74,8 @@ class CustomBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedColor = AppColors.blue600;
-    final unselectedColor = AppColors.slate400;
+    final selectedColor = context.blue600;
+    final unselectedColor = context.slate400;
 
     final showCenterAdd =
       onAddTransaction != null &&
@@ -202,10 +202,10 @@ class _BarShell extends StatelessWidget {
                       child: Container(
                         height: _pillHeight,
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceGlass90Light,
+                          color: context.surfaceGlass90,
                           borderRadius: BorderRadius.circular(28),
                           border: Border.all(
-                            color: AppColors.borderGlass60Light,
+                            color: context.borderGlass60,
                             width: 1,
                           ),
                         ),

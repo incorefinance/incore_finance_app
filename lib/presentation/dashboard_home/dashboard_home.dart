@@ -18,7 +18,7 @@ import '../../core/errors/app_error.dart';
 import '../../core/errors/app_error_classifier.dart';
 import '../../core/logging/app_logger.dart';
 import '../../l10n/app_localizations.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/app_error_widget.dart';
 import './widgets/monthly_profit_card.dart';
@@ -29,7 +29,12 @@ import '../../domain/safety_buffer/safety_buffer_calculator.dart';
 import '../../domain/safety_buffer/safety_buffer_snapshot.dart';
 import '../../domain/tax_shield/tax_shield_calculator.dart';
 import '../../domain/tax_shield/tax_shield_snapshot.dart';
+import '../../domain/budgeting/smoothed_budget_calculator.dart';
+import '../../domain/budgeting/smoothed_budget_snapshot.dart';
+import '../../domain/onboarding/income_type.dart';
 import '../../data/settings/tax_shield_settings_store.dart';
+import '../../data/settings/safety_buffer_settings_store.dart';
+import '../../data/profile/user_income_repository.dart';
 import '../../services/protection_ledger_repository.dart';
 import '../../models/protection_snapshot.dart';
 import './widgets/safety_buffer_card.dart';
@@ -57,6 +62,9 @@ class _DashboardHomeState extends State<DashboardHome> {
       UserFinancialBaselineRepository();
   final ProtectionLedgerRepository _protectionLedgerRepository =
       ProtectionLedgerRepository();
+  final SafetyBufferSettingsStore _safetyBufferSettingsStore =
+      SafetyBufferSettingsStore();
+  final UserIncomeRepository _userIncomeRepository = UserIncomeRepository();
 
   double _cashBalance = 0.0;
   double _monthlyProfit = 0.0;
@@ -72,10 +80,12 @@ class _DashboardHomeState extends State<DashboardHome> {
   double _totalIncome = 0.0;
   double _totalExpense = 0.0;
   double _currentMonthIncome = 0.0;
+  double _currentMonthExpense = 0.0;
 
   SafetyBufferSnapshot? _safetyBufferSnapshot;
   ProtectionSnapshot? _protectionSnapshot;
   TaxShieldSnapshot? _taxShieldSnapshot;
+  SmoothedBudgetSnapshot? _budgetSnapshot;
   double _taxShieldPercent = TaxShieldSettingsStore.defaultPercent;
   final TaxShieldSettingsStore _taxShieldSettingsStore =
       TaxShieldSettingsStore();
@@ -252,6 +262,27 @@ class _DashboardHomeState extends State<DashboardHome> {
         // Continue without snapshot - will fallback to legacy display
       }
 
+      // ─── Smoothed Budget Calculation ───────────────────────────────────────
+      SmoothedBudgetSnapshot? budgetSnapshot;
+      try {
+        final safetyPercent =
+            await _safetyBufferSettingsStore.getSafetyBufferPercent();
+        final (incomeType, _) = await _userIncomeRepository.getIncomeProfile();
+
+        const budgetCalc = SmoothedBudgetCalculator();
+        budgetSnapshot = budgetCalc.compute(
+          now: now,
+          transactions: allTxs,
+          recurringExpenses: bills,
+          incomeType: incomeType ?? IncomeType.variable,
+          taxReservePercent: taxPercent,
+          safetyReservePercent: safetyPercent,
+        );
+      } catch (e) {
+        AppLogger.w('Failed to compute budget snapshot', error: e);
+        // Continue without budget - carousel will show "keep tracking" message
+      }
+
       // Guard against widget being disposed during async operations
       if (!mounted) return;
 
@@ -260,6 +291,7 @@ class _DashboardHomeState extends State<DashboardHome> {
         _totalIncome = totalIncome;
         _totalExpense = totalExpense;
         _currentMonthIncome = currentIncome;
+        _currentMonthExpense = currentExpense;
         _monthlyProfit = currentProfit;
         _prevMonthProfit = prevProfit;
         _prevMonthHasData = prevHasData;
@@ -270,6 +302,7 @@ class _DashboardHomeState extends State<DashboardHome> {
         _taxShieldSnapshot = taxShield;
         _taxShieldPercent = taxPercent;
         _protectionSnapshot = protectionSnapshot;
+        _budgetSnapshot = budgetSnapshot;
         _isLoadingDashboard = false;
       });
     } catch (e, st) {
@@ -369,12 +402,12 @@ class _DashboardHomeState extends State<DashboardHome> {
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
           onRefresh: _handleRefresh,
-          color: AppColors.primary,
+          color: context.primary,
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
@@ -414,7 +447,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                           height: 20.h,
                           child: Center(
                             child: CircularProgressIndicator(
-                              color: AppColors.primary,
+                              color: context.primary,
                             ),
                           ),
                         ),
@@ -431,7 +464,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                           )
                         : Column(
                         children: [
-                          // Block 1: Hero Carousel (Safe to Spend / Total Balance)
+                          // Block 1: Hero Carousel (Safe to Spend / Total Balance / Monthly Budget)
                           DashboardHeroCarouselCard(
                             safeToSpend: _protectionSnapshot?.safeToSpend ?? _cashBalance,
                             balance: _protectionSnapshot?.balance ?? _cashBalance,
@@ -444,6 +477,9 @@ class _DashboardHomeState extends State<DashboardHome> {
                             currencyCode: _currencySettings.currencyCode,
                             onWalletPressed: null,
                             hasLifetimeIncome: _totalIncome > 0,
+                            budgetSnapshot: _budgetSnapshot,
+                            currentMonthIncome: _currentMonthIncome,
+                            currentMonthExpense: _currentMonthExpense,
                           ),
 
                           // Block 2: Safety Coverage

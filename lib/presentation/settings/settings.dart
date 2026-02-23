@@ -12,7 +12,8 @@ import '../../main.dart';
 import '../../services/onboarding_status_repository.dart';
 import '../../services/subscription/subscription_service.dart';
 import '../../services/user_settings_service.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
+import '../../services/biometric_auth_service.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import './widgets/currency_selector_dialog.dart';
@@ -39,6 +40,7 @@ class _SettingsState extends State<Settings> {
   final _subscriptionService = SubscriptionService();
   final _entitlementService = EntitlementService();
   final _onboardingRepo = OnboardingStatusRepository();
+  final _biometricService = BiometricAuthService();
 
   // User profile
   String? _userName;
@@ -53,6 +55,8 @@ class _SettingsState extends State<Settings> {
   String? _currentCurrency;
   int _firstDayOfWeek = 0; // 0 = Sunday, 1 = Monday
   bool _biometricEnabled = false;
+  bool _biometricSupported = false;
+  BiometricDisplayType _biometricType = BiometricDisplayType.unknown;
   bool _notificationsEnabled = true;
   bool _diagnosticsEnabled = false;
 
@@ -98,13 +102,29 @@ class _SettingsState extends State<Settings> {
     final taxPercent = await _userSettingsService.getTaxShieldPercent();
     final safetyPercent = await _userSettingsService.getSafetyBufferPercent();
 
+    // Check biometric support
+    final isSupported = await _biometricService.isDeviceSupported();
+    var biometricEnabled = prefs.getBool('biometric') ?? false;
+
+    if (isSupported) {
+      await _biometricService.getAvailableBiometrics();
+    }
+
+    // Handle: user enabled biometrics but later removed enrollment
+    if (biometricEnabled && !isSupported) {
+      await _biometricService.setBiometricEnabled(false);
+      biometricEnabled = false;
+    }
+
     if (!mounted) return;
     setState(() {
       _currentLanguage = prefs.getString('language') ?? 'en';
       _isDarkMode = prefs.getBool('darkMode') ?? false;
       _currentCurrency = currencySettings.currencyCode;
       _firstDayOfWeek = prefs.getInt('firstDayOfWeek') ?? 0;
-      _biometricEnabled = prefs.getBool('biometric') ?? false;
+      _biometricEnabled = biometricEnabled;
+      _biometricSupported = isSupported;
+      _biometricType = _biometricService.getPrimaryBiometricType();
       _notificationsEnabled = prefs.getBool('notifications') ?? true;
       _diagnosticsEnabled = prefs.getBool('diagnostics') ?? false;
       _taxPercent = taxPercent;
@@ -129,11 +149,27 @@ class _SettingsState extends State<Settings> {
   void _toggleDarkMode(bool value) {
     setState(() => _isDarkMode = value);
     _saveSettings();
-    MyApp.setLocale(context, Locale(_currentLanguage));
+    MyApp.setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
   }
 
-  void _toggleBiometric(bool value) {
+  Future<void> _toggleBiometric(bool value) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    if (value) {
+      // Require biometric verification to enable (localized)
+      final result = await _biometricService.authenticate(
+        localizedReason: l10n.biometricVerifyToEnable,
+        biometricOnly: true,
+      );
+      if (result != BiometricAuthResult.success) {
+        if (mounted) {
+          SnackbarHelper.showError(context, l10n.biometricVerificationFailed);
+        }
+        return;
+      }
+    }
     setState(() => _biometricEnabled = value);
+    await _biometricService.setBiometricEnabled(value);
     _saveSettings();
   }
 
@@ -316,7 +352,7 @@ class _SettingsState extends State<Settings> {
                       }
                     : null,
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.error,
+                  foregroundColor: context.error,
                 ),
                 child: Text(l10n.delete),
               ),
@@ -417,7 +453,7 @@ class _SettingsState extends State<Settings> {
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       bottomNavigationBar: CustomBottomBar(
         currentItem: BottomBarItem.settings,
         onItemSelected: (_) {},
@@ -460,7 +496,7 @@ class _SettingsState extends State<Settings> {
                     title: l10n.deleteAccount,
                     subtitle: l10n.deleteAccountDesc,
                     onTap: _showDeleteAccountDialog,
-                    iconColor: AppColors.error,
+                    iconColor: context.error,
                     showDivider: false,
                   ),
                 ],
@@ -553,8 +589,8 @@ class _SettingsState extends State<Settings> {
                     trailing: Switch(
                       value: _isDarkMode,
                       onChanged: _toggleDarkMode,
-                      activeThumbColor: AppColors.blue600,
-                      activeTrackColor: AppColors.blueBg50,
+                      activeThumbColor: context.blue600,
+                      activeTrackColor: context.blue50,
                     ),
                     showDivider: true,
                   ),
@@ -642,20 +678,23 @@ class _SettingsState extends State<Settings> {
               _SectionCard(
                 title: l10n.privacySecurity,
                 children: [
-                  SettingTile(
-                    iconName: 'fingerprint',
-                    title: l10n.biometricAuth,
-                    subtitle: _biometricEnabled
-                        ? l10n.biometricEnabled
-                        : l10n.biometricDisabled,
-                    trailing: Switch(
-                      value: _biometricEnabled,
-                      onChanged: _toggleBiometric,
-                      activeThumbColor: AppColors.blue600,
-                      activeTrackColor: AppColors.blueBg50,
+                  if (_biometricSupported)
+                    SettingTile(
+                      iconName: _biometricType == BiometricDisplayType.face
+                          ? 'face_unlock'
+                          : 'fingerprint',
+                      title: l10n.biometricAuth,
+                      subtitle: _biometricEnabled
+                          ? l10n.biometricEnabled
+                          : l10n.biometricDisabled,
+                      trailing: Switch(
+                        value: _biometricEnabled,
+                        onChanged: _toggleBiometric,
+                        activeThumbColor: context.blue600,
+                        activeTrackColor: context.blue50,
+                      ),
+                      showDivider: true,
                     ),
-                    showDivider: true,
-                  ),
                   SettingTile(
                     iconName: 'notifications',
                     title: l10n.notifications,
@@ -665,8 +704,8 @@ class _SettingsState extends State<Settings> {
                     trailing: Switch(
                       value: _notificationsEnabled,
                       onChanged: _toggleNotifications,
-                      activeThumbColor: AppColors.blue600,
-                      activeTrackColor: AppColors.blueBg50,
+                      activeThumbColor: context.blue600,
+                      activeTrackColor: context.blue50,
                     ),
                     showDivider: false,
                   ),
@@ -808,7 +847,7 @@ class _SectionCard extends StatelessWidget {
           child: Text(
             title,
             style: theme.textTheme.titleSmall?.copyWith(
-              color: AppColors.slate500,
+              color: context.slate500,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
             ),
@@ -824,10 +863,10 @@ class _SectionCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.surfaceGlass80Light,
+                color: context.surfaceGlass80,
                 borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
                 border: Border.all(
-                  color: AppColors.borderGlass60Light,
+                  color: context.borderGlass60,
                   width: 1,
                 ),
               ),
@@ -858,7 +897,7 @@ class _UpgradeBanner extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
         child: Material(
-          color: AppColors.blue600,
+          color: context.blue600,
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
@@ -993,14 +1032,14 @@ class _PercentSliderTile extends StatelessWidget {
                     width: 10.w,
                     height: 10.w,
                     decoration: BoxDecoration(
-                      color: AppColors.blueBg50,
+                      color: context.blue50,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(
                       child: Icon(
                         Icons.percent,
                         size: 5.w,
-                        color: AppColors.blue600,
+                        color: context.blue600,
                       ),
                     ),
                   ),
@@ -1032,13 +1071,13 @@ class _PercentSliderTile extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.blueBg50,
+                      color: context.blue50,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       percentDisplay,
                       style: theme.textTheme.labelLarge?.copyWith(
-                        color: AppColors.blue600,
+                        color: context.blue600,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1070,10 +1109,10 @@ class _PercentSliderTile extends StatelessWidget {
               children: [
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: AppColors.blue600,
-                    inactiveTrackColor: AppColors.blueBg50,
-                    thumbColor: AppColors.blue600,
-                    overlayColor: AppColors.blue600.withValues(alpha: 0.12),
+                    activeTrackColor: context.blue600,
+                    inactiveTrackColor: context.blue50,
+                    thumbColor: context.blue600,
+                    overlayColor: context.blue600.withValues(alpha: 0.12),
                     trackHeight: 6,
                     thumbShape: const RoundSliderThumbShape(
                       enabledThumbRadius: 10,

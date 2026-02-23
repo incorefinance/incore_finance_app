@@ -21,7 +21,7 @@ import 'package:incore_finance/l10n/app_localizations.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/app_error_widget.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
 import './widgets/empty_state_widget.dart';
 import './widgets/filter_bottom_sheet.dart';
 import './widgets/transaction_card.dart';
@@ -487,7 +487,7 @@ Future<void> _checkAutoPostRecurringExpenses() async {
                 alignment: Alignment.centerRight,
                 padding: EdgeInsets.only(right: 5.w),
                 decoration: BoxDecoration(
-                  color: AppColors.rose600,
+                  color: context.rose600,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Icon(
@@ -754,7 +754,7 @@ Future<void> _checkAutoPostRecurringExpenses() async {
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -899,7 +899,7 @@ Future<void> _checkAutoPostRecurringExpenses() async {
                                           monthKey,
                                           style: theme.textTheme.titleMedium?.copyWith(
                                             fontWeight: FontWeight.w500,
-                                            color: AppColors.slate500,
+                                            color: context.slate500,
                                           ),
                                         ),
                                       ),

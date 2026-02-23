@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
 
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 
 /// Empty state widget for when no transactions exist (not an error).
 class EmptyStateWidget extends StatelessWidget {
@@ -53,7 +53,7 @@ class EmptyStateWidget extends StatelessWidget {
               icon: const Icon(Icons.add, size: 20, color: Colors.white),
               label: Text(l10n.addTransaction),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: context.primary,
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 1.5.h),
               ),

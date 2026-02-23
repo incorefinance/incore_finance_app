@@ -3,7 +3,7 @@ import 'package:sizer/sizer.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
 
 import '../../../core/app_export.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 
 /// Upcoming Bills Placeholder - Setup-required block for recurring expenses.
 /// Displays a calm, neutral message prompting user to set up recurring expenses.
@@ -25,7 +25,7 @@ class UpcomingBillsPlaceholder extends StatelessWidget {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         border: Border.all(
-          color: AppColors.borderSubtle,
+          color: context.borderSubtle,
           width: 1,
         ),
       ),
@@ -66,10 +66,10 @@ class UpcomingBillsPlaceholder extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.2.h),
               decoration: BoxDecoration(
-                color: AppColors.primaryTint,
+                color: context.primaryTint,
                 borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.2),
+                  color: context.primary.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
@@ -79,13 +79,13 @@ class UpcomingBillsPlaceholder extends StatelessWidget {
                   Icon(
                     Icons.add_rounded,
                     size: 18,
-                    color: AppColors.primary,
+                    color: context.primary,
                   ),
                   SizedBox(width: 1.5.w),
                   Text(
                     l10n.setUpRecurringExpenses,
                     style: theme.textTheme.labelLarge?.copyWith(
-                      color: AppColors.primary,
+                      color: context.primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

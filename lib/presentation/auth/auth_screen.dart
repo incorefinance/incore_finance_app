@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/app_colors.dart';
+import '../../theme/app_colors_ext.dart';
 import './widgets/auth_form.dart';
 
 /// Standalone authentication screen that wraps AuthForm.
@@ -12,7 +12,7 @@ class AuthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       body: const SafeArea(child: AuthForm()),
     );
   }

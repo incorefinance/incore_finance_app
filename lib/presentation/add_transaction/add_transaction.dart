@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:incore_finance/theme/app_colors.dart';
+import 'package:incore_finance/theme/app_colors_ext.dart';
 import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/services/transactions_repository.dart';
@@ -279,28 +279,28 @@ class _AddTransactionState extends State<AddTransaction> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: AppColors.blue600,
+              primary: context.blue600,
               onPrimary: Colors.white,
-              surface: AppColors.canvasFrostedLight,
-              onSurface: AppColors.slate900,
-              surfaceContainerHighest: AppColors.surfaceGlass80Light,
+              surface: context.canvasFrosted,
+              onSurface: context.slate900,
+              surfaceContainerHighest: context.surfaceGlass80,
             ),
             datePickerTheme: DatePickerThemeData(
-              backgroundColor: AppColors.canvasFrostedLight,
-              headerBackgroundColor: AppColors.surfaceGlass80Light,
-              headerForegroundColor: AppColors.slate900,
+              backgroundColor: context.canvasFrosted,
+              headerBackgroundColor: context.surfaceGlass80,
+              headerForegroundColor: context.slate900,
               dayForegroundColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
                   return Colors.white;
                 }
                 if (states.contains(WidgetState.disabled)) {
-                  return AppColors.slate400;
+                  return context.slate400;
                 }
-                return AppColors.slate900;
+                return context.slate900;
               }),
               dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return AppColors.blue600;
+                  return context.blue600;
                 }
                 return Colors.transparent;
               }),
@@ -308,33 +308,33 @@ class _AddTransactionState extends State<AddTransaction> {
                 if (states.contains(WidgetState.selected)) {
                   return Colors.white;
                 }
-                return AppColors.blue600;
+                return context.blue600;
               }),
               todayBackgroundColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return AppColors.blue600;
+                  return context.blue600;
                 }
                 return Colors.transparent;
               }),
-              todayBorder: BorderSide(color: AppColors.blue600, width: 1),
+              todayBorder: BorderSide(color: context.blue600, width: 1),
               yearForegroundColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
                   return Colors.white;
                 }
-                return AppColors.slate900;
+                return context.slate900;
               }),
               yearBackgroundColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return AppColors.blue600;
+                  return context.blue600;
                 }
                 return Colors.transparent;
               }),
               weekdayStyle: TextStyle(
-                color: AppColors.slate500,
+                color: context.slate500,
                 fontWeight: FontWeight.w500,
               ),
               dayStyle: TextStyle(
-                color: AppColors.slate900,
+                color: context.slate900,
                 fontWeight: FontWeight.w400,
               ),
               surfaceTintColor: Colors.transparent,
@@ -342,10 +342,10 @@ class _AddTransactionState extends State<AddTransaction> {
                 borderRadius: BorderRadius.circular(AppTheme.radiusCardXL),
               ),
               cancelButtonStyle: ButtonStyle(
-                foregroundColor: WidgetStateProperty.all(AppColors.slate600),
+                foregroundColor: WidgetStateProperty.all(context.slate600),
               ),
               confirmButtonStyle: ButtonStyle(
-                foregroundColor: WidgetStateProperty.all(AppColors.blue600),
+                foregroundColor: WidgetStateProperty.all(context.blue600),
               ),
             ),
           ),
@@ -368,7 +368,7 @@ class _AddTransactionState extends State<AddTransaction> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: AppColors.canvasFrostedLight,
+      backgroundColor: context.canvasFrosted,
       body: SafeArea(
         child: Column(
           children: [
@@ -378,7 +378,7 @@ class _AddTransactionState extends State<AddTransaction> {
               width: 10.w,
               height: 0.5.h,
               decoration: BoxDecoration(
-                color: AppColors.slate400,
+                color: context.slate400,
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -394,7 +394,7 @@ class _AddTransactionState extends State<AddTransaction> {
                     child: Text(
                       l10n.cancel,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: _isSaving ? AppColors.slate400 : AppColors.slate600,
+                        color: _isSaving ? context.slate400 : context.slate600,
                       ),
                     ),
                   ),
@@ -402,7 +402,7 @@ class _AddTransactionState extends State<AddTransaction> {
                     _isEditing ? l10n.editTransaction : l10n.addTransaction,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.slate900,
+                      color: context.slate900,
                     ),
                   ),
                   _isSaving
@@ -424,8 +424,8 @@ class _AddTransactionState extends State<AddTransaction> {
                           style: theme.textTheme.titleMedium?.copyWith(
                             color:
                                 _isSaveEnabled && !_isSaving
-                                    ? AppColors.blue600
-                                    : AppColors.slate400,
+                                    ? context.blue600
+                                    : context.slate400,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -436,7 +436,7 @@ class _AddTransactionState extends State<AddTransaction> {
 
             Divider(
               height: 1,
-              color: AppColors.dividerGlass60Light,
+              color: context.dividerGlass60,
             ),
 
             // Content
@@ -477,33 +477,33 @@ class _AddTransactionState extends State<AddTransaction> {
                       controller: _descriptionController,
                       decoration: InputDecoration(
                         labelText: l10n.description,
-                        labelStyle: TextStyle(color: AppColors.slate500),
+                        labelStyle: TextStyle(color: context.slate500),
                         hintText: l10n.enterDescription,
-                        hintStyle: TextStyle(color: AppColors.slate400),
+                        hintStyle: TextStyle(color: context.slate400),
                         prefixIcon: Padding(
                           padding: EdgeInsets.all(3.w),
                           child: CustomIconWidget(
                             iconName: 'description',
-                            color: AppColors.slate400,
+                            color: context.slate400,
                             size: 24,
                           ),
                         ),
                         filled: true,
-                        fillColor: AppColors.surfaceGlass80Light,
+                        fillColor: context.surfaceGlass80,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                          borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                          borderSide: BorderSide(color: context.borderGlass60),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                          borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                          borderSide: BorderSide(color: context.borderGlass60),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                          borderSide: BorderSide(color: AppColors.blue600.withValues(alpha: 0.5), width: 1.5),
+                          borderSide: BorderSide(color: context.blue600.withValues(alpha: 0.5), width: 1.5),
                         ),
                       ),
-                      style: TextStyle(color: AppColors.slate900),
+                      style: TextStyle(color: context.slate900),
                       textCapitalization: TextCapitalization.sentences,
                     ),
 
@@ -519,10 +519,10 @@ class _AddTransactionState extends State<AddTransaction> {
                           vertical: 2.h,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceGlass80Light,
+                          color: context.surfaceGlass80,
                           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                           border: Border.all(
-                            color: AppColors.borderGlass60Light,
+                            color: context.borderGlass60,
                             width: 1,
                           ),
                         ),
@@ -530,7 +530,7 @@ class _AddTransactionState extends State<AddTransaction> {
                           children: [
                             CustomIconWidget(
                               iconName: 'calendar_today',
-                              color: AppColors.slate400,
+                              color: context.slate400,
                               size: 24,
                             ),
                             SizedBox(width: 3.w),
@@ -541,7 +541,7 @@ class _AddTransactionState extends State<AddTransaction> {
                                   Text(
                                     l10n.date,
                                     style: theme.textTheme.labelSmall?.copyWith(
-                                      color: AppColors.slate500,
+                                      color: context.slate500,
                                     ),
                                   ),
                                   SizedBox(height: 0.5.h),
@@ -551,7 +551,7 @@ class _AddTransactionState extends State<AddTransaction> {
                                     ).format(_selectedDate),
                                     style: theme.textTheme.bodyLarge?.copyWith(
                                       fontWeight: FontWeight.w500,
-                                      color: AppColors.slate900,
+                                      color: context.slate900,
                                     ),
                                   ),
                                 ],
@@ -559,7 +559,7 @@ class _AddTransactionState extends State<AddTransaction> {
                             ),
                             CustomIconWidget(
                               iconName: 'chevron_right',
-                              color: AppColors.slate400,
+                              color: context.slate400,
                               size: 20,
                             ),
                           ],
@@ -601,33 +601,33 @@ class _AddTransactionState extends State<AddTransaction> {
                       controller: _clientController,
                       decoration: InputDecoration(
                         labelText: l10n.optionalClient,
-                        labelStyle: TextStyle(color: AppColors.slate500),
+                        labelStyle: TextStyle(color: context.slate500),
                         hintText: l10n.enterClientHint,
-                        hintStyle: TextStyle(color: AppColors.slate400),
+                        hintStyle: TextStyle(color: context.slate400),
                         prefixIcon: Padding(
                           padding: EdgeInsets.all(3.w),
                           child: CustomIconWidget(
                             iconName: 'person',
-                            color: AppColors.slate400,
+                            color: context.slate400,
                             size: 24,
                           ),
                         ),
                         filled: true,
-                        fillColor: AppColors.surfaceGlass80Light,
+                        fillColor: context.surfaceGlass80,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                          borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                          borderSide: BorderSide(color: context.borderGlass60),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                          borderSide: BorderSide(color: AppColors.borderGlass60Light),
+                          borderSide: BorderSide(color: context.borderGlass60),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                          borderSide: BorderSide(color: AppColors.blue600.withValues(alpha: 0.5), width: 1.5),
+                          borderSide: BorderSide(color: context.blue600.withValues(alpha: 0.5), width: 1.5),
                         ),
                       ),
-                      style: TextStyle(color: AppColors.slate900),
+                      style: TextStyle(color: context.slate900),
                       textCapitalization: TextCapitalization.words,
                     ),
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:incore_finance/utils/number_formatter.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
-import 'package:incore_finance/theme/app_colors.dart';
+import 'package:incore_finance/theme/app_colors_ext.dart';
 
 class HorizontalCategoryBreakdownWidget extends StatelessWidget {
   final List<Map<String, dynamic>> data;
@@ -88,7 +88,7 @@ class _BreakdownRow extends StatelessWidget {
 
     // Keep your API, but make the fill more saturated (less washed out),
     // similar to the updated bar chart.
-    final base = accentColor ?? AppColors.primary;
+    final base = accentColor ?? context.primary;
 
     // More contrast between top item and others, without looking neon.
     final fillColor = isTop
@@ -97,7 +97,7 @@ class _BreakdownRow extends StatelessWidget {
 
     final labelStyle = theme.textTheme.bodyMedium?.copyWith(
       fontWeight: isTop ? FontWeight.w700 : FontWeight.w600,
-      color: AppColors.textPrimary,
+      color: context.textPrimary,
     );
 
     final formattedAmount = IncoreNumberFormatter.formatMoney(
@@ -128,7 +128,7 @@ class _BreakdownRow extends StatelessWidget {
               value: progressValue,
               minHeight: isTop ? 11 : 9,
               // Slightly lighter track so fill pops more.
-              backgroundColor: AppColors.borderSubtle.withValues(alpha: 0.55),
+              backgroundColor: context.borderSubtle.withValues(alpha: 0.55),
               valueColor: AlwaysStoppedAnimation<Color>(fillColor),
             ),
           ),
@@ -141,7 +141,7 @@ class _BreakdownRow extends StatelessWidget {
             textAlign: TextAlign.right,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: context.textPrimary,
             ),
           ),
         ),

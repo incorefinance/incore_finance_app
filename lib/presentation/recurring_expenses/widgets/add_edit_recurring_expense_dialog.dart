@@ -6,7 +6,7 @@ import '../../../domain/usage/limit_reached_exception.dart';
 import '../../../models/recurring_expense.dart';
 import '../../../services/recurring_expenses_repository.dart';
 import '../../../services/user_settings_service.dart';
-import '../../../theme/app_colors.dart';
+import '../../../theme/app_colors_ext.dart';
 import '../../../utils/number_formatter.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../utils/snackbar_helper.dart';
@@ -229,7 +229,7 @@ class _AddEditRecurringExpenseDialogState
         ElevatedButton(
           onPressed: _isSaveEnabled && !_isSaving ? _handleSave : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.blue600,
+            backgroundColor: context.blue600,
           ),
           child: _isSaving
               ? SizedBox(
