@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/logging/app_logger.dart';
 import '../routes/app_routes.dart';
 
 /// Centralized auth state checker for routing decisions.
@@ -38,7 +39,7 @@ class AuthGuard {
   static bool routeToErrorIfInvalid(BuildContext context, {String? reason}) {
     final checkResult = reason ?? checkAuthState();
     if (checkResult != null) {
-      debugPrint('AuthGuard: Routing to error screen - $checkResult');
+      AppLogger.d('AuthGuard: Routing to error screen - $checkResult');
       Navigator.of(context).pushNamedAndRemoveUntil(
         AppRoutes.authGuardError,
         (route) => false,

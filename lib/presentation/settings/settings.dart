@@ -1,16 +1,25 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/app_export.dart';
+import '../../core/logging/app_logger.dart';
 import '../../domain/entitlements/entitlement_service.dart';
 import '../../domain/entitlements/plan_type.dart';
+import '../../domain/usage/limit_reached_exception.dart';
 import '../../l10n/app_localizations.dart';
 import '../../main.dart';
 import '../../services/onboarding_status_repository.dart';
 import '../../services/subscription/subscription_service.dart';
+import '../../services/transaction_export_service.dart';
+import '../../services/transaction_import_service.dart';
+import '../../services/transactions_repository.dart';
 import '../../services/user_settings_service.dart';
 import '../../theme/app_colors_ext.dart';
 import '../../services/biometric_auth_service.dart';
@@ -18,6 +27,7 @@ import '../../utils/snackbar_helper.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import './widgets/currency_selector_dialog.dart';
 import './widgets/export_options_dialog.dart';
+import './widgets/import_dialog.dart';
 import './widgets/language_selector_dialog.dart';
 import './widgets/setting_tile.dart';
 
@@ -259,19 +269,309 @@ class _SettingsState extends State<Settings> {
     );
   }
 
+  // ── Export ──────────────────────────────────────────────────────────────────
+
   Future<void> _showExportOptions() async {
+    if (kIsWeb) {
+      SnackbarHelper.showInfo(context, 'Export is available on the mobile app.');
+      return;
+    }
+
     await showDialog(
       context: context,
       builder: (_) => ExportOptionsDialog(
-        onExportSelected: (format) {
-          SnackbarHelper.showSuccess(
-            context,
-            AppLocalizations.of(context)!.exportStarted(format),
-          );
+        onExportSelected: _handleExport,
+      ),
+    );
+  }
+
+  Future<void> _handleExport(String format) async {
+    if (!mounted) return;
+
+    // 1. Date range picker (defaults: Jan 1 this year → today)
+    final now = DateTime.now();
+    final defaultStart = DateTime(now.year, 1, 1);
+
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: now,
+      initialDateRange: DateTimeRange(start: defaultStart, end: now),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: ColorScheme.light(
+            primary: context.blue600,
+            onPrimary: Colors.white,
+            surface: context.canvasFrosted,
+            onSurface: context.slate900,
+            surfaceContainerHighest: context.surfaceGlass80,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+
+    if (range == null || !mounted) return;
+
+    // 2. Loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Include the full last day of the selected range
+      final endOfDay = DateTime(
+        range.end.year, range.end.month, range.end.day, 23, 59, 59,
+      );
+
+      final transactions = await TransactionsRepository()
+          .getTransactionsByDateRangeTyped(range.start, endOfDay);
+
+      if (mounted) Navigator.pop(context); // close loading
+      if (!mounted) return;
+
+      if (transactions.isEmpty) {
+        SnackbarHelper.showInfo(
+          context,
+          'No transactions found in the selected period.',
+        );
+        return;
+      }
+
+      // 3. Generate file and open share sheet
+      final path = await TransactionExportService()
+          .writeExportToDisk(transactions, format);
+
+      final mimeType = format == 'csv'
+          ? 'text/csv'
+          : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+      await Share.shareXFiles(
+        [XFile(path, mimeType: mimeType)],
+        subject: 'InCore Finance — Transaction Export',
+      );
+    } catch (e) {
+      AppLogger.w('[Settings] Export failed', error: e);
+      if (mounted) {
+        // Close loading dialog if still open
+        Navigator.of(context, rootNavigator: true).popUntil(
+          (route) => route.settings.name != null || route.isFirst,
+        );
+        SnackbarHelper.showError(context, 'Export failed. Please try again.');
+      }
+    }
+  }
+
+  // ── End Export ──────────────────────────────────────────────────────────────
+
+  // ── Import ──────────────────────────────────────────────────────────────────
+
+  Future<void> _showImportOptions() async {
+    await showDialog(
+      context: context,
+      builder: (_) => ImportDialog(
+        onFormatSelected: _handleImportFile,
+        onDownloadTemplate: _downloadTemplate,
+      ),
+    );
+  }
+
+  Future<void> _handleImportFile(String format) async {
+    final extensions = format == 'csv' ? ['csv'] : ['xlsx'];
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: extensions,
+      withData: true, // load bytes in memory (works on iOS/Android)
+    );
+    if (result == null || result.files.isEmpty || !mounted) return;
+
+    final file = result.files.first;
+    final service = TransactionImportService();
+    List<TransactionImportRow> rows;
+
+    try {
+      if (format == 'csv') {
+        Uint8List? bytes = file.bytes;
+        if (bytes == null && file.path != null) {
+          bytes = await File(file.path!).readAsBytes();
+        }
+        if (bytes == null) throw Exception('Could not read file');
+        rows = service.parseCSV(String.fromCharCodes(bytes));
+      } else {
+        Uint8List? bytes = file.bytes;
+        if (bytes == null && file.path != null) {
+          bytes = await File(file.path!).readAsBytes();
+        }
+        if (bytes == null) throw Exception('Could not read file');
+        rows = service.parseExcel(bytes);
+      }
+    } catch (_) {
+      if (mounted) SnackbarHelper.showError(context, AppLocalizations.of(context)!.importFailed);
+      return;
+    }
+
+    if (!mounted) return;
+    await _showImportPreview(rows, service);
+  }
+
+  Future<void> _showImportPreview(
+    List<TransactionImportRow> rows,
+    TransactionImportService service,
+  ) async {
+    final valid = service.validRows(rows);
+    final invalid = service.invalidRows(rows);
+
+    // File-level structural error (e.g. missing column)
+    if (rows.length == 1 && rows.first.rowNumber == 0 && !rows.first.isValid) {
+      SnackbarHelper.showError(context, rows.first.validationError ?? AppLocalizations.of(context)!.importFailed);
+      return;
+    }
+
+    if (rows.isEmpty || (valid.isEmpty && invalid.isEmpty)) {
+      SnackbarHelper.showError(context, 'No transactions found in the file.');
+      return;
+    }
+
+    final dateRange = service.detectDateRange(rows);
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) => _ImportPreviewSheet(
+        validRows: valid,
+        invalidRows: invalid,
+        dateRange: dateRange,
+        onConfirm: () {
+          Navigator.pop(sheetCtx);
+          _runImport(valid);
         },
       ),
     );
   }
+
+  Future<void> _runImport(List<TransactionImportRow> rows) async {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+
+    // Loading overlay
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final result = await TransactionsRepository().importTransactions(rows);
+      if (mounted) Navigator.pop(context); // close loading
+      if (!mounted) return;
+
+      if (!result.hasErrors) {
+        SnackbarHelper.showSuccess(context, l10n.importSuccess(result.imported));
+      } else if (result.imported > 0) {
+        SnackbarHelper.showWarning(
+          context,
+          l10n.importPartialSuccess(result.imported, result.failed),
+        );
+        _showImportErrors(result.rowErrors);
+      } else {
+        SnackbarHelper.showError(context, l10n.importFailed);
+        _showImportErrors(result.rowErrors);
+      }
+    } on LimitReachedException {
+      if (mounted) Navigator.pop(context); // paywall already shown
+    } catch (_) {
+      if (mounted) {
+        Navigator.pop(context);
+        SnackbarHelper.showError(context, AppLocalizations.of(context)!.importFailed);
+      }
+    }
+  }
+
+  void _showImportErrors(List<ImportRowError> errors) {
+    if (!mounted || errors.isEmpty) return;
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        return AlertDialog(
+          title: const Text('Skipped Rows'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: errors.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (_, i) {
+                final e = errors[i];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Row ${e.rowNumber}',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        e.reason,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _downloadTemplate() async {
+    if (kIsWeb) {
+      if (mounted) {
+        SnackbarHelper.showInfo(
+          context,
+          'Template download is available on the mobile app.',
+        );
+      }
+      return;
+    }
+
+    try {
+      final path = await TransactionImportService().writeTemplateToDisk();
+      await Share.shareXFiles(
+        [
+          XFile(
+            path,
+            mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          ),
+        ],
+        subject: 'InCore Finance — Import Template',
+      );
+    } catch (e) {
+      AppLogger.w('[Settings] Template download failed', error: e);
+      if (mounted) {
+        SnackbarHelper.showError(context, 'Could not prepare the template. Please try again.');
+      }
+    }
+  }
+
+  // ── End Import ──────────────────────────────────────────────────────────────
 
   Future<void> _handleResetOnboarding() async {
     final l10n = AppLocalizations.of(context)!;
@@ -678,7 +978,7 @@ class _SettingsState extends State<Settings> {
               _SectionCard(
                 title: l10n.privacySecurity,
                 children: [
-                  if (_biometricSupported)
+                  if (_isMobilePlatform)
                     SettingTile(
                       iconName: _biometricType == BiometricDisplayType.face
                           ? 'face_unlock'
@@ -687,12 +987,15 @@ class _SettingsState extends State<Settings> {
                       subtitle: _biometricEnabled
                           ? l10n.biometricEnabled
                           : l10n.biometricDisabled,
-                      trailing: Switch(
-                        value: _biometricEnabled,
-                        onChanged: _toggleBiometric,
-                        activeThumbColor: context.blue600,
-                        activeTrackColor: context.blue50,
-                      ),
+                      enabled: _biometricSupported,
+                      trailing: _biometricSupported
+                          ? Switch(
+                              value: _biometricEnabled,
+                              onChanged: _toggleBiometric,
+                              activeThumbColor: context.blue600,
+                              activeTrackColor: context.blue50,
+                            )
+                          : null,
                       showDivider: true,
                     ),
                   SettingTile(
@@ -731,6 +1034,17 @@ class _SettingsState extends State<Settings> {
                       color: canExport
                           ? colorScheme.onSurfaceVariant
                           : colorScheme.onSurface.withValues(alpha: 0.38),
+                    ),
+                    showDivider: true,
+                  ),
+                  SettingTile(
+                    iconName: 'file_download',
+                    title: l10n.importData,
+                    subtitle: l10n.importDataDescription,
+                    onTap: _showImportOptions,
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                     showDivider: true,
                   ),
@@ -1161,6 +1475,227 @@ class _PercentSliderTile extends StatelessWidget {
               color: colorScheme.outline.withValues(alpha: 0.2),
             ),
           ),
+      ],
+    );
+  }
+}
+
+// ── Import preview bottom sheet ───────────────────────────────────────────────
+
+class _ImportPreviewSheet extends StatefulWidget {
+  final List<TransactionImportRow> validRows;
+  final List<TransactionImportRow> invalidRows;
+  final ({DateTime min, DateTime max})? dateRange;
+  final VoidCallback onConfirm;
+
+  const _ImportPreviewSheet({
+    required this.validRows,
+    required this.invalidRows,
+    required this.dateRange,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_ImportPreviewSheet> createState() => _ImportPreviewSheetState();
+}
+
+class _ImportPreviewSheetState extends State<_ImportPreviewSheet> {
+  bool _showErrors = false;
+
+  String _formatDate(DateTime d) =>
+      '${_monthAbbr(d.month)} ${d.year}';
+
+  String _monthAbbr(int m) => const [
+        '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ][m];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final hasErrors = widget.invalidRows.isNotEmpty;
+    final hasValid = widget.validRows.isNotEmpty;
+    final dr = widget.dateRange;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.55,
+      minChildSize: 0.4,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (_, controller) => Padding(
+        padding: EdgeInsets.fromLTRB(5.w, 2.h, 5.w, 4.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 10.w,
+                height: 0.5.h,
+                decoration: BoxDecoration(
+                  color: colorScheme.outline.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            SizedBox(height: 2.h),
+
+            Text(
+              'Ready to Import',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 1.5.h),
+
+            // Valid count
+            _SummaryRow(
+              icon: Icons.check_circle,
+              iconColor: const Color(0xFF14B8A6),
+              text: '${widget.validRows.length} transaction${widget.validRows.length == 1 ? '' : 's'} ready',
+            ),
+
+            // Error count
+            if (hasErrors) ...[
+              SizedBox(height: 0.8.h),
+              _SummaryRow(
+                icon: Icons.warning_amber_rounded,
+                iconColor: const Color(0xFFE0A458),
+                text: '${widget.invalidRows.length} row${widget.invalidRows.length == 1 ? '' : 's'} with errors (will be skipped)',
+              ),
+            ],
+
+            // Date range
+            if (dr != null) ...[
+              SizedBox(height: 0.8.h),
+              _SummaryRow(
+                icon: Icons.date_range,
+                iconColor: colorScheme.onSurfaceVariant,
+                text: '${_formatDate(dr.min)} → ${_formatDate(dr.max)}',
+              ),
+            ],
+
+            // Error detail toggle
+            if (hasErrors) ...[
+              SizedBox(height: 1.5.h),
+              GestureDetector(
+                onTap: () => setState(() => _showErrors = !_showErrors),
+                child: Row(
+                  children: [
+                    Text(
+                      _showErrors ? 'Hide errors' : 'View errors',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Icon(
+                      _showErrors ? Icons.expand_less : Icons.expand_more,
+                      size: 4.w,
+                      color: colorScheme.primary,
+                    ),
+                  ],
+                ),
+              ),
+              if (_showErrors)
+                Container(
+                  margin: EdgeInsets.only(top: 1.h),
+                  constraints: BoxConstraints(maxHeight: 20.h),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.2),
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ListView.separated(
+                    controller: controller,
+                    shrinkWrap: true,
+                    padding: EdgeInsets.all(2.w),
+                    itemCount: widget.invalidRows.length,
+                    separatorBuilder: (_, __) => Divider(
+                      height: 1,
+                      color: colorScheme.outline.withValues(alpha: 0.15),
+                    ),
+                    itemBuilder: (_, i) {
+                      final row = widget.invalidRows[i];
+                      return Padding(
+                        padding: EdgeInsets.symmetric(vertical: 1.h),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Row ${row.rowNumber}',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            SizedBox(height: 0.3.h),
+                            Text(
+                              row.validationError ?? '',
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            ],
+
+            const Spacer(),
+
+            // Confirm button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: hasValid ? widget.onConfirm : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 1.8.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Import ${widget.validRows.length} Transaction${widget.validRows.length == 1 ? '' : 's'}',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String text;
+
+  const _SummaryRow({
+    required this.icon,
+    required this.iconColor,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, color: iconColor, size: 18),
+        SizedBox(width: 2.w),
+        Expanded(
+          child: Text(text, style: theme.textTheme.bodyMedium),
+        ),
       ],
     );
   }

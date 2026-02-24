@@ -120,7 +120,6 @@ class _AddTransactionState extends State<AddTransaction> {
     setState(() {
       _isSaveEnabled =
           _amountController.text.isNotEmpty &&
-          _descriptionController.text.isNotEmpty &&
           _selectedCategory != null &&
           _selectedPaymentMethod != null;
     });
@@ -132,11 +131,6 @@ class _AddTransactionState extends State<AddTransaction> {
     // Validate all required fields before proceeding
     if (_amountController.text.isEmpty) {
       SnackbarHelper.showError(context, l10n.pleaseEnterAmount);
-      return;
-    }
-
-    if (_descriptionController.text.isEmpty) {
-      SnackbarHelper.showError(context, l10n.pleaseEnterDescription);
       return;
     }
 
@@ -476,7 +470,7 @@ class _AddTransactionState extends State<AddTransaction> {
                     TextField(
                       controller: _descriptionController,
                       decoration: InputDecoration(
-                        labelText: l10n.description,
+                        labelText: l10n.descriptionOptional,
                         labelStyle: TextStyle(color: context.slate500),
                         hintText: l10n.enterDescription,
                         hintStyle: TextStyle(color: context.slate400),

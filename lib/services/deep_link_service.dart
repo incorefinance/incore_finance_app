@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:superwallkit_flutter/superwallkit_flutter.dart';
+
+import '../core/logging/app_logger.dart';
 
 /// Placeholder for the deep link scheme. Configure this in:
 /// - Android: android/app/src/main/AndroidManifest.xml
@@ -60,14 +61,14 @@ class DeepLinkService {
         await _handleDeepLink(initialLink);
       }
     } catch (e) {
-      debugPrint('DeepLinkService: Failed to get initial link: $e');
+      AppLogger.d('DeepLinkService: Failed to get initial link: $e');
     }
 
     // Handle links while app is running (warm start)
     _linkSubscription = _appLinks.uriLinkStream.listen(
       _handleDeepLink,
       onError: (e) {
-        debugPrint('DeepLinkService: Error in link stream: $e');
+        AppLogger.d('DeepLinkService: Error in link stream: $e');
       },
     );
   }
@@ -82,12 +83,12 @@ class DeepLinkService {
   /// Processes an incoming deep link URI and lets Supabase parse it.
   /// This supports both implicit flow fragments and PKCE code flows.
   Future<void> _handleDeepLink(Uri uri) async {
-    debugPrint('DeepLinkService: Received deep link: $uri');
+    AppLogger.d('DeepLinkService: Received deep link: $uri');
 
     // Let Superwall handle its own deep links (for paywall previews)
     final handled = await Superwall.shared.handleDeepLink(uri);
     if (handled) {
-      debugPrint('DeepLinkService: Link handled by Superwall');
+      AppLogger.d('DeepLinkService: Link handled by Superwall');
       return;
     }
 
@@ -95,7 +96,7 @@ class DeepLinkService {
     final hasPkceCode = uri.queryParameters['code'] != null;
 
     if (!hasFragmentTokens && !hasPkceCode) {
-      debugPrint('DeepLinkService: No auth tokens found in link');
+      AppLogger.d('DeepLinkService: No auth tokens found in link');
       return;
     }
 
@@ -109,16 +110,15 @@ class DeepLinkService {
       await supabase.auth.getSessionFromUrl(uri);
 
       if (_isRecoveryLink(uri)) {
-        debugPrint('DeepLinkService: Emitting recovery action');
+        AppLogger.d('DeepLinkService: Emitting recovery action');
         _actionController.add(DeepLinkAction.recovery);
         return;
       }
 
       _authUpdateController.add(null);
       _actionController.add(DeepLinkAction.authUpdate);
-    } catch (e, stackTrace) {
-      debugPrint('DeepLinkService: Error processing deep link: $e');
-      debugPrint('DeepLinkService: StackTrace: $stackTrace');
+    } catch (e) {
+      AppLogger.d('DeepLinkService: Error processing deep link: $e');
     }
   }
 

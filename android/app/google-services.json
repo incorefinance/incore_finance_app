@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "144920893072",
+    "project_id": "incore-app",
+    "storage_bucket": "incore-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:144920893072:android:d6c171bbbc023dac3b6a15",
+        "android_client_info": {
+          "package_name": "com.incore_finance.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBs9Oj6zl648kR9OUOk3Xki3NayEMQ2Sks"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

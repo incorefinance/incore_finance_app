@@ -61,6 +61,7 @@
     "custom": "Custom",
     "amount": "Amount",
     "description": "Description",
+    "descriptionOptional": "Description (optional)",
     "category": "Category",
     "date": "Date",
     "paymentMethod": "Payment Method",
@@ -449,6 +450,23 @@
     "termsOfService": "Terms of Service",
     "termsOfServiceDesc": "View terms and conditions",
     "upgradeForExport": "Upgrade to Premium to export data",
+
+    "importData": "Import Transactions",
+    "importDataDescription": "Load from a CSV or Excel file",
+    "importSuccess": "Imported {count} transaction(s)",
+    "@importSuccess": {
+        "placeholders": {
+            "count": { "type": "int" }
+        }
+    },
+    "importPartialSuccess": "Imported {imported}, skipped {failed} with errors",
+    "@importPartialSuccess": {
+        "placeholders": {
+            "imported": { "type": "int" },
+            "failed": { "type": "int" }
+        }
+    },
+    "importFailed": "Import failed. Please check your file format.",
 
     "incomeSetupTitle": "Income setup",
     "incomeSetupSubtitle": "Choose what best matches your income",

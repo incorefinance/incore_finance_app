@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/logging/app_logger.dart';
 import '../../l10n/app_localizations.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors_ext.dart';
@@ -18,7 +19,7 @@ class AuthGuardErrorScreen extends StatelessWidget {
     // Read debug reason from route arguments for logging only
     final debugReason = ModalRoute.of(context)?.settings.arguments as String?;
     if (debugReason != null) {
-      debugPrint('AuthGuardErrorScreen: $debugReason');
+      AppLogger.d('AuthGuardErrorScreen: $debugReason');
     }
 
     return Scaffold(
@@ -96,7 +97,7 @@ class AuthGuardErrorScreen extends StatelessWidget {
       await Supabase.instance.client.auth.signOut();
     } catch (e) {
       // Log but don't block navigation - we want user to get to login
-      debugPrint('AuthGuardErrorScreen: Sign out error (ignored): $e');
+      AppLogger.d('AuthGuardErrorScreen: Sign out error (ignored): $e');
     }
 
     if (!context.mounted) return;

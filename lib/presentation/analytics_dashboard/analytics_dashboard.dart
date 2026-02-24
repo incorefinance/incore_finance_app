@@ -236,15 +236,12 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
   @override
   void didPopNext() {
-    print('=== Analytics: didPopNext called, reloading for stale state');
     _loadAnalyticsData();
   }
 
   void _onTransactionsChanged() {
     final currentVersion = TransactionsChangeNotifier.instance.version.value;
     if (currentVersion != _lastNotifierVersion) {
-      // ignore: avoid_print
-      print('=== Analytics: TransactionsChangeNotifier triggered refresh (version $currentVersion)');
       _lastNotifierVersion = currentVersion;
       _loadAnalyticsData();
     }

@@ -17,8 +17,28 @@ import 'package:incore_finance/domain/entitlements/plan_type.dart';
 import 'package:incore_finance/domain/usage/limit_reached_exception.dart';
 import 'package:incore_finance/domain/usage/windowed_usage_counter.dart';
 import 'package:incore_finance/services/subscription/subscription_service.dart';
+import 'package:incore_finance/services/transaction_import_service.dart';
 import 'protection_ledger_service.dart';
 import 'safety_drawdown_reconciler.dart';
+
+/// Result of a bulk import operation.
+class ImportResult {
+  final int imported;
+  final List<ImportRowError> rowErrors;
+
+  const ImportResult({required this.imported, required this.rowErrors});
+
+  int get failed => rowErrors.length;
+  bool get hasErrors => rowErrors.isNotEmpty;
+}
+
+/// Describes a single row that failed to import.
+class ImportRowError {
+  final int rowNumber;
+  final String reason;
+
+  const ImportRowError({required this.rowNumber, required this.reason});
+}
 
 class TransactionsRepository {
   final SupabaseClient _client;
@@ -88,19 +108,12 @@ class TransactionsRepository {
       'client': client,
     };
 
-    // Debug logging while we are fixing Sprint 01
-    // ignore: avoid_print
-    print('addTransaction() -> payload: $payload');
-
     try {
       final response = await _client
           .from('transactions')
           .insert(payload)
           .select()
           .maybeSingle();
-
-      // ignore: avoid_print
-      print('addTransaction() -> insert response: $response');
 
       // Notify listeners that transactions have changed
       TransactionsChangeNotifier.instance.markChanged();
@@ -133,13 +146,7 @@ class TransactionsRepository {
         // Log but don't fail the transaction
         AppLogger.w('Failed to increment spend_entries_count', error: e);
       }
-    } catch (e, stackTrace) {
-      // ignore: avoid_print
-      print('=== SUPABASE INSERT ERROR ===');
-      // ignore: avoid_print
-      print('Error: $e');
-      // ignore: avoid_print
-      print('StackTrace: $stackTrace');
+    } catch (e) {
       rethrow;
     }
   }
@@ -206,13 +213,6 @@ class TransactionsRepository {
   }) async {
     final userId = _client.auth.currentUser!.id;
 
-    // ignore: avoid_print
-    print('=== DELETE TRANSACTION START ===');
-    // ignore: avoid_print
-    print('Transaction ID: $transactionId');
-    // ignore: avoid_print
-    print('User ID: $userId');
-
     // === PROTECTION LEDGER: Fetch type BEFORE delete ===
     String? transactionType;
     try {
@@ -229,16 +229,11 @@ class TransactionsRepository {
     // === END FETCH ===
 
     try {
-      final response = await _client
+      await _client
           .from('transactions')
           .update({'deleted_at': DateTime.now().toIso8601String()})
           .eq('id', transactionId)
           .eq('user_id', userId);
-
-      // ignore: avoid_print
-      print('=== DELETE TRANSACTION SUCCESS ===');
-      // ignore: avoid_print
-      print('Response: $response');
 
       // Notify listeners that transactions have changed
       TransactionsChangeNotifier.instance.markChanged();
@@ -267,13 +262,7 @@ class TransactionsRepository {
         // Log but don't fail the deletion
         AppLogger.w('Failed to decrement spend_entries_count', error: e);
       }
-    } catch (e, stackTrace) {
-      // ignore: avoid_print
-      print('=== DELETE TRANSACTION ERROR ===');
-      // ignore: avoid_print
-      print('Error: $e');
-      // ignore: avoid_print
-      print('StackTrace: $stackTrace');
+    } catch (e) {
       rethrow;
     }
   }
@@ -282,35 +271,17 @@ class TransactionsRepository {
   Future<List<Map<String, dynamic>>> getTransactionsForCurrentUser() async {
     final userId = _client.auth.currentUser!.id;
 
-    // ignore: avoid_print
-    print('=== TRANSACTIONS FETCH ===');
-    // ignore: avoid_print
-    print('Table: transactions, user_id (UUID): $userId');
+    final response = await _client
+        .from('transactions')
+        .select()
+        .eq('user_id', userId)
+        .filter('deleted_at', 'is', null)
+        .order('date', ascending: false)
+        .order('created_at', ascending: false);
 
-    try {
-      final response = await _client
-          .from('transactions')
-          .select()
-          .eq('user_id', userId)
-          .filter('deleted_at', 'is', null)
-          .order('date', ascending: false)
-          .order('created_at', ascending: false);
-
-      // ignore: avoid_print
-      print('Fetch success: ${(response as List).length} transactions');
-
-      return response
-          .whereType<Map<String, dynamic>>()
-          .toList(growable: false);
-    } catch (e, stackTrace) {
-      // ignore: avoid_print
-      print('=== TRANSACTIONS FETCH ERROR ===');
-      // ignore: avoid_print
-      print('Error: $e');
-      // ignore: avoid_print
-      print('StackTrace: $stackTrace');
-      rethrow;
-    }
+    return (response as List)
+        .whereType<Map<String, dynamic>>()
+        .toList(growable: false);
   }
 
   /// Typed fetch for the transactions list.
@@ -327,40 +298,135 @@ class TransactionsRepository {
   ) async {
     final userId = _client.auth.currentUser!.id;
 
-    // ignore: avoid_print
-    print('=== TRANSACTIONS DATE RANGE FETCH ===');
-    // ignore: avoid_print
-    print('Table: transactions, user_id (UUID): $userId');
-    // ignore: avoid_print
-    print('Date range: $startDate to $endDate');
+    final response = await _client
+        .from('transactions')
+        .select()
+        .eq('user_id', userId)
+        .filter('deleted_at', 'is', null)
+        .gte('date', startDate.toIso8601String())
+        .lte('date', endDate.toIso8601String())
+        // For charts it is easier to work in ascending order
+        .order('date', ascending: true)
+        .order('created_at', ascending: true);
+
+    return (response as List)
+        .whereType<Map<String, dynamic>>()
+        .map(TransactionRecord.fromMap)
+        .toList(growable: false);
+  }
+
+  /// Bulk-import pre-validated rows from CSV/Excel.
+  ///
+  /// [rows] must already be validated — pass the output of
+  /// `TransactionImportService().validRows(parsed)` so only clean rows arrive here.
+  ///
+  /// Free-tier users are limited to 20 rows per import batch.
+  /// Premium users have no row limit.
+  ///
+  /// Duplicate detection: any row whose (date|amount|description|category|type)
+  /// fingerprint already exists in Supabase is skipped and reported in [ImportResult.rowErrors].
+  Future<ImportResult> importTransactions(
+    List<TransactionImportRow> rows,
+  ) async {
+    if (rows.isEmpty) return const ImportResult(imported: 0, rowErrors: []);
+
+    // 1. Free-tier row limit (20 rows per batch)
+    final plan = await _subscriptionService.getCurrentPlan();
+    if (plan == PlanType.free && rows.length > 20) {
+      await _subscriptionService.presentPaywall('import_row_limit');
+      throw LimitReachedException(
+        metricType: 'import_rows',
+        limit: 20,
+        currentCount: rows.length,
+      );
+    }
+
+    // 2. Deduplication: fetch fingerprints for the date range covered by the batch
+    final fingerprints = await _fetchFingerprintsForRows(rows);
+
+    // 3. Insert rows sequentially (preserves protection ledger ordering)
+    int successCount = 0;
+    final List<ImportRowError> rowErrors = [];
+
+    for (final row in rows) {
+      final fp = _fingerprint(row);
+      if (fingerprints.contains(fp)) {
+        rowErrors.add(ImportRowError(
+          rowNumber: row.rowNumber,
+          reason: 'Duplicate — this transaction already exists',
+        ));
+        continue;
+      }
+
+      try {
+        await addTransaction(
+          amount: row.amount!,
+          description: row.description!,
+          category: row.category!,
+          type: row.type!,
+          date: row.date!,
+          paymentMethod: row.paymentMethod!,
+          client: row.client,
+        );
+        successCount++;
+        fingerprints.add(fp); // prevent in-file duplicates
+      } on LimitReachedException {
+        rethrow; // bubble up so UI can handle paywall
+      } catch (e) {
+        rowErrors.add(ImportRowError(
+          rowNumber: row.rowNumber,
+          reason: 'Failed to save: ${e.toString()}',
+        ));
+      }
+    }
+
+    // 4. Single UI refresh after the full batch
+    if (successCount > 0) {
+      TransactionsChangeNotifier.instance.markChanged();
+    }
+
+    return ImportResult(imported: successCount, rowErrors: rowErrors);
+  }
+
+  /// Builds a fingerprint string for a row: date|amount|description|category|type.
+  static String _fingerprint(TransactionImportRow row) {
+    final dateStr = row.date!.toIso8601String().substring(0, 10);
+    return '$dateStr|${row.amount}|${row.description}|${row.category}|${row.type}';
+  }
+
+  /// Queries Supabase for existing transactions in the date range covered by [rows]
+  /// and returns a mutable Set of fingerprints.
+  Future<Set<String>> _fetchFingerprintsForRows(
+    List<TransactionImportRow> rows,
+  ) async {
+    final dates = rows.where((r) => r.date != null).map((r) => r.date!);
+    if (dates.isEmpty) return {};
+
+    final minDate = dates.reduce((a, b) => a.isBefore(b) ? a : b);
+    final maxDate = dates.reduce((a, b) => a.isAfter(b) ? a : b);
+    final userId = _client.auth.currentUser!.id;
 
     try {
       final response = await _client
           .from('transactions')
-          .select()
+          .select('date, amount, description, category, type')
           .eq('user_id', userId)
           .filter('deleted_at', 'is', null)
-          .gte('date', startDate.toIso8601String())
-          .lte('date', endDate.toIso8601String())
-          // For charts it is easier to work in ascending order
-          .order('date', ascending: true)
-          .order('created_at', ascending: true);
+          .gte('date', minDate.toIso8601String())
+          .lte('date', maxDate.toIso8601String());
 
-      // ignore: avoid_print
-      print('Date range fetch success: ${(response as List).length} transactions');
-
-      return response
-          .whereType<Map<String, dynamic>>()
-          .map(TransactionRecord.fromMap)
-          .toList(growable: false);
-    } catch (e, stackTrace) {
-      // ignore: avoid_print
-      print('=== TRANSACTIONS DATE RANGE FETCH ERROR ===');
-      // ignore: avoid_print
-      print('Error: $e');
-      // ignore: avoid_print
-      print('StackTrace: $stackTrace');
-      rethrow;
+      final set = <String>{};
+      for (final row in (response as List).cast<Map<String, dynamic>>()) {
+        final rawDate = row['date']?.toString() ?? '';
+        final dateStr = rawDate.length >= 10 ? rawDate.substring(0, 10) : rawDate;
+        final fp =
+            '$dateStr|${row['amount']}|${row['description']}|${row['category']}|${row['type']}';
+        set.add(fp);
+      }
+      return set;
+    } catch (e) {
+      AppLogger.w('[TransactionsRepository] Failed to fetch fingerprints for dedup', error: e);
+      return {}; // if we can't check, proceed without dedup
     }
   }
 

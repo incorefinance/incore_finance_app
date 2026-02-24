@@ -52,21 +52,13 @@ class _AuthFormState extends State<AuthForm> {
       } else {
         await _handleSignIn(supabase, email, password);
       }
-    } on AuthException catch (e, stackTrace) {
-      // ignore: avoid_print
-      print('AuthException: $e');
-      // ignore: avoid_print
-      print('StackTrace: $stackTrace');
+    } on AuthException catch (e) {
       if (mounted) {
         setState(() {
-          _errorText = e.message;
+          _errorText = _mapAuthError(e);
         });
       }
-    } catch (e, stackTrace) {
-      // ignore: avoid_print
-      print('Auth error: $e');
-      // ignore: avoid_print
-      print('StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _errorText = 'Something went wrong. Please try again.';
@@ -131,6 +123,23 @@ class _AuthFormState extends State<AuthForm> {
         arguments: email,
       );
     }
+  }
+
+  String _mapAuthError(AuthException e) {
+    final msg = e.message.toLowerCase();
+    if (msg.contains('invalid login credentials') || msg.contains('invalid')) {
+      return 'Invalid email or password. Please try again.';
+    }
+    if (msg.contains('email not confirmed')) {
+      return 'Please verify your email before signing in.';
+    }
+    if (msg.contains('rate') || msg.contains('too many')) {
+      return 'Too many attempts. Please wait a moment.';
+    }
+    if (msg.contains('already registered') || msg.contains('already been registered')) {
+      return 'An account with this email already exists.';
+    }
+    return 'Something went wrong. Please try again.';
   }
 
   void _toggleMode() {

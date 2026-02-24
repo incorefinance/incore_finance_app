@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:superwallkit_flutter/superwallkit_flutter.dart';
 
+import '../../core/logging/app_logger.dart';
 import '../../services/onboarding_service.dart';
 import '../../services/auth_guard.dart';
 import '../../routes/app_routes.dart';
@@ -63,7 +64,7 @@ class _StartupScreenState extends State<StartupScreen> {
             _handleAuthenticatedUser();
           } else {
             // signedIn or tokenRefreshed without user is an error
-            debugPrint('StartupScreen: Auth event without valid user: $event');
+            AppLogger.d('StartupScreen: Auth event without valid user: $event');
             if (mounted && !_hasRouted) {
               _routeToAuthError('Invalid session state');
             }
@@ -92,7 +93,7 @@ class _StartupScreenState extends State<StartupScreen> {
         }
       }, onError: (error) {
         // Handle stream errors (e.g., token refresh failure)
-        debugPrint('StartupScreen: Auth stream error: $error');
+        AppLogger.d('StartupScreen: Auth stream error: $error');
         if (mounted && !_hasRouted) {
           _routeToAuthError('Session refresh failed');
         }
@@ -136,7 +137,7 @@ class _StartupScreenState extends State<StartupScreen> {
 
     // Guard: Ensure user is still valid
     if (user == null) {
-      debugPrint('StartupScreen: User became null during routing');
+      AppLogger.d('StartupScreen: User became null during routing');
       _routeToAuthError('User session lost');
       return;
     }
@@ -163,7 +164,7 @@ class _StartupScreenState extends State<StartupScreen> {
 
       // Re-check user after async call in case session expired
       if (supabase.auth.currentUser == null) {
-        debugPrint('StartupScreen: User became null after onboarding check');
+        AppLogger.d('StartupScreen: User became null after onboarding check');
         _routeToAuthError('Session expired during initialization');
         return;
       }
@@ -177,9 +178,8 @@ class _StartupScreenState extends State<StartupScreen> {
       } else {
         Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
       }
-    } catch (e, stackTrace) {
-      debugPrint('StartupScreen auth routing error: $e');
-      debugPrint('StackTrace: $stackTrace');
+    } catch (e) {
+      AppLogger.d('StartupScreen auth routing error: $e');
 
       // Check if this is an auth-specific error requiring re-login
       if (AuthGuard.isAuthError(e)) {
@@ -199,7 +199,7 @@ class _StartupScreenState extends State<StartupScreen> {
   void _routeToAuthError(String reason) {
     if (!mounted || _hasRouted) return;
     _hasRouted = true;
-    debugPrint('StartupScreen: Routing to auth error - $reason');
+    AppLogger.d('StartupScreen: Routing to auth error - $reason');
     Navigator.of(context).pushNamedAndRemoveUntil(
       AppRoutes.authGuardError,
       (route) => false,

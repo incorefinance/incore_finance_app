@@ -21,6 +21,11 @@ linux/flutter/
 windows/flutter/
 web/.firebase/
 
+# Secrets and environment
+env.json
+*.env
+key.properties
+
 # Misc
 *.log
 *.tmp

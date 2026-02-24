@@ -77,11 +77,18 @@ class _CurrencySelectorDialogState extends State<CurrencySelectorDialog> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: context.blue600,
+                  ),
                   onPressed: () => Navigator.pop(context),
                   child: Text('Cancel'),
                 ),
                 SizedBox(width: 2.w),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: context.blue600,
+                    foregroundColor: Colors.white,
+                  ),
                   onPressed: () {
                     widget.onCurrencySelected(_selectedCurrency);
                     Navigator.pop(context);

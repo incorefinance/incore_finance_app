@@ -84,8 +84,8 @@ class _TransactionCardState extends State<TransactionCard> {
         : t.category;
     final categoryIcon = category?.iconName ?? 'category';
 
-    // Description shown as subtitle (smaller)
-    final description = (t.description.trim().isEmpty) ? l10n.noDescription : t.description.trim();
+    // Description shown as subtitle — null when empty (no placeholder shown)
+    final description = t.description.trim().isEmpty ? null : t.description.trim();
 
     // Payment method label must be user-friendly - use localized label
     final paymentMethod = PaymentMethodParser.fromAny(t.paymentMethod);
@@ -156,23 +156,23 @@ class _TransactionCardState extends State<TransactionCard> {
                     color: context.slate900,
                   ),
                 ),
-                SizedBox(height: 0.4.h),
-
-                // Subtitle: description + payment method
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        description,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: context.slate500,
+                if (description != null) ...[
+                  SizedBox(height: 0.4.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          description,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: context.slate500,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
                 SizedBox(height: 0.4.h),
 
                 Row(

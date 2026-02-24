@@ -51,8 +51,8 @@ abstract final class AppColors {
   // ============================================================================
 
   /// Primary brand color
-  /// #253E4C
-  static const Color primary = Color(0xFF253E4C);
+  /// #2563EB
+  static const Color primary = Color(0xFF2563EB);
 
   /// Softer primary variant
   /// #6EABC6

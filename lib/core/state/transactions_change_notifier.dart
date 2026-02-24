@@ -22,7 +22,5 @@ class TransactionsChangeNotifier {
   /// Call this after a successful transaction mutation (insert, update, delete).
   void markChanged() {
     version.value++;
-    // ignore: avoid_print
-    print('=== TransactionsChangeNotifier.markChanged() -> version: ${version.value}');
   }
 }

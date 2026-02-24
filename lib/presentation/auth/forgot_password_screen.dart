@@ -48,7 +48,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       }
     } on AuthException catch (e) {
       // Do not reveal whether email exists; show generic message on most errors
-      debugPrint('Password reset error: ${e.message}');
+      // Error intentionally not logged to avoid leaking email existence
       if (mounted) {
         final lower = e.message.toLowerCase();
         if (lower.contains('rate') || lower.contains('too many')) {

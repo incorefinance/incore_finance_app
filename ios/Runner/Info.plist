@@ -45,11 +45,6 @@
 	<string>InCore Finance uses Face ID to securely protect your financial data.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true />
-    </dict>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

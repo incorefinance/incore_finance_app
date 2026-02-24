@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 
+import '../../services/crash_reporting_service.dart';
+
 final Logger _logger = Logger(
   printer: PrettyPrinter(
     methodCount: 0,
@@ -10,7 +12,7 @@ final Logger _logger = Logger(
     printEmojis: true,
     dateTimeFormat: DateTimeFormat.none,
   ),
-  level: kReleaseMode ? Level.warning : Level.debug,
+  level: kReleaseMode ? Level.error : Level.debug,
 );
 
 class AppLogger {
@@ -25,14 +27,23 @@ class AppLogger {
   }
 
   static void w(String message, {Object? error, StackTrace? stackTrace}) {
-    _logger.w(message, error: error, stackTrace: stackTrace);
+    if (!kReleaseMode) _logger.w(message, error: error, stackTrace: stackTrace);
   }
 
+  /// NEVER pass PII (user IDs, amounts, descriptions) in [message].
+  /// In release this message is forwarded to the Crashlytics log buffer.
   static void e(
     String message, {
     Object? error,
     StackTrace? stackTrace,
   }) {
-    _logger.e(message, error: error, stackTrace: stackTrace);
+    if (kReleaseMode) {
+      // Release: log the event label only — no error object, no stack trace,
+      // no user IDs, no amounts, nothing that could leak PII.
+      _logger.e(message);
+      CrashReportingService.instance.log(message);
+    } else {
+      _logger.e(message, error: error, stackTrace: stackTrace);
+    }
   }
 }

@@ -192,6 +192,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get description => 'Description';
 
   @override
+  String get descriptionOptional => 'Description (optional)';
+
+  @override
   String get category => 'Category';
 
   @override
@@ -1122,6 +1125,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get upgradeForExport => 'Upgrade to Premium to export data';
+
+  @override
+  String get importData => 'Import Transactions';
+
+  @override
+  String get importDataDescription => 'Load from a CSV or Excel file';
+
+  @override
+  String importSuccess(int count) {
+    return 'Imported $count transaction(s)';
+  }
+
+  @override
+  String importPartialSuccess(int imported, int failed) {
+    return 'Imported $imported, skipped $failed with errors';
+  }
+
+  @override
+  String get importFailed => 'Import failed. Please check your file format.';
 
   @override
   String get incomeSetupTitle => 'Income setup';

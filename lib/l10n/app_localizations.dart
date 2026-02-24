@@ -461,6 +461,12 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get description;
 
+  /// No description provided for @descriptionOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get descriptionOptional;
+
   /// No description provided for @category.
   ///
   /// In en, this message translates to:
@@ -2284,6 +2290,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Upgrade to Premium to export data'**
   String get upgradeForExport;
+
+  /// No description provided for @importData.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Transactions'**
+  String get importData;
+
+  /// No description provided for @importDataDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Load from a CSV or Excel file'**
+  String get importDataDescription;
+
+  /// No description provided for @importSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {count} transaction(s)'**
+  String importSuccess(int count);
+
+  /// No description provided for @importPartialSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {imported}, skipped {failed} with errors'**
+  String importPartialSuccess(int imported, int failed);
+
+  /// No description provided for @importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed. Please check your file format.'**
+  String get importFailed;
 
   /// No description provided for @incomeSetupTitle.
   ///

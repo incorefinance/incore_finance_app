@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:incore_finance/l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,7 +19,10 @@ import '../presentation/splash/language_splash_screen.dart';
 import '../widgets/custom_error_widget.dart';
 import 'package:incore_finance/services/supabase_service.dart';
 import 'package:incore_finance/services/deep_link_service.dart';
+import '../core/logging/app_logger.dart';
 import '../widgets/biometric_gate.dart';
+import 'package:incore_finance/services/crash_reporting_service.dart';
+import 'firebase_options.dart';
 
 /// Global navigator key for app-level navigation from services.
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -23,38 +30,81 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Supabase
-  try {
-    await SupabaseService.initialize();
-  } catch (e) {
-    debugPrint('Failed to initialize Supabase: $e');
+  // Firebase + Crashlytics: iOS/Android only (web not configured)
+  // Run Firebase and Supabase initialization in parallel — they are independent.
+  if (!kIsWeb) {
+    try {
+      await Future.wait([
+        Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+        SupabaseService.initialize(),
+      ]);
+    } catch (e) {
+      AppLogger.e('Failed to initialize Firebase or Supabase', error: e);
+    }
+
+    // Crashlytics requires Firebase to be ready (must follow Future.wait above)
+    try {
+      await FirebaseCrashlytics.instance
+          .setCrashlyticsCollectionEnabled(kReleaseMode);
+      CrashReportingService.instance.initialize(collectionEnabled: kReleaseMode);
+
+      const appStage = String.fromEnvironment('APP_STAGE', defaultValue: 'dev');
+      await CrashReportingService.instance.setStage(appStage);
+    } catch (e) {
+      AppLogger.e('Failed to initialize Crashlytics', error: e);
+    }
+
+    // Flutter framework errors → Crashlytics in release, console in debug
+    FlutterError.onError = (FlutterErrorDetails details) {
+      if (kReleaseMode) {
+        FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+      } else {
+        FlutterError.dumpErrorToConsole(details);
+      }
+    };
+
+    // Platform-level isolated errors
+    PlatformDispatcher.instance.onError = (error, stack) {
+      if (kReleaseMode) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      }
+      return false;
+    };
+  } else {
+    // Web: Supabase only (no Firebase)
+    try {
+      await SupabaseService.initialize();
+    } catch (e) {
+      AppLogger.e('Failed to initialize Supabase', error: e);
+    }
   }
 
-  // Initialize deep link handling for auth callbacks
+  // DeepLink needs Supabase ready (must follow Supabase init above)
   try {
     await DeepLinkService.instance.initialize();
   } catch (e) {
-    debugPrint('Failed to initialize DeepLinkService: $e');
+    AppLogger.e('Failed to initialize DeepLinkService', error: e);
   }
 
-  // Initialize Superwall for paywall presentation
+  // Superwall for paywall presentation (non-blocking, no await needed)
   try {
     const apiKey = 'pk_pTFQbyNsffC3d-FPC4-o7';
     Superwall.configure(apiKey);
   } catch (e) {
-    debugPrint('Failed to initialize Superwall: $e');
+    AppLogger.e('Failed to initialize Superwall', error: e);
   }
 
-  bool _hasShownError = false;
+  bool hasShownError = false;
 
   // 🚨 CRITICAL: Custom error handling - DO NOT REMOVE
   ErrorWidget.builder = (FlutterErrorDetails details) {
-    if (!_hasShownError) {
-      _hasShownError = true;
+    if (!hasShownError) {
+      hasShownError = true;
 
-      // Reset flag after 3 seconds to allow error widget on new screens
+      // Reset flag after 5 seconds to allow error widget on new screens
       Future.delayed(Duration(seconds: 5), () {
-        _hasShownError = false;
+        hasShownError = false;
       });
 
       return CustomErrorWidget(errorDetails: details);
@@ -63,10 +113,15 @@ void main() async {
   };
 
   // 🚨 CRITICAL: Device orientation lock - DO NOT REMOVE
-  Future.wait([
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
-  ]).then((value) {
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+  // Wrap runApp in a zone to catch uncaught async errors
+  runZonedGuarded(() {
     runApp(MyApp(key: myAppKey));
+  }, (error, stackTrace) {
+    if (!kIsWeb && kReleaseMode) {
+      FirebaseCrashlytics.instance.recordError(error, stackTrace, fatal: true);
+    }
   });
 }
 

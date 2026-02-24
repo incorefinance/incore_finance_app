@@ -57,13 +57,13 @@ class ExportOptionsDialog extends StatelessWidget {
 
             SizedBox(height: 1.5.h),
 
-            // PDF option
+            // Excel option
             _buildExportOption(
               context: context,
-              iconName: 'picture_as_pdf',
-              title: 'PDF Report',
-              subtitle: 'Formatted document with charts',
-              format: 'pdf',
+              iconName: 'grid_on',
+              title: 'Excel File',
+              subtitle: 'Microsoft Excel (.xlsx)',
+              format: 'excel',
               theme: theme,
               colorScheme: colorScheme,
             ),

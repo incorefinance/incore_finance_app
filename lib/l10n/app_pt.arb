@@ -61,6 +61,7 @@
     "custom": "Personalizado",
     "amount": "Montante",
     "description": "Descrição",
+    "descriptionOptional": "Descrição (opcional)",
     "category": "Categoria",
     "date": "Data",
     "paymentMethod": "Método de Pagamento",
@@ -449,6 +450,23 @@
     "termsOfService": "Termos de Serviço",
     "termsOfServiceDesc": "Ver termos e condições",
     "upgradeForExport": "Atualizar para Premium para exportar dados",
+
+    "importData": "Importar Transações",
+    "importDataDescription": "Carregar a partir de CSV ou Excel",
+    "importSuccess": "Importadas {count} transação(ões)",
+    "@importSuccess": {
+        "placeholders": {
+            "count": { "type": "int" }
+        }
+    },
+    "importPartialSuccess": "Importadas {imported}, ignoradas {failed} com erros",
+    "@importPartialSuccess": {
+        "placeholders": {
+            "imported": { "type": "int" },
+            "failed": { "type": "int" }
+        }
+    },
+    "importFailed": "Importação falhou. Por favor verifique o formato do ficheiro.",
 
     "incomeSetupTitle": "Configuração de rendimento",
     "incomeSetupSubtitle": "Escolha o que melhor descreve o seu rendimento",

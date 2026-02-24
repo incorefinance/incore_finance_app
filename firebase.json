@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"incore-app","appId":"1:144920893072:android:d6c171bbbc023dac3b6a15","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"incore-app","configurations":{"android":"1:144920893072:android:d6c171bbbc023dac3b6a15","ios":"1:144920893072:ios:8049f52f8c50e1d63b6a15"}}}}}}

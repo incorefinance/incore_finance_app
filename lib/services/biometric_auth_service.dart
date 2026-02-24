@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/logging/app_logger.dart';
+
 /// Result of biometric authentication attempt.
 enum BiometricAuthResult {
   success,
@@ -46,7 +48,7 @@ class BiometricAuthService {
       final isDeviceSupported = await _localAuth.isDeviceSupported();
       return canCheckBiometrics && isDeviceSupported;
     } on PlatformException catch (e) {
-      debugPrint('BiometricAuthService: isDeviceSupported error: $e');
+      AppLogger.d('BiometricAuthService: isDeviceSupported error: $e');
       return false;
     }
   }
@@ -59,7 +61,7 @@ class BiometricAuthService {
       _availableBiometrics = await _localAuth.getAvailableBiometrics();
       return _availableBiometrics;
     } on PlatformException catch (e) {
-      debugPrint('BiometricAuthService: getAvailableBiometrics error: $e');
+      AppLogger.d('BiometricAuthService: getAvailableBiometrics error: $e');
       return [];
     }
   }
@@ -110,7 +112,7 @@ class BiometricAuthService {
           ? BiometricAuthResult.success
           : BiometricAuthResult.failed;
     } on PlatformException catch (e) {
-      debugPrint('BiometricAuthService: authenticate error: $e');
+      AppLogger.d('BiometricAuthService: authenticate error: $e');
       if (e.code == 'NotAvailable' || e.code == 'NotEnrolled') {
         return BiometricAuthResult.notAvailable;
       } else if (e.code == 'LockedOut' || e.code == 'PermanentlyLockedOut') {
