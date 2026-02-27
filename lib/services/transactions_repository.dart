@@ -94,7 +94,8 @@ class TransactionsRepository {
     }
 
     // 2. Proceed with insert
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     final payload = <String, dynamic>{
       'user_id': userId,
@@ -161,7 +162,8 @@ class TransactionsRepository {
     required String paymentMethod,
     String? client,
   }) async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     final payload = <String, dynamic>{
       'amount': amount,
@@ -211,7 +213,8 @@ class TransactionsRepository {
   Future<void> deleteTransaction({
     required String transactionId,
   }) async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     // === PROTECTION LEDGER: Fetch type BEFORE delete ===
     String? transactionType;
@@ -269,7 +272,8 @@ class TransactionsRepository {
 
   /// Raw fetch: used by legacy code.
   Future<List<Map<String, dynamic>>> getTransactionsForCurrentUser() async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     final response = await _client
         .from('transactions')
@@ -296,7 +300,8 @@ class TransactionsRepository {
     DateTime startDate,
     DateTime endDate,
   ) async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     final response = await _client
         .from('transactions')
@@ -404,7 +409,8 @@ class TransactionsRepository {
 
     final minDate = dates.reduce((a, b) => a.isBefore(b) ? a : b);
     final maxDate = dates.reduce((a, b) => a.isAfter(b) ? a : b);
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     try {
       final response = await _client
@@ -434,7 +440,8 @@ class TransactionsRepository {
   Future<void> restoreTransaction({
     required String transactionId,
   }) async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     await _client
         .from('transactions')
@@ -456,7 +463,3 @@ class TransactionsRepository {
     }
   }
 }
-
-// TODO: When income events feature is implemented, wire:
-// - increment(UsageMetricsRepository.incomeEventsCount) on create
-// - decrement(UsageMetricsRepository.incomeEventsCount) on delete

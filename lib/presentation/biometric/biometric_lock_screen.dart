@@ -107,9 +107,9 @@ class _BiometricLockScreenState extends State<BiometricLockScreen> {
   String _getBiometricLabel(AppLocalizations? l10n) {
     switch (_biometricType) {
       case BiometricDisplayType.face:
-        return 'Face ID';
+        return l10n?.biometricFaceId ?? 'Face ID';
       case BiometricDisplayType.fingerprint:
-        return 'Touch ID';
+        return l10n?.biometricTouchId ?? 'Touch ID';
       case BiometricDisplayType.unknown:
         return l10n?.biometricAuth ?? 'Biometric';
     }

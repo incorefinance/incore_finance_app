@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../routes/app_routes.dart';
 import '../../services/password_validator.dart';
 import '../../theme/app_colors_ext.dart';
@@ -36,10 +37,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Future<void> _updatePassword() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final l10n = AppLocalizations.of(context)!;
+
     // Check passwords match
     if (_passwordController.text != _confirmController.text) {
       setState(() {
-        _errorMessage = 'Passwords do not match.';
+        _errorMessage = l10n.passwordsDoNotMatch;
       });
       return;
     }
@@ -64,7 +67,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       // Check session again before attempting update
       if (supabase.auth.currentSession == null) {
         setState(() {
-          _errorMessage = 'Your session has expired. Please open the reset link again.';
+          _errorMessage = l10n.authErrorSessionExpired;
         });
         return;
       }
@@ -76,8 +79,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       // Optionally refresh session
       try {
         await supabase.auth.refreshSession();
-      } catch (_) {
-        // Ignore refresh errors
+      } catch (e) {
+        debugPrint('[ResetPassword] Session refresh failed: $e');
       }
 
       if (mounted) {
@@ -94,7 +97,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'Something went wrong. Please try again.';
+          _errorMessage = l10n.authErrorGeneric;
         });
       }
     } finally {
@@ -108,20 +111,21 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   /// Converts technical error messages to user friendly language.
   String _getUserFriendlyError(String? message) {
-    if (message == null) return 'Something went wrong. Please try again.';
+    final l10n = AppLocalizations.of(context)!;
+    if (message == null) return l10n.authErrorGeneric;
 
     final lower = message.toLowerCase();
 
     if (lower.contains('session') || lower.contains('not authenticated')) {
-      return 'Your session has expired. Please open the reset link again.';
+      return l10n.authErrorSessionExpired;
     }
 
     if (lower.contains('same password') || lower.contains('different')) {
-      return 'Please choose a different password than your current one.';
+      return l10n.authErrorChooseDifferentPassword;
     }
 
     if (lower.contains('rate') || lower.contains('too many')) {
-      return 'Too many attempts. Please wait a moment before trying again.';
+      return l10n.authErrorTooManyAttempts;
     }
 
     return message;
@@ -138,6 +142,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: context.canvasFrosted,
@@ -157,7 +162,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  _passwordUpdated ? 'Password Updated' : 'Set New Password',
+                  _passwordUpdated ? l10n.passwordUpdated : l10n.setNewPassword,
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -174,7 +179,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'Password updated. You can sign in now.',
+                      l10n.passwordUpdatedMessage,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onPrimaryContainer,
                       ),
@@ -184,7 +189,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _navigateToStart,
-                    child: const Text('Continue to Sign In'),
+                    child: Text(l10n.continueToSignIn),
                   ),
                 ] else ...[
                   // No session warning
@@ -197,7 +202,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'Open the reset link from your email, then return to the app to set your new password.',
+                        l10n.openResetLinkMessage,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onErrorContainer,
                         ),
@@ -207,7 +212,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   // Instructions
                   if (_hasSession)
                     Text(
-                      'Enter your new password below.',
+                      l10n.enterNewPasswordBelow,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: context.slate500,
                       ),
@@ -238,13 +243,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     textInputAction: TextInputAction.next,
                     enabled: _hasSession,
                     decoration: InputDecoration(
-                      labelText: 'New Password',
-                      hintText: 'At least ${PasswordValidator.minLength} characters',
+                      labelText: l10n.newPassword,
+                      hintText: '${l10n.passwordHint}',
                       border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a password';
+                        return l10n.enterNewPassword;
                       }
                       final result = PasswordValidator.validatePolicy(value);
                       if (!result.isValid) {
@@ -259,16 +264,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     obscureText: true,
                     textInputAction: TextInputAction.done,
                     enabled: _hasSession,
-                    decoration: const InputDecoration(
-                      labelText: 'Confirm Password',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.confirmPassword,
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please confirm your password';
+                        return l10n.confirmYourPassword;
                       }
                       if (value != _passwordController.text) {
-                        return 'Passwords do not match';
+                        return l10n.passwordsDoNotMatch;
                       }
                       return null;
                     },
@@ -283,12 +288,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Update Password'),
+                        : Text(l10n.updatePassword),
                   ),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: _navigateToStart,
-                    child: const Text('Back to Sign In'),
+                    child: Text(l10n.backToSignIn),
                   ),
                 ],
               ],

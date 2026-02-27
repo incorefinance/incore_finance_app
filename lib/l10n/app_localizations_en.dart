@@ -1806,4 +1806,214 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get biometricFingerprint => 'fingerprint';
+
+  @override
+  String get biometricTouchId => 'Touch ID';
+
+  @override
+  String get chooseExportFormat => 'Choose export format';
+
+  @override
+  String get csvFile => 'CSV File';
+
+  @override
+  String get csvFileDescription => 'Spreadsheet compatible format';
+
+  @override
+  String get excelFile => 'Excel File';
+
+  @override
+  String get excelFileDescription => 'Microsoft Excel (.xlsx)';
+
+  @override
+  String get importTransactionsTitle => 'Import Transactions';
+
+  @override
+  String get importTransactionsSubtitle => 'Choose a file to import or download the template first';
+
+  @override
+  String get selectLanguage => 'Select Language';
+
+  @override
+  String get selectCurrency => 'Select Currency';
+
+  @override
+  String get apply => 'Apply';
+
+  @override
+  String get csvFileSubtitle => 'Comma-separated values (.csv)';
+
+  @override
+  String get downloadExcelTemplate => 'Download Excel template';
+
+  @override
+  String get formatGuide => 'Format guide';
+
+  @override
+  String get formatGuideDate => 'YYYY-MM-DD  (e.g. 2025-01-15)';
+
+  @override
+  String get formatGuideType => 'income  or  expense';
+
+  @override
+  String get formatGuideAmount => 'Positive number  (e.g. 5000.00)';
+
+  @override
+  String get formatGuideOptional => 'Optional free text';
+
+  @override
+  String get formatGuideCategory => 'e.g. Consulting, Software, Rent';
+
+  @override
+  String get formatGuidePayment => 'Cash, Card, Bank Transfer…';
+
+  @override
+  String get formatGuideDownloadHint => 'Download the template for sample data and full category list.';
+
+  @override
+  String get columnDate => 'Date';
+
+  @override
+  String get columnType => 'Type';
+
+  @override
+  String get columnAmount => 'Amount';
+
+  @override
+  String get columnDescription => 'Description';
+
+  @override
+  String get columnCategory => 'Category';
+
+  @override
+  String get columnPaymentMethod => 'Payment Method';
+
+  @override
+  String get columnClient => 'Client';
+
+  @override
+  String get signIn => 'Sign in';
+
+  @override
+  String get signUp => 'Create account';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get passwordHint => 'At least 12 characters';
+
+  @override
+  String get newPassword => 'New Password';
+
+  @override
+  String get confirmPassword => 'Confirm Password';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get createAccount => 'Create Account';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account? Sign in';
+
+  @override
+  String get needAccount => 'Need an account? Create one';
+
+  @override
+  String get sendResetEmail => 'Send Reset Email';
+
+  @override
+  String get backToSignIn => 'Back to Sign In';
+
+  @override
+  String get continueToSignIn => 'Continue to Sign In';
+
+  @override
+  String get updatePassword => 'Update Password';
+
+  @override
+  String get resetPassword => 'Reset Password';
+
+  @override
+  String get setNewPassword => 'Set New Password';
+
+  @override
+  String get passwordUpdated => 'Password Updated';
+
+  @override
+  String get enterYourEmail => 'Please enter your email';
+
+  @override
+  String get enterValidEmail => 'Please enter a valid email';
+
+  @override
+  String get enterPassword => 'Please enter your password';
+
+  @override
+  String get enterNewPassword => 'Please enter a password';
+
+  @override
+  String get confirmYourPassword => 'Please confirm your password';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get resetPasswordInstructions => 'Enter your email address and we will send you a link to reset your password.';
+
+  @override
+  String get resetEmailSent => 'If an account exists for this email, we sent a reset link. Please check your inbox.';
+
+  @override
+  String get passwordUpdatedMessage => 'Password updated. You can sign in now.';
+
+  @override
+  String get enterNewPasswordBelow => 'Enter your new password below.';
+
+  @override
+  String get openResetLinkMessage => 'Open the reset link from your email, then return to the app to set your new password.';
+
+  @override
+  String get authErrorGeneric => 'Something went wrong. Please try again.';
+
+  @override
+  String get authErrorInvalidCredentials => 'Invalid email or password. Please try again.';
+
+  @override
+  String get authErrorEmailNotConfirmed => 'Please verify your email before signing in.';
+
+  @override
+  String get authErrorTooManyAttempts => 'Too many attempts. Please wait a moment.';
+
+  @override
+  String get authErrorAlreadyRegistered => 'An account with this email already exists.';
+
+  @override
+  String get authErrorSignInFailed => 'Sign in failed. Please try again.';
+
+  @override
+  String get authErrorSessionExpired => 'Your session has expired. Please open the reset link again.';
+
+  @override
+  String get authErrorChooseDifferentPassword => 'Please choose a different password than your current one.';
+
+  @override
+  String get authErrorTooManyResetAttempts => 'Too many reset attempts for this email. Please wait about an hour before trying again, or check your inbox for an existing reset link.';
+
+  @override
+  String get passwordRequirements => 'Password requirements:';
+
+  @override
+  String get currencyUsDollar => 'US Dollar';
+
+  @override
+  String get currencyBrazilianReal => 'Brazilian Real';
+
+  @override
+  String get currencyEuro => 'Euro';
+
+  @override
+  String get currencyBritishPound => 'British Pound';
 }

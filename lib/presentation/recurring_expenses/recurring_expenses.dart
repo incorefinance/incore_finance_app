@@ -9,6 +9,7 @@ import '../../models/recurring_expense.dart';
 import '../../services/auth_guard.dart';
 import '../../services/recurring_expenses_repository.dart';
 import '../../services/user_settings_service.dart';
+import '../../core/app_export.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_colors_ext.dart';
 import '../../l10n/app_localizations.dart';
@@ -56,8 +57,8 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
       setState(() {
         _currencySettings = settings;
       });
-    } catch (_) {
-      // keep defaults
+    } catch (e) {
+      AppLogger.w('[RecurringExpenses] _loadCurrencySettings failed', error: e);
     }
   }
 
@@ -227,10 +228,38 @@ class _RecurringExpensesState extends State<RecurringExpenses> {
               : _expenses.isEmpty
                   ? _buildEmptyState(context, l10n)
                   : _buildExpensesList(context),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _handleAddExpense,
-        backgroundColor: context.blue600,
-        child: const Icon(Icons.add),
+      floatingActionButton: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              context.blue600,
+              context.blue700,
+            ],
+          ),
+          boxShadow: AppShadows.fabLight,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: _handleAddExpense,
+            customBorder: const CircleBorder(),
+            splashColor: Colors.white.withValues(alpha: 0.25),
+            highlightColor: Colors.white.withValues(alpha: 0.10),
+            child: const Center(
+              child: Icon(
+                Icons.add,
+                size: 28,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

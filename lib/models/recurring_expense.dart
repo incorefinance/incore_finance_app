@@ -1,6 +1,7 @@
 // lib/models/recurring_expense.dart
 //
 // Data model for recurring expenses.
+import '../utils/date_format_util.dart';
 // MVP: Monthly frequency only (implicit, no frequency field).
 //
 // Due day rule (documented here, implemented in short-term pressure logic):
@@ -127,8 +128,7 @@ class RecurringExpense {
   }
 
   /// Format date as YYYY-MM-DD for Supabase DATE column.
-  static String _formatDateOnly(DateTime dt) =>
-      '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+  static String _formatDateOnly(DateTime dt) => toIsoDateString(dt);
 
   /// Creates a copy with optional field overrides.
   RecurringExpense copyWith({

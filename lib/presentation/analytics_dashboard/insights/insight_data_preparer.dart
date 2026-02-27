@@ -9,6 +9,7 @@ import '../../../domain/safety_buffer/safety_buffer_calculator.dart';
 import '../../../domain/tax_shield/tax_shield_snapshot.dart';
 import '../../../domain/tax_shield/tax_shield_calculator.dart';
 import '../../../data/settings/tax_shield_settings_store.dart';
+import '../../../utils/date_format_util.dart';
 
 /// Immutable data class holding all prepared insight data.
 /// Contains only computed outputs - no raw transaction lists.
@@ -472,15 +473,13 @@ class InsightDataPreparer {
 
       for (int i = 0; i < days; i++) {
         final date = startDateNormalized.add(Duration(days: i));
-        final key =
-            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        final key = toIsoDateString(date);
         dailyNetChanges[key] = 0.0;
       }
 
       for (final tx in transactions) {
         final d = DateTime(tx.date.year, tx.date.month, tx.date.day);
-        final key =
-            '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+        final key = toIsoDateString(d);
 
         if (!dailyNetChanges.containsKey(key)) continue;
 
@@ -493,8 +492,7 @@ class InsightDataPreparer {
 
       for (int i = 0; i < days; i++) {
         final date = startDateNormalized.add(Duration(days: i));
-        final key =
-            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        final key = toIsoDateString(date);
         runningBalance += dailyNetChanges[key] ?? 0;
         series.add({'date': date, 'balance': runningBalance});
       }

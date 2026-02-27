@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../services/password_validator.dart';
 import '../../../theme/app_colors_ext.dart';
 import '../../../theme/app_theme.dart';
@@ -43,7 +44,7 @@ class PasswordStrengthIndicator extends StatelessWidget {
         if (password.isNotEmpty) ...[
           SizedBox(height: 1.5.h),
           Text(
-            'Password requirements:',
+            AppLocalizations.of(context)?.passwordRequirements ?? 'Password requirements:',
             style: theme.textTheme.bodySmall?.copyWith(
               color: context.slate500,
               fontWeight: FontWeight.w500,
@@ -58,14 +59,14 @@ class PasswordStrengthIndicator extends StatelessWidget {
                     ? Icons.check_circle
                     : Icons.radio_button_unchecked,
                 size: 16,
-                color: meetsPolicy ? Color(0xFF43A047) : Color(0xFFE53935),
+                color: meetsPolicy ? context.emerald700 : context.error,
               ),
               SizedBox(width: 2.w),
               Expanded(
                 child: Text(
                   'At least ${PasswordValidator.minLength} characters (${password.length}/${PasswordValidator.minLength})',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: meetsPolicy ? context.slate900 : Color(0xFFE53935),
+                    color: meetsPolicy ? context.slate900 : context.error,
                     fontWeight: meetsPolicy ? FontWeight.w500 : FontWeight.w400,
                     fontSize: 10.sp,
                   ),

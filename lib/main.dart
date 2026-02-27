@@ -22,6 +22,7 @@ import 'package:incore_finance/services/deep_link_service.dart';
 import '../core/logging/app_logger.dart';
 import '../widgets/biometric_gate.dart';
 import 'package:incore_finance/services/crash_reporting_service.dart';
+import 'package:incore_finance/services/notification_service.dart';
 import 'firebase_options.dart';
 
 /// Global navigator key for app-level navigation from services.
@@ -93,6 +94,13 @@ void main() async {
     Superwall.configure(apiKey);
   } catch (e) {
     AppLogger.e('Failed to initialize Superwall', error: e);
+  }
+
+  // Push notifications — non-blocking, runs after Firebase is ready
+  try {
+    await NotificationService.instance.initialize();
+  } catch (e) {
+    AppLogger.e('Failed to initialize NotificationService', error: e);
   }
 
   bool hasShownError = false;

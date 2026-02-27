@@ -13,6 +13,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../utils/date_format_util.dart';
+
 import 'package:csv/csv.dart';
 import 'package:excel/excel.dart';
 import 'package:intl/intl.dart';
@@ -125,6 +127,5 @@ class TransactionExportService {
   static String _paymentLabel(String? dbValue) =>
       PaymentMethodParser.fromAny(dbValue)?.label ?? dbValue ?? '';
 
-  static String _formatDate(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  static String _formatDate(DateTime d) => toIsoDateString(d);
 }

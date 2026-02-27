@@ -1,5 +1,7 @@
 // lib/models/transaction_record.dart
 
+import '../utils/date_format_util.dart';
+
 class TransactionRecord {
   final String id;
   final String userId;
@@ -69,8 +71,7 @@ class TransactionRecord {
       type: map['type']?.toString() ?? '',
       date: parsedDate,
       paymentMethod: map['payment_method']?.toString(),
-      // Tolerant on reads: if you ever had client_name in old data, it still works.
-      client: (map['client'] ?? map['client'])?.toString(),
+      client: map['client']?.toString(),
       recurringExpenseId: map['recurring_expense_id']?.toString(),
       occurrenceDate: parsedOccurrenceDate,
     );
@@ -102,6 +103,5 @@ class TransactionRecord {
   }
 
   /// Format date as YYYY-MM-DD for Supabase DATE column.
-  static String _formatDateOnly(DateTime dt) =>
-      '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+  static String _formatDateOnly(DateTime dt) => toIsoDateString(dt);
 }

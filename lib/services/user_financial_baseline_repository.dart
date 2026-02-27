@@ -27,7 +27,8 @@ class UserFinancialBaselineRepository {
   /// Fetches the financial baseline for the current user.
   /// Returns null if no baseline exists (baseline will be created on first upsert).
   Future<UserFinancialBaseline?> getBaselineForCurrentUser() async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     try {
       final response = await _client

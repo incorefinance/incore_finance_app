@@ -35,14 +35,31 @@ android {
         minSdkVersion 26  // Superwall requires minSdk 26
     }
 
+    signingConfigs {
+        release {
+            def keystorePropertiesFile = rootProject.file("key.properties")
+            if (keystorePropertiesFile.exists()) {
+                def keystoreProperties = new Properties()
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled true
             shrinkResources true
-            // TODO: Replace signingConfigs.debug with signingConfigs.release
-            // before publishing. Create key.properties outside the repo and
-            // configure a release signingConfig that reads from it.
-            signingConfig = signingConfigs.debug
+            def keystorePropertiesFile = rootProject.file("key.properties")
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.release
+            } else {
+                // Fallback to debug signing for local builds
+                signingConfig = signingConfigs.debug
+            }
         }
     }
 }

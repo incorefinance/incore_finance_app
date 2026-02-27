@@ -68,7 +68,8 @@ class CashBalanceChart extends StatelessWidget {
                         if (!isKeyIndex) {
                           return const SizedBox.shrink();
                         }
-                        final date = balanceData[i]['date'] as DateTime;
+                        final rawDate = balanceData[i]['date'];
+                        final date = rawDate is DateTime ? rawDate : DateTime.parse(rawDate.toString());
                         // Use month abbreviation for longer ranges
                         final String label = balanceData.length > 90
                             ? DateFormat('MMM', uiLocale).format(date)
@@ -114,8 +115,8 @@ class CashBalanceChart extends StatelessWidget {
                     tooltipPadding: EdgeInsets.all(2.w),
                     getTooltipItems: (spots) {
                       return spots.map((barSpot) {
-                        final date =
-                            balanceData[barSpot.x.toInt()]['date'] as DateTime;
+                        final rawDate = balanceData[barSpot.x.toInt()]['date'];
+                        final date = rawDate is DateTime ? rawDate : DateTime.parse(rawDate.toString());
                         final balance = barSpot.y;
 
                         final formattedAmount = IncoreNumberFormatter.formatMoney(

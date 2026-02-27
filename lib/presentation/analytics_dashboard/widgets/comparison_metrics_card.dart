@@ -29,15 +29,11 @@ class ComparisonMetricsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.18),
-          width: 1,
-        ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.06),
-            offset: const Offset(0, 6),
-            blurRadius: 18,
+            color: context.shadowCard,
+            offset: const Offset(0, 2),
+            blurRadius: 8,
             spreadRadius: 0,
           ),
         ],

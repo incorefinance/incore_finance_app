@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
+import '../utils/date_format_util.dart';
 import 'package:excel/excel.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -372,9 +373,7 @@ class TransactionImportService {
         final cellValue = row[j]?.value;
         String? value;
         if (cellValue is DateTime) {
-          final dt = cellValue as DateTime;
-          value =
-              '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+          value = toIsoDateString(cellValue as DateTime);
         } else if (cellValue != null) {
           value = cellValue.toString();
         }

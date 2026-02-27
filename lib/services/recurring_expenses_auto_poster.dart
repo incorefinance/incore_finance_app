@@ -1,6 +1,7 @@
 // lib/services/recurring_expenses_auto_poster.dart
 //
 // Automatically posts transactions for due recurring expenses.
+import '../utils/date_format_util.dart';
 // This service:
 // - Calculates which recurring expense occurrences are due (<= today)
 // - Creates transactions for each due occurrence
@@ -172,8 +173,7 @@ class RecurringExpensesAutoPoster {
   }
 
   /// Format date as YYYY-MM-DD for Supabase DATE column.
-  String _formatDateOnly(DateTime dt) =>
-      '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+  String _formatDateOnly(DateTime dt) => toIsoDateString(dt);
 }
 
 /// Internal class to hold an occurrence to be posted.

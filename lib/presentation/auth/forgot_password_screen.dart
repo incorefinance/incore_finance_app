@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors_ext.dart';
 
@@ -52,10 +53,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (mounted) {
         final lower = e.message.toLowerCase();
         if (lower.contains('rate') || lower.contains('too many')) {
+          final l10n = AppLocalizations.of(context)!;
           setState(() {
-            _errorMessage = 'Too many reset attempts for this email. '
-                'Please wait about an hour before trying again, '
-                'or check your inbox for an existing reset link.';
+            _errorMessage = l10n.authErrorTooManyResetAttempts;
           });
         } else {
           // Show success message even on user not found to prevent enumeration
@@ -66,8 +66,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         setState(() {
-          _errorMessage = 'Something went wrong. Please try again.';
+          _errorMessage = l10n.authErrorGeneric;
         });
       }
     } finally {
@@ -87,6 +88,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: context.canvasFrosted,
@@ -105,7 +107,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     onPressed: _goBack,
                     icon: Icon(Icons.arrow_back, color: context.blue600),
                     label: Text(
-                      'Back',
+                      l10n.back,
                       style: TextStyle(color: context.blue600),
                     ),
                   ),
@@ -118,7 +120,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'Reset Password',
+                  l10n.resetPassword,
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -126,7 +128,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Enter your email address and we will send you a link to reset your password.',
+                  l10n.resetPasswordInstructions,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: context.slate500,
                   ),
@@ -143,7 +145,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'If an account exists for this email, we sent a reset link. Please check your inbox.',
+                      l10n.resetEmailSent,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onPrimaryContainer,
                       ),
@@ -174,16 +176,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     keyboardType: TextInputType.emailAddress,
                     autocorrect: false,
                     textInputAction: TextInputAction.done,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.email,
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your email';
+                        return l10n.enterYourEmail;
                       }
                       if (!value.contains('@')) {
-                        return 'Please enter a valid email';
+                        return l10n.enterValidEmail;
                       }
                       return null;
                     },
@@ -198,7 +200,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Send Reset Email'),
+                        : Text(l10n.sendResetEmail),
                   ),
                 ],
                 // After success, show back to sign in button
@@ -211,7 +213,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         (route) => false,
                       );
                     },
-                    child: const Text('Back to Sign In'),
+                    child: Text(l10n.backToSignIn),
                   ),
                 ],
               ],

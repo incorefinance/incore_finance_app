@@ -20,6 +20,7 @@ import '../../services/subscription/subscription_service.dart';
 import '../../services/transaction_export_service.dart';
 import '../../services/transaction_import_service.dart';
 import '../../services/transactions_repository.dart';
+import '../../services/notification_service.dart';
 import '../../services/user_settings_service.dart';
 import '../../theme/app_colors_ext.dart';
 import '../../services/biometric_auth_service.dart';
@@ -54,7 +55,6 @@ class _SettingsState extends State<Settings> {
 
   // User profile
   String? _userName;
-  String? _userEmail;
 
   // Plan
   PlanType _currentPlan = PlanType.free;
@@ -68,6 +68,7 @@ class _SettingsState extends State<Settings> {
   bool _biometricSupported = false;
   BiometricDisplayType _biometricType = BiometricDisplayType.unknown;
   bool _notificationsEnabled = true;
+  int _safetyBufferThresholdWeeks = 4;
   bool _diagnosticsEnabled = false;
 
   // Financial preferences
@@ -87,11 +88,15 @@ class _SettingsState extends State<Settings> {
     _loadSettings();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   void _loadUserProfile() {
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
       setState(() {
-        _userEmail = user.email;
         _userName = user.userMetadata?['display_name'] as String? ??
             user.userMetadata?['full_name'] as String? ??
             user.userMetadata?['name'] as String?;
@@ -140,6 +145,13 @@ class _SettingsState extends State<Settings> {
       _taxPercent = taxPercent;
       _safetyPercent = safetyPercent;
     });
+
+    // Load safety buffer threshold from Supabase (async, after main setState)
+    final threshold =
+        await NotificationService.instance.getSafetyBufferThreshold();
+    if (mounted) {
+      setState(() => _safetyBufferThresholdWeeks = threshold);
+    }
   }
 
   Future<void> _saveSettings() async {
@@ -186,6 +198,94 @@ class _SettingsState extends State<Settings> {
   void _toggleNotifications(bool value) {
     setState(() => _notificationsEnabled = value);
     _saveSettings();
+    NotificationService.instance.setEnabled(value);
+  }
+
+  void _setSafetyBufferThreshold(int weeks) {
+    setState(() => _safetyBufferThresholdWeeks = weeks);
+    NotificationService.instance.setSafetyBufferThreshold(weeks);
+  }
+
+  void _showThresholdPicker(BuildContext context) {
+    final options = [2, 4, 8, 12];
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 4.w),
+              child: Text(
+                'Alert me when safety buffer drops below:',
+                style: Theme.of(ctx).textTheme.titleSmall,
+              ),
+            ),
+            ...options.map(
+              (weeks) => ListTile(
+                title: Text('$weeks weeks'),
+                trailing: _safetyBufferThresholdWeeks == weeks
+                    ? Icon(Icons.check, color: context.blue600)
+                    : null,
+                onTap: () {
+                  _setSafetyBufferThreshold(weeks);
+                  Navigator.pop(ctx);
+                },
+              ),
+            ),
+            SizedBox(height: 1.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditNameDialog() {
+    final controller = TextEditingController(text: _userName ?? '');
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.name),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            hintText: l10n.name,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newName = controller.text.trim();
+              if (newName.isEmpty) return;
+              Navigator.pop(ctx);
+              try {
+                await Supabase.instance.client.auth.updateUser(
+                  UserAttributes(data: {'display_name': newName}),
+                );
+                setState(() => _userName = newName);
+              } catch (e) {
+                if (mounted) {
+                  SnackbarHelper.showError(
+                      context, 'Failed to update name. Please try again.');
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.blue600,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showLanguageSelector() {
@@ -781,14 +881,11 @@ class _SettingsState extends State<Settings> {
                     iconName: 'person',
                     title: l10n.name,
                     subtitle: _userName ?? '-',
-                    enabled: false,
-                    showDivider: true,
-                  ),
-                  SettingTile(
-                    iconName: 'email',
-                    title: l10n.email,
-                    subtitle: _userEmail ?? '-',
-                    enabled: false,
+                    onTap: _showEditNameDialog,
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                     showDivider: true,
                   ),
                   SettingTile(
@@ -810,7 +907,7 @@ class _SettingsState extends State<Settings> {
                 children: [
                   SettingTile(
                     iconName: 'card_membership',
-                    title: l10n.currentPlan,
+                    title: l10n.manageSubscription,
                     subtitle: _currentPlan == PlanType.premium
                         ? l10n.premiumPlan
                         : l10n.freePlan,
@@ -822,21 +919,6 @@ class _SettingsState extends State<Settings> {
                       Icons.chevron_right,
                       color: colorScheme.onSurfaceVariant,
                     ),
-                    showDivider: true,
-                  ),
-                  SettingTile(
-                    iconName: 'settings',
-                    title: l10n.manageSubscription,
-                    subtitle: _isMobilePlatform
-                        ? l10n.manageSubscriptionHint
-                        : l10n.availableOnMobileOnly,
-                    enabled: _isMobilePlatform,
-                    onTap: _isMobilePlatform
-                        ? () {
-                            SnackbarHelper.showInfo(
-                                context, l10n.manageSubscriptionHint);
-                          }
-                        : null,
                     showDivider: true,
                   ),
                   SettingTile(
@@ -1010,8 +1092,21 @@ class _SettingsState extends State<Settings> {
                       activeThumbColor: context.blue600,
                       activeTrackColor: context.blue50,
                     ),
-                    showDivider: false,
+                    showDivider: _notificationsEnabled,
                   ),
+                  if (_notificationsEnabled)
+                    SettingTile(
+                      iconName: 'shield',
+                      title: 'Safety buffer alert',
+                      subtitle:
+                          'Alert when below $_safetyBufferThresholdWeeks weeks',
+                      onTap: () => _showThresholdPicker(context),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      showDivider: false,
+                    ),
                 ],
               ),
 
@@ -1057,13 +1152,6 @@ class _SettingsState extends State<Settings> {
                       onTap: _handleResetOnboarding,
                       showDivider: true,
                     ),
-                  SettingTile(
-                    iconName: 'cached',
-                    title: l10n.clearCache,
-                    subtitle: l10n.clearCacheDesc,
-                    enabled: false, // No cache service exists
-                    showDivider: true,
-                  ),
                   SettingTile(
                     iconName: 'bug_report',
                     title: l10n.diagnostics,
@@ -1552,7 +1640,7 @@ class _ImportPreviewSheetState extends State<_ImportPreviewSheet> {
             // Valid count
             _SummaryRow(
               icon: Icons.check_circle,
-              iconColor: const Color(0xFF14B8A6),
+              iconColor: context.teal600,
               text: '${widget.validRows.length} transaction${widget.validRows.length == 1 ? '' : 's'} ready',
             ),
 
@@ -1561,7 +1649,7 @@ class _ImportPreviewSheetState extends State<_ImportPreviewSheet> {
               SizedBox(height: 0.8.h),
               _SummaryRow(
                 icon: Icons.warning_amber_rounded,
-                iconColor: const Color(0xFFE0A458),
+                iconColor: context.amber600,
                 text: '${widget.invalidRows.length} row${widget.invalidRows.length == 1 ? '' : 's'} with errors (will be skipped)',
               ),
             ],

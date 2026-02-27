@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_colors_ext.dart';
 import '../../../widgets/custom_icon_widget.dart';
 
@@ -18,6 +19,7 @@ class ExportOptionsDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -30,14 +32,14 @@ class ExportOptionsDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Export Data',
+              l10n.exportData,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             SizedBox(height: 1.h),
             Text(
-              'Choose export format',
+              l10n.chooseExportFormat,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: context.slate500,
               ),
@@ -48,8 +50,8 @@ class ExportOptionsDialog extends StatelessWidget {
             _buildExportOption(
               context: context,
               iconName: 'table_chart',
-              title: 'CSV File',
-              subtitle: 'Spreadsheet compatible format',
+              title: l10n.csvFile,
+              subtitle: l10n.csvFileDescription,
               format: 'csv',
               theme: theme,
               colorScheme: colorScheme,
@@ -61,8 +63,8 @@ class ExportOptionsDialog extends StatelessWidget {
             _buildExportOption(
               context: context,
               iconName: 'grid_on',
-              title: 'Excel File',
-              subtitle: 'Microsoft Excel (.xlsx)',
+              title: l10n.excelFile,
+              subtitle: l10n.excelFileDescription,
               format: 'excel',
               theme: theme,
               colorScheme: colorScheme,
@@ -75,7 +77,7 @@ class ExportOptionsDialog extends StatelessWidget {
               width: double.infinity,
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Cancel'),
+                child: Text(l10n.cancel),
               ),
             ),
           ],

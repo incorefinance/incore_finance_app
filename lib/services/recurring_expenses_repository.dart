@@ -44,7 +44,8 @@ class RecurringExpensesRepository {
   /// Fetches all recurring expenses for the current user.
   /// Returns both active and inactive expenses.
   Future<List<RecurringExpense>> getRecurringExpensesForCurrentUser() async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     final response = await _client
         .from('recurring_expenses')
@@ -62,7 +63,8 @@ class RecurringExpensesRepository {
   /// Fetches only active recurring expenses for the current user.
   /// Use this for Dashboard and short-term pressure calculations.
   Future<List<RecurringExpense>> getActiveRecurringExpenses() async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     final response = await _client
         .from('recurring_expenses')
@@ -81,7 +83,8 @@ class RecurringExpensesRepository {
   /// Fetches a single recurring expense by ID.
   /// Returns null if not found or not owned by current user.
   Future<RecurringExpense?> getRecurringExpenseById(String id) async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     final response = await _client
         .from('recurring_expenses')
@@ -194,7 +197,8 @@ class RecurringExpensesRepository {
     required int dueDay,
     required bool isActive,
   }) async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     // Validate constraints before sending to database
     if (amount <= 0) {
@@ -227,7 +231,8 @@ class RecurringExpensesRepository {
   Future<void> deactivateRecurringExpense({
     required String id,
   }) async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     await _client
         .from('recurring_expenses')
@@ -243,7 +248,8 @@ class RecurringExpensesRepository {
   Future<void> reactivateRecurringExpense({
     required String id,
   }) async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     // Check plan and enforce limit BEFORE reactivating
     final plan = await _subscriptionService.getCurrentPlan();
@@ -280,7 +286,8 @@ class RecurringExpensesRepository {
   Future<void> deleteRecurringExpense({
     required String id,
   }) async {
-    final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('No authenticated user');
 
     await _client
         .from('recurring_expenses')
@@ -299,7 +306,3 @@ class RecurringExpensesRepository {
     }
   }
 }
-
-// TODO: When income events feature is implemented, wire:
-// - increment(UsageMetricsRepository.incomeEventsCount) on create
-// - decrement(UsageMetricsRepository.incomeEventsCount) on delete

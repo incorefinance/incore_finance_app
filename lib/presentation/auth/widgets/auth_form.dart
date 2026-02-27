@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../routes/app_routes.dart';
 import '../../../services/password_validator.dart';
 import '../../../theme/app_colors_ext.dart';
@@ -60,8 +61,9 @@ class _AuthFormState extends State<AuthForm> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         setState(() {
-          _errorText = 'Something went wrong. Please try again.';
+          _errorText = l10n.authErrorGeneric;
         });
       }
     } finally {
@@ -84,8 +86,9 @@ class _AuthFormState extends State<AuthForm> {
     );
 
     if (supabase.auth.currentUser == null) {
+      final l10n = AppLocalizations.of(context)!;
       setState(() {
-        _errorText = 'Sign in failed. Please try again.';
+        _errorText = l10n.authErrorSignInFailed;
       });
     }
     // Do not navigate or show SnackBar; StartupScreen handles routing via auth listener
@@ -126,20 +129,21 @@ class _AuthFormState extends State<AuthForm> {
   }
 
   String _mapAuthError(AuthException e) {
+    final l10n = AppLocalizations.of(context)!;
     final msg = e.message.toLowerCase();
     if (msg.contains('invalid login credentials') || msg.contains('invalid')) {
-      return 'Invalid email or password. Please try again.';
+      return l10n.authErrorInvalidCredentials;
     }
     if (msg.contains('email not confirmed')) {
-      return 'Please verify your email before signing in.';
+      return l10n.authErrorEmailNotConfirmed;
     }
     if (msg.contains('rate') || msg.contains('too many')) {
-      return 'Too many attempts. Please wait a moment.';
+      return l10n.authErrorTooManyAttempts;
     }
     if (msg.contains('already registered') || msg.contains('already been registered')) {
-      return 'An account with this email already exists.';
+      return l10n.authErrorAlreadyRegistered;
     }
-    return 'Something went wrong. Please try again.';
+    return l10n.authErrorGeneric;
   }
 
   void _toggleMode() {
@@ -154,6 +158,7 @@ class _AuthFormState extends State<AuthForm> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(32.0),
@@ -164,7 +169,7 @@ class _AuthFormState extends State<AuthForm> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              _isSignUpMode ? 'Create account' : 'Sign in',
+              _isSignUpMode ? l10n.signUp : l10n.signIn,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -178,7 +183,7 @@ class _AuthFormState extends State<AuthForm> {
               autocorrect: false,
               textInputAction: TextInputAction.next,
               decoration: InputDecoration(
-                labelText: 'Email',
+                labelText: l10n.email,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: context.borderGlass60),
@@ -194,10 +199,10 @@ class _AuthFormState extends State<AuthForm> {
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Please enter your email';
+                  return l10n.enterYourEmail;
                 }
                 if (!value.contains('@')) {
-                  return 'Please enter a valid email';
+                  return l10n.enterValidEmail;
                 }
                 return null;
               },
@@ -209,8 +214,8 @@ class _AuthFormState extends State<AuthForm> {
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.done,
               decoration: InputDecoration(
-                labelText: 'Password',
-                hintText: 'At least 12 characters',
+                labelText: l10n.password,
+                hintText: l10n.passwordHint,
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -241,7 +246,7 @@ class _AuthFormState extends State<AuthForm> {
                   return result.isValid ? null : result.errorMessage;
                 } else {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
+                    return l10n.enterPassword;
                   }
                   return null;
                 }
@@ -262,7 +267,7 @@ class _AuthFormState extends State<AuthForm> {
                   onPressed: _isLoading
                       ? null
                       : () => Navigator.of(context).pushNamed(AppRoutes.forgotPassword),
-                  child: const Text('Forgot password?'),
+                  child: Text(l10n.forgotPassword),
                 ),
               ),
             const SizedBox(height: 16),
@@ -319,7 +324,7 @@ class _AuthFormState extends State<AuthForm> {
                           color: Colors.white,
                         ),
                       )
-                    : Text(_isSignUpMode ? 'Create Account' : 'Sign In'),
+                    : Text(_isSignUpMode ? l10n.createAccount : l10n.signIn),
               ),
             ),
             const SizedBox(height: 12),
@@ -328,8 +333,8 @@ class _AuthFormState extends State<AuthForm> {
               onPressed: _isLoading ? null : _toggleMode,
               child: Text(
                 _isSignUpMode
-                    ? 'Already have an account? Sign in'
-                    : 'Need an account? Create one',
+                    ? l10n.alreadyHaveAccount
+                    : l10n.needAccount,
               ),
             ),
           ],

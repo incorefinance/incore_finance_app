@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_colors_ext.dart';
 import '../../../widgets/custom_icon_widget.dart';
 
@@ -23,11 +24,11 @@ class CurrencySelectorDialog extends StatefulWidget {
 class _CurrencySelectorDialogState extends State<CurrencySelectorDialog> {
   late String _selectedCurrency;
 
-  final List<Map<String, String>> _currencies = [
-    {'code': 'USD', 'name': 'US Dollar', 'symbol': '\$'},
-    {'code': 'BRL', 'name': 'Brazilian Real', 'symbol': 'R\$'},
-    {'code': 'EUR', 'name': 'Euro', 'symbol': '€'},
-    {'code': 'GBP', 'name': 'British Pound', 'symbol': '£'},
+  List<Map<String, String>> _getCurrencies(AppLocalizations l10n) => [
+    {'code': 'USD', 'name': l10n.currencyUsDollar, 'symbol': '\$'},
+    {'code': 'BRL', 'name': l10n.currencyBrazilianReal, 'symbol': 'R\$'},
+    {'code': 'EUR', 'name': l10n.currencyEuro, 'symbol': '€'},
+    {'code': 'GBP', 'name': l10n.currencyBritishPound, 'symbol': '£'},
   ];
 
   @override
@@ -40,6 +41,7 @@ class _CurrencySelectorDialogState extends State<CurrencySelectorDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -52,7 +54,7 @@ class _CurrencySelectorDialogState extends State<CurrencySelectorDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Select Currency',
+              l10n.selectCurrency,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -60,7 +62,7 @@ class _CurrencySelectorDialogState extends State<CurrencySelectorDialog> {
             SizedBox(height: 2.h),
 
             // Currency options
-            ..._currencies.map((currency) => Padding(
+            ..._getCurrencies(l10n).map((currency) => Padding(
                   padding: EdgeInsets.only(bottom: 1.h),
                   child: _buildCurrencyOption(
                     context: context,
@@ -81,7 +83,7 @@ class _CurrencySelectorDialogState extends State<CurrencySelectorDialog> {
                     foregroundColor: context.blue600,
                   ),
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
                 SizedBox(width: 2.w),
                 ElevatedButton(
@@ -93,7 +95,7 @@ class _CurrencySelectorDialogState extends State<CurrencySelectorDialog> {
                     widget.onCurrencySelected(_selectedCurrency);
                     Navigator.pop(context);
                   },
-                  child: Text('Apply'),
+                  child: Text(l10n.apply),
                 ),
               ],
             ),

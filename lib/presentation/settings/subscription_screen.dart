@@ -49,14 +49,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
   }
 
-  Future<void> _handleManageSubscription() async {
-    // TODO: Add url_launcher dependency and implement platform-specific URLs
-    // iOS: itms-apps://apps.apple.com/account/subscriptions
-    // Android: https://play.google.com/store/account/subscriptions
-    final l10n = AppLocalizations.of(context)!;
-    SnackbarHelper.showInfo(context, l10n.manageSubscriptionHint);
-  }
-
   Future<void> _handleRestorePurchases() async {
     setState(() => _isRestoring = true);
 
@@ -169,17 +161,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     _buildFeaturesList(context, l10n),
                     SizedBox(height: 3.h),
                   ],
-
-                  // Manage Subscription Button (only for premium)
-                  if (_currentPlan == PlanType.premium)
-                    OutlinedButton.icon(
-                      onPressed: _handleManageSubscription,
-                      icon: const Icon(Icons.settings_outlined),
-                      label: Text(l10n.manageSubscription),
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 1.5.h),
-                      ),
-                    ),
 
                   // Upgrade Button (only for free)
                   if (_currentPlan == PlanType.free)

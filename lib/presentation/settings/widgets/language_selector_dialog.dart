@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_colors_ext.dart';
 import '../../../widgets/custom_icon_widget.dart';
 
@@ -33,6 +34,7 @@ class _LanguageSelectorDialogState extends State<LanguageSelectorDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -43,7 +45,7 @@ class _LanguageSelectorDialogState extends State<LanguageSelectorDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Select Language',
+              l10n.selectLanguage,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -83,7 +85,7 @@ class _LanguageSelectorDialogState extends State<LanguageSelectorDialog> {
                     foregroundColor: context.blue600,
                   ),
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
                 SizedBox(width: 2.w),
                 ElevatedButton(
@@ -95,7 +97,7 @@ class _LanguageSelectorDialogState extends State<LanguageSelectorDialog> {
                     widget.onLanguageSelected(_selectedLanguage);
                     Navigator.pop(context);
                   },
-                  child: Text('Apply'),
+                  child: Text(l10n.apply),
                 ),
               ],
             ),

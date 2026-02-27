@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_colors_ext.dart';
 import '../../../widgets/custom_icon_widget.dart';
 
@@ -30,24 +31,27 @@ class _ImportDialogState extends State<ImportDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: EdgeInsets.all(5.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: 85.h),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(5.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             Text(
-              'Import Transactions',
+              l10n.importTransactionsTitle,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             SizedBox(height: 0.5.h),
             Text(
-              'Choose a file to import or download the template first',
+              l10n.importTransactionsSubtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: context.slate500,
               ),
@@ -55,7 +59,7 @@ class _ImportDialogState extends State<ImportDialog> {
             SizedBox(height: 1.5.h),
 
             // ── Format guide ──────────────────────────────────────────────
-            _buildGuide(context, theme),
+            _buildGuide(context, theme, l10n: l10n),
 
             SizedBox(height: 1.5.h),
 
@@ -63,8 +67,8 @@ class _ImportDialogState extends State<ImportDialog> {
             _buildOption(
               context: context,
               iconName: 'table_chart',
-              title: 'CSV File',
-              subtitle: 'Comma-separated values (.csv)',
+              title: l10n.csvFile,
+              subtitle: l10n.csvFileSubtitle,
               format: 'csv',
               theme: theme,
             ),
@@ -75,8 +79,8 @@ class _ImportDialogState extends State<ImportDialog> {
             _buildOption(
               context: context,
               iconName: 'grid_on',
-              title: 'Excel File',
-              subtitle: 'Microsoft Excel (.xlsx)',
+              title: l10n.excelFile,
+              subtitle: l10n.excelFileDescription,
               format: 'excel',
               theme: theme,
             ),
@@ -99,7 +103,7 @@ class _ImportDialogState extends State<ImportDialog> {
                   color: context.blue600,
                 ),
                 label: Text(
-                  'Download Excel template',
+                  l10n.downloadExcelTemplate,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: context.blue600,
                     fontWeight: FontWeight.w500,
@@ -120,16 +124,17 @@ class _ImportDialogState extends State<ImportDialog> {
                 style: TextButton.styleFrom(
                   foregroundColor: context.slate500,
                 ),
-                child: const Text('Cancel'),
+                child: Text(l10n.cancel),
               ),
             ),
           ],
         ),
-      ),
+        ),
+        ),
     );
   }
 
-  Widget _buildGuide(BuildContext context, ThemeData theme) {
+  Widget _buildGuide(BuildContext context, ThemeData theme, {required AppLocalizations l10n}) {
     return Container(
       decoration: BoxDecoration(
         color: context.blue50,
@@ -155,7 +160,7 @@ class _ImportDialogState extends State<ImportDialog> {
                   SizedBox(width: 2.w),
                   Expanded(
                     child: Text(
-                      'Format guide',
+                      l10n.formatGuide,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: context.blue600,
                         fontWeight: FontWeight.w600,
@@ -180,16 +185,16 @@ class _ImportDialogState extends State<ImportDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _guideRow(theme, 'date', required: true, hint: 'YYYY-MM-DD  (e.g. 2025-01-15)'),
-                  _guideRow(theme, 'type', required: true, hint: 'income  or  expense'),
-                  _guideRow(theme, 'amount', required: true, hint: 'Positive number  (e.g. 5000.00)'),
-                  _guideRow(theme, 'description', required: false, hint: 'Optional free text'),
-                  _guideRow(theme, 'category', required: true, hint: 'e.g. Consulting, Software, Rent'),
-                  _guideRow(theme, 'payment_method', required: true, hint: 'Cash, Card, Bank Transfer…'),
-                  _guideRow(theme, 'client', required: false, hint: 'Optional free text'),
+                  _guideRow(theme, l10n.columnDate, required: true, hint: l10n.formatGuideDate),
+                  _guideRow(theme, l10n.columnType, required: true, hint: l10n.formatGuideType),
+                  _guideRow(theme, l10n.columnAmount, required: true, hint: l10n.formatGuideAmount),
+                  _guideRow(theme, l10n.columnDescription, required: false, hint: l10n.formatGuideOptional),
+                  _guideRow(theme, l10n.columnCategory, required: true, hint: l10n.formatGuideCategory),
+                  _guideRow(theme, l10n.columnPaymentMethod, required: true, hint: l10n.formatGuidePayment),
+                  _guideRow(theme, l10n.columnClient, required: false, hint: l10n.formatGuideOptional),
                   SizedBox(height: 0.6.h),
                   Text(
-                    'Download the template for sample data and full category list.',
+                    l10n.formatGuideDownloadHint,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: context.slate500,
                       fontStyle: FontStyle.italic,
@@ -216,12 +221,12 @@ class _ImportDialogState extends State<ImportDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 24.w,
+            width: 28.w,
             child: Text(
               column,
               style: theme.textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: required ? Colors.black87 : Colors.black54,
+                color: required ? context.slate900 : context.slate500,
               ),
             ),
           ),
@@ -229,7 +234,7 @@ class _ImportDialogState extends State<ImportDialog> {
           Text(
             required ? '✓' : '–',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: required ? const Color(0xFF14B8A6) : Colors.black38,
+              color: required ? context.teal600 : context.slate400,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -238,7 +243,7 @@ class _ImportDialogState extends State<ImportDialog> {
             child: Text(
               hint,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.black54,
+                color: context.slate500,
               ),
             ),
           ),

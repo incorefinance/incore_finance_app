@@ -1806,4 +1806,214 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get biometricFingerprint => 'impressão digital';
+
+  @override
+  String get biometricTouchId => 'Touch ID';
+
+  @override
+  String get chooseExportFormat => 'Escolha o formato de exportação';
+
+  @override
+  String get csvFile => 'Ficheiro CSV';
+
+  @override
+  String get csvFileDescription => 'Formato compatível com folhas de cálculo';
+
+  @override
+  String get excelFile => 'Ficheiro Excel';
+
+  @override
+  String get excelFileDescription => 'Microsoft Excel (.xlsx)';
+
+  @override
+  String get importTransactionsTitle => 'Importar Transações';
+
+  @override
+  String get importTransactionsSubtitle => 'Escolha um ficheiro para importar ou descarregue o modelo primeiro';
+
+  @override
+  String get selectLanguage => 'Selecionar Idioma';
+
+  @override
+  String get selectCurrency => 'Selecionar Moeda';
+
+  @override
+  String get apply => 'Aplicar';
+
+  @override
+  String get csvFileSubtitle => 'Valores separados por vírgula (.csv)';
+
+  @override
+  String get downloadExcelTemplate => 'Descarregar modelo Excel';
+
+  @override
+  String get formatGuide => 'Guia de formato';
+
+  @override
+  String get formatGuideDate => 'AAAA-MM-DD  (ex. 2025-01-15)';
+
+  @override
+  String get formatGuideType => 'income  ou  expense';
+
+  @override
+  String get formatGuideAmount => 'Número positivo  (ex. 5000.00)';
+
+  @override
+  String get formatGuideOptional => 'Texto livre opcional';
+
+  @override
+  String get formatGuideCategory => 'ex. Consulting, Software, Rent';
+
+  @override
+  String get formatGuidePayment => 'Cash, Card, Bank Transfer…';
+
+  @override
+  String get formatGuideDownloadHint => 'Descarregue o modelo para dados de exemplo e lista completa de categorias.';
+
+  @override
+  String get columnDate => 'Data';
+
+  @override
+  String get columnType => 'Tipo';
+
+  @override
+  String get columnAmount => 'Valor';
+
+  @override
+  String get columnDescription => 'Descrição';
+
+  @override
+  String get columnCategory => 'Categoria';
+
+  @override
+  String get columnPaymentMethod => 'Método de Pagamento';
+
+  @override
+  String get columnClient => 'Cliente';
+
+  @override
+  String get signIn => 'Iniciar sessão';
+
+  @override
+  String get signUp => 'Criar conta';
+
+  @override
+  String get password => 'Palavra-passe';
+
+  @override
+  String get passwordHint => 'Pelo menos 12 caracteres';
+
+  @override
+  String get newPassword => 'Nova Palavra-passe';
+
+  @override
+  String get confirmPassword => 'Confirmar Palavra-passe';
+
+  @override
+  String get forgotPassword => 'Esqueceu a palavra-passe?';
+
+  @override
+  String get createAccount => 'Criar Conta';
+
+  @override
+  String get alreadyHaveAccount => 'Já tem conta? Iniciar sessão';
+
+  @override
+  String get needAccount => 'Precisa de uma conta? Crie uma';
+
+  @override
+  String get sendResetEmail => 'Enviar Email de Recuperação';
+
+  @override
+  String get backToSignIn => 'Voltar ao Início de Sessão';
+
+  @override
+  String get continueToSignIn => 'Continuar para Início de Sessão';
+
+  @override
+  String get updatePassword => 'Atualizar Palavra-passe';
+
+  @override
+  String get resetPassword => 'Recuperar Palavra-passe';
+
+  @override
+  String get setNewPassword => 'Definir Nova Palavra-passe';
+
+  @override
+  String get passwordUpdated => 'Palavra-passe Atualizada';
+
+  @override
+  String get enterYourEmail => 'Introduza o seu email';
+
+  @override
+  String get enterValidEmail => 'Introduza um email válido';
+
+  @override
+  String get enterPassword => 'Introduza a sua palavra-passe';
+
+  @override
+  String get enterNewPassword => 'Introduza uma palavra-passe';
+
+  @override
+  String get confirmYourPassword => 'Confirme a sua palavra-passe';
+
+  @override
+  String get passwordsDoNotMatch => 'As palavras-passe não coincidem';
+
+  @override
+  String get resetPasswordInstructions => 'Introduza o seu endereço de email e enviaremos um link para recuperar a sua palavra-passe.';
+
+  @override
+  String get resetEmailSent => 'Se existir uma conta com este email, enviámos um link de recuperação. Verifique a sua caixa de entrada.';
+
+  @override
+  String get passwordUpdatedMessage => 'Palavra-passe atualizada. Pode iniciar sessão agora.';
+
+  @override
+  String get enterNewPasswordBelow => 'Introduza a sua nova palavra-passe abaixo.';
+
+  @override
+  String get openResetLinkMessage => 'Abra o link de recuperação no seu email e depois volte à aplicação para definir a nova palavra-passe.';
+
+  @override
+  String get authErrorGeneric => 'Algo correu mal. Tente novamente.';
+
+  @override
+  String get authErrorInvalidCredentials => 'Email ou palavra-passe inválidos. Tente novamente.';
+
+  @override
+  String get authErrorEmailNotConfirmed => 'Verifique o seu email antes de iniciar sessão.';
+
+  @override
+  String get authErrorTooManyAttempts => 'Demasiadas tentativas. Aguarde um momento.';
+
+  @override
+  String get authErrorAlreadyRegistered => 'Já existe uma conta com este email.';
+
+  @override
+  String get authErrorSignInFailed => 'Falha ao iniciar sessão. Tente novamente.';
+
+  @override
+  String get authErrorSessionExpired => 'A sua sessão expirou. Abra o link de recuperação novamente.';
+
+  @override
+  String get authErrorChooseDifferentPassword => 'Escolha uma palavra-passe diferente da atual.';
+
+  @override
+  String get authErrorTooManyResetAttempts => 'Demasiadas tentativas de recuperação para este email. Aguarde cerca de uma hora antes de tentar novamente, ou verifique a sua caixa de entrada.';
+
+  @override
+  String get passwordRequirements => 'Requisitos da palavra-passe:';
+
+  @override
+  String get currencyUsDollar => 'Dólar Americano';
+
+  @override
+  String get currencyBrazilianReal => 'Real Brasileiro';
+
+  @override
+  String get currencyEuro => 'Euro';
+
+  @override
+  String get currencyBritishPound => 'Libra Esterlina';
 }

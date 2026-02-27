@@ -3436,6 +3436,426 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'fingerprint'**
   String get biometricFingerprint;
+
+  /// No description provided for @biometricTouchId.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch ID'**
+  String get biometricTouchId;
+
+  /// No description provided for @chooseExportFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose export format'**
+  String get chooseExportFormat;
+
+  /// No description provided for @csvFile.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV File'**
+  String get csvFile;
+
+  /// No description provided for @csvFileDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Spreadsheet compatible format'**
+  String get csvFileDescription;
+
+  /// No description provided for @excelFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Excel File'**
+  String get excelFile;
+
+  /// No description provided for @excelFileDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Microsoft Excel (.xlsx)'**
+  String get excelFileDescription;
+
+  /// No description provided for @importTransactionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Transactions'**
+  String get importTransactionsTitle;
+
+  /// No description provided for @importTransactionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file to import or download the template first'**
+  String get importTransactionsSubtitle;
+
+  /// No description provided for @selectLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Language'**
+  String get selectLanguage;
+
+  /// No description provided for @selectCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Currency'**
+  String get selectCurrency;
+
+  /// No description provided for @apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get apply;
+
+  /// No description provided for @csvFileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comma-separated values (.csv)'**
+  String get csvFileSubtitle;
+
+  /// No description provided for @downloadExcelTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Excel template'**
+  String get downloadExcelTemplate;
+
+  /// No description provided for @formatGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Format guide'**
+  String get formatGuide;
+
+  /// No description provided for @formatGuideDate.
+  ///
+  /// In en, this message translates to:
+  /// **'YYYY-MM-DD  (e.g. 2025-01-15)'**
+  String get formatGuideDate;
+
+  /// No description provided for @formatGuideType.
+  ///
+  /// In en, this message translates to:
+  /// **'income  or  expense'**
+  String get formatGuideType;
+
+  /// No description provided for @formatGuideAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Positive number  (e.g. 5000.00)'**
+  String get formatGuideAmount;
+
+  /// No description provided for @formatGuideOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional free text'**
+  String get formatGuideOptional;
+
+  /// No description provided for @formatGuideCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Consulting, Software, Rent'**
+  String get formatGuideCategory;
+
+  /// No description provided for @formatGuidePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash, Card, Bank Transfer…'**
+  String get formatGuidePayment;
+
+  /// No description provided for @formatGuideDownloadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Download the template for sample data and full category list.'**
+  String get formatGuideDownloadHint;
+
+  /// No description provided for @columnDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get columnDate;
+
+  /// No description provided for @columnType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get columnType;
+
+  /// No description provided for @columnAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get columnAmount;
+
+  /// No description provided for @columnDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get columnDescription;
+
+  /// No description provided for @columnCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get columnCategory;
+
+  /// No description provided for @columnPaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Method'**
+  String get columnPaymentMethod;
+
+  /// No description provided for @columnClient.
+  ///
+  /// In en, this message translates to:
+  /// **'Client'**
+  String get columnClient;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signIn;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get signUp;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @passwordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 12 characters'**
+  String get passwordHint;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get newPassword;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirmPassword;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get forgotPassword;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get createAccount;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? Sign in'**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @needAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Need an account? Create one'**
+  String get needAccount;
+
+  /// No description provided for @sendResetEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Reset Email'**
+  String get sendResetEmail;
+
+  /// No description provided for @backToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Sign In'**
+  String get backToSignIn;
+
+  /// No description provided for @continueToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to Sign In'**
+  String get continueToSignIn;
+
+  /// No description provided for @updatePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Password'**
+  String get updatePassword;
+
+  /// No description provided for @resetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get resetPassword;
+
+  /// No description provided for @setNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Set New Password'**
+  String get setNewPassword;
+
+  /// No description provided for @passwordUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Updated'**
+  String get passwordUpdated;
+
+  /// No description provided for @enterYourEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email'**
+  String get enterYourEmail;
+
+  /// No description provided for @enterValidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email'**
+  String get enterValidEmail;
+
+  /// No description provided for @enterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password'**
+  String get enterPassword;
+
+  /// No description provided for @enterNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a password'**
+  String get enterNewPassword;
+
+  /// No description provided for @confirmYourPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please confirm your password'**
+  String get confirmYourPassword;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @resetPasswordInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address and we will send you a link to reset your password.'**
+  String get resetPasswordInstructions;
+
+  /// No description provided for @resetEmailSent.
+  ///
+  /// In en, this message translates to:
+  /// **'If an account exists for this email, we sent a reset link. Please check your inbox.'**
+  String get resetEmailSent;
+
+  /// No description provided for @passwordUpdatedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated. You can sign in now.'**
+  String get passwordUpdatedMessage;
+
+  /// No description provided for @enterNewPasswordBelow.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your new password below.'**
+  String get enterNewPasswordBelow;
+
+  /// No description provided for @openResetLinkMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the reset link from your email, then return to the app to set your new password.'**
+  String get openResetLinkMessage;
+
+  /// No description provided for @authErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get authErrorGeneric;
+
+  /// No description provided for @authErrorInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email or password. Please try again.'**
+  String get authErrorInvalidCredentials;
+
+  /// No description provided for @authErrorEmailNotConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Please verify your email before signing in.'**
+  String get authErrorEmailNotConfirmed;
+
+  /// No description provided for @authErrorTooManyAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please wait a moment.'**
+  String get authErrorTooManyAttempts;
+
+  /// No description provided for @authErrorAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'An account with this email already exists.'**
+  String get authErrorAlreadyRegistered;
+
+  /// No description provided for @authErrorSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in failed. Please try again.'**
+  String get authErrorSignInFailed;
+
+  /// No description provided for @authErrorSessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please open the reset link again.'**
+  String get authErrorSessionExpired;
+
+  /// No description provided for @authErrorChooseDifferentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please choose a different password than your current one.'**
+  String get authErrorChooseDifferentPassword;
+
+  /// No description provided for @authErrorTooManyResetAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many reset attempts for this email. Please wait about an hour before trying again, or check your inbox for an existing reset link.'**
+  String get authErrorTooManyResetAttempts;
+
+  /// No description provided for @passwordRequirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Password requirements:'**
+  String get passwordRequirements;
+
+  /// No description provided for @currencyUsDollar.
+  ///
+  /// In en, this message translates to:
+  /// **'US Dollar'**
+  String get currencyUsDollar;
+
+  /// No description provided for @currencyBrazilianReal.
+  ///
+  /// In en, this message translates to:
+  /// **'Brazilian Real'**
+  String get currencyBrazilianReal;
+
+  /// No description provided for @currencyEuro.
+  ///
+  /// In en, this message translates to:
+  /// **'Euro'**
+  String get currencyEuro;
+
+  /// No description provided for @currencyBritishPound.
+  ///
+  /// In en, this message translates to:
+  /// **'British Pound'**
+  String get currencyBritishPound;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

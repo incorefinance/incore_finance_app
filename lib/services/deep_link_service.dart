@@ -133,8 +133,8 @@ class DeepLinkService {
         final fragParams = Uri.splitQueryString(uri.fragment);
         final fragType = fragParams['type'];
         if (fragType == 'recovery') return true;
-      } catch (_) {
-        // Ignore fragment parsing issues
+      } catch (e) {
+        AppLogger.d('DeepLinkService: Fragment parsing failed: $e');
       }
     }
 

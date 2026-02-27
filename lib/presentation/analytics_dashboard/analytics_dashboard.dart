@@ -13,6 +13,7 @@ import '../../services/auth_guard.dart';
 import '../../widgets/app_error_widget.dart';
 import '../../utils/number_formatter.dart';
 import '../../utils/category_localizer.dart';
+import '../../utils/date_format_util.dart';
 import '../../l10n/app_localizations.dart';
 import './widgets/income_expenses_chart_widget.dart';
 import './widgets/profit_trends_chart_widget.dart';
@@ -264,8 +265,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
         // date locale follows app language, not currency
         _dateLocale = (lang == 'pt') ? 'pt_PT' : 'en_US';
       });
-    } catch (_) {
-      // keep defaults
+    } catch (e) {
+      AppLogger.w('[Analytics] _loadCurrencySettings failed', error: e);
     }
   }
 
@@ -379,7 +380,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
       try {
         _activeRecurringExpenses =
             await _recurringExpensesRepository.getActiveRecurringExpenses();
-      } catch (_) {
+      } catch (e) {
+        AppLogger.w('[Analytics] getActiveRecurringExpenses failed', error: e);
         _activeRecurringExpenses = [];
       }
 
@@ -409,7 +411,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
         final incomeRepository = UserIncomeRepository();
         final (incomeType, _) = await incomeRepository.getIncomeProfile();
         _incomeType = incomeType;
-      } catch (_) {
+      } catch (e) {
+        AppLogger.w('[Analytics] getIncomeProfile failed', error: e);
         _incomeType = null;
       }
 
@@ -523,8 +526,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
         if (baseline != null) {
           startingBalance = baseline.startingBalance;
         }
-      } catch (_) {
-        // Keep startingBalance as 0 if fetch fails
+      } catch (e) {
+        AppLogger.w('[Analytics] getBaselineForCurrentUser failed', error: e);
       }
 
       // Fetch all transactions BEFORE the chart period to compute pre-period balance
@@ -552,8 +555,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
       for (int i = 0; i < days; i++) {
         final date = startDateNormalized.add(Duration(days: i));
-        final key =
-            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        final key = toIsoDateString(date);
         dailyNetChanges[key] = 0.0;
       }
 
@@ -562,8 +564,7 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
       for (final tx in transactions) {
         final d = DateTime(tx.date.year, tx.date.month, tx.date.day);
-        final key =
-            '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+        final key = toIsoDateString(d);
 
         if (!dailyNetChanges.containsKey(key)) continue;
 
@@ -583,15 +584,15 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> with RouteAware
 
       for (int i = 0; i < days; i++) {
         final date = startDateNormalized.add(Duration(days: i));
-        final key =
-            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        final key = toIsoDateString(date);
         runningBalance += dailyNetChanges[key] ?? 0;
         series.add({'date': date, 'balance': runningBalance});
       }
 
       _balanceData = series;
       _transactionDayIndices = txDayIndices;
-    } catch (_) {
+    } catch (e) {
+      AppLogger.w('[Analytics] _loadCashBalanceData failed', error: e);
       _balanceData = [];
       _transactionDayIndices = {};
     }

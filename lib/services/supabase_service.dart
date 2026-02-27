@@ -18,9 +18,4 @@ class SupabaseService {
   static Future<void> initialize() async {
     await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
   }
-
-  // Get current user ID (for demo purposes, using a default profile ID)
-  // In production, this would come from authentication
-  int get currentUserId =>
-      1; // Replace with actual auth user ID when auth is implemented
 }

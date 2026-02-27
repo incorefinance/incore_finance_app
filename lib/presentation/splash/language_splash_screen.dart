@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../core/locale/locale_store.dart';
+import '../../theme/app_colors_ext.dart';
 
 /// First-launch language selection splash screen.
 class LanguageSplashScreen extends StatefulWidget {
@@ -55,7 +56,7 @@ class _LanguageSplashScreenState extends State<LanguageSplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF2563EB);
+    final primaryBlue = context.blue600;
 
     return Scaffold(
       backgroundColor: primaryBlue,

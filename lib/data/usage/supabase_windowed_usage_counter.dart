@@ -11,6 +11,7 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/logging/app_logger.dart';
 import '../../domain/usage/windowed_usage_counter.dart';
 import '../../domain/usage/month_window.dart';
 
@@ -49,8 +50,8 @@ class SupabaseWindowedUsageCounter implements WindowedUsageCounter {
           .count(CountOption.exact);
 
       return response.count;
-    } catch (_) {
-      // If query fails, return 0 to avoid blocking user
+    } catch (e) {
+      AppLogger.w('[UsageCounter] transactionsThisMonth failed', error: e);
       return 0;
     }
   }
@@ -70,16 +71,14 @@ class SupabaseWindowedUsageCounter implements WindowedUsageCounter {
           .count(CountOption.exact);
 
       return response.count;
-    } catch (_) {
-      // If query fails, return 0 to avoid blocking user
+    } catch (e) {
+      AppLogger.w('[UsageCounter] activeRecurringExpenses failed', error: e);
       return 0;
     }
   }
 
   @override
   Future<int> incomeEventsThisMonth() async {
-    // TODO: Implement when income_events table exists
-    // Will follow same pattern as transactionsThisMonth()
     return 0;
   }
 }

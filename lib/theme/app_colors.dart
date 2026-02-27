@@ -253,7 +253,7 @@ abstract final class AppColors {
 
   // ─── Frosted Glass (Dark Mode) ─────────────────────────────────────────────
 
-  static const Color canvasFrostedDark = Color(0xFF0F172A);
+  static const Color canvasFrostedDark = Color.fromRGBO(30, 41, 59, 0.50); // slate-800/50 (surface/50)
   static const Color surfaceGlass80Dark = Color.fromRGBO(15, 23, 42, 0.80);
   static const Color surfaceGlass90Dark = Color.fromRGBO(15, 23, 42, 0.90);
   static const Color borderGlass60Dark = Color.fromRGBO(30, 41, 59, 0.60);

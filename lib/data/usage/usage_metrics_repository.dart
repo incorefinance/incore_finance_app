@@ -5,6 +5,8 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/logging/app_logger.dart';
+
 /// Repository for tracking user usage metrics in Supabase.
 ///
 /// Uses upsert pattern to safely handle concurrent updates.
@@ -60,8 +62,8 @@ class UsageMetricsRepository {
 
       if (response == null) return 0;
       return response['value'] as int? ?? 0;
-    } catch (_) {
-      // If table doesn't exist or query fails, return 0
+    } catch (e) {
+      AppLogger.w('[UsageMetrics] getMetric($metricType) failed', error: e);
       return 0;
     }
   }
@@ -88,7 +90,8 @@ class UsageMetricsRepository {
       final timestamp = response['last_crossed_limit_at'] as String?;
       if (timestamp == null) return null;
       return DateTime.parse(timestamp);
-    } catch (_) {
+    } catch (e) {
+      AppLogger.w('[UsageMetrics] getLastCrossed($metricType) failed', error: e);
       return null;
     }
   }
